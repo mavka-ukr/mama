@@ -1,4 +1,4 @@
-<img src="https://github.com/mavka-ukr/mama/assets/21020331/d3007dd2-b3aa-49da-bf55-3f19634b8db6">
+<img src="https://github.com/mavka-ukr/mama/assets/21020331/3ba5ab84-51ae-4327-b1bc-a83f7abf6945">
 
 # МаМа
 
