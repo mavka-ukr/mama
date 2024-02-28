@@ -8,6 +8,7 @@
 
 ```shell
 git clone https://github.com/mavka-ukr/mama
+git submodule update --init --recursive
 ```
 
 ```CMake
