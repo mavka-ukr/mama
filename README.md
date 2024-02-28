@@ -1,7 +1,35 @@
-<img src="https://github.com/mavka-ukr/mama/assets/21020331/3ba5ab84-51ae-4327-b1bc-a83f7abf6945">
+<img src="./assets/cover.png" /> 
 
 # МаМа
 
-МаМа (Машина Мавки або Машина вказівок) це спеціальна віртуальна машина, в якій виконуються вказівки Мавки.
+Машина вказівок Мавки.
 
-Докладніше: https://diia.dev/mavka/mama
+## Використання
+
+```shell
+git clone https://github.com/mavka-ukr/mama
+```
+
+```CMake
+cmake_minimum_required(VERSION 3.26)
+project(mavka)
+
+set(CMAKE_CXX_STANDARD 20)
+
+add_subdirectory(mama/src)
+
+add_executable(mavka mavka.cpp)
+target_link_libraries(mavka PRIVATE mama)
+target_compile_options(mavka PRIVATE -fexceptions)
+set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
+```
+
+```c++
+#include "mama/src/mama.h"
+
+int main(int argc, char **argv) {
+    // todo
+
+    return 0;
+}
+```
