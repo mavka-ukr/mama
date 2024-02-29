@@ -186,7 +186,7 @@ namespace mavka::mama {
     }
     M->throw_cell =
         create_string(M, "Неможливо додати до тексту обʼєкт типу \"" +
-                             getcelltypename(arg_cell) + "\".");
+                             arg_cell.get_name() + "\".");
     throw MaException();
   }
 

@@ -29,7 +29,7 @@ set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
 #include "mama/src/mama.h"
 
 int main(int argc, char **argv) {
-    // todo
+    const auto M = new mavka::mama::MaMa();
 
     return 0;
 }

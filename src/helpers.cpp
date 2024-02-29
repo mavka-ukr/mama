@@ -1,7 +1,12 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  std::string gettypename(size_t type) {
+  std::string MaCell::get_name() const {
+    if (type == MA_CELL_OBJECT) {
+      if (v.object->structure) {
+        return v.object->structure->d.structure->name;
+      }
+    }
     switch (type) {
       case MA_CELL_EMPTY:
         return "пусто";
@@ -13,26 +18,12 @@ namespace mavka::mama {
         return "логічне";
       case MA_CELL_OBJECT:
         return "обʼєкт";
+      case MA_CELL_ARGS:
+        return "аргументи";
       default:
         break;
     }
     return std::to_string(type);
-  }
-
-  std::string getcelltypename(MaCell cell) {
-    if (cell.type == MA_CELL_OBJECT) {
-      if (cell.v.object->structure) {
-        return cell.v.object->structure->d.structure->name;
-      }
-    }
-    return gettypename(cell.type);
-  }
-
-  std::string getcellstructurename(MaCell cell) {
-    if (cell.type == MA_CELL_OBJECT) {
-      return cell.v.object->structure->d.structure->name;
-    }
-    return "";
   }
 
   std::string cell_to_string(MaCell cell, int depth) {
@@ -112,45 +103,10 @@ namespace mavka::mama {
     return "<невідомо>";
   }
 
-  void print_cell(MaCell* cell) {
-    std::cout << "unknown" << std::endl;
-  }
-
   void print_instruction_with_index(MaCode* code,
                                     int index,
                                     MaInstruction instruction) {
-    std::cout << code << "[" << index << "]: " << getopname(instruction.v)
-              << " [";
-    if (instruction.v == VStore) {
-      std::cout << instruction.args.store->name;
-    }
-    if (instruction.v == VLoad) {
-      std::cout << instruction.args.load->name;
-    }
-    if (instruction.v == VJumpIfTrue ||
-        instruction.v == VEJumpIfTrue) {
-      std::cout << instruction.args.jumpiftrue;
-    }
-    if (instruction.v == VJumpIfFalse ||
-        instruction.v == VEJumpIfFalse) {
-      std::cout << instruction.args.jumpiffalse;
-    }
-    if (instruction.v == VJump) {
-      std::cout << instruction.args.jump;
-    }
-    if (instruction.v == VStoreArg) {
-      std::cout << instruction.args.storearg->name;
-    }
-    if (instruction.v == VNumber) {
-      std::cout << instruction.args.number;
-    }
-    std::cout << "]" << std::endl;
-  }
-
-  void print_code(MaCode* code) {
-    for (int i = 0; i < code->instructions.size(); ++i) {
-      const auto& instruction = code->instructions[i];
-      print_instruction_with_index(code, i, instruction);
-    }
+    std::cout << code << "[" << index << "]: " << instruction.to_string()
+              << std::endl;
   }
 } // namespace mavka::mama

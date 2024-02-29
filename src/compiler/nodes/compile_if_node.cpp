@@ -9,7 +9,7 @@ namespace mavka::mama {
     if (condition_result.error) {
       return condition_result;
     }
-    code->instructions.push_back(MaInstruction::jumpiffalse(0));
+    code->instructions.push_back(MaInstruction::jumpIfFalse(0));
     const auto jump_if_instruction_index = code->instructions.size() - 1;
     const auto body_result = compile_body(M, code, if_node->body);
     if (body_result.error) {
@@ -17,13 +17,13 @@ namespace mavka::mama {
     }
     code->instructions.push_back(MaInstruction::jump(0));
     const auto jump_out_else_instruction_index = code->instructions.size() - 1;
-    code->instructions[jump_if_instruction_index].args.jumpiffalse =
+    code->instructions[jump_if_instruction_index].data.jumpIfFalse =
         code->instructions.size();
     const auto else_body_result = compile_body(M, code, if_node->else_body);
     if (else_body_result.error) {
       return else_body_result;
     }
-    code->instructions[jump_out_else_instruction_index].args.jump =
+    code->instructions[jump_out_else_instruction_index].data.jump =
         code->instructions.size();
     return success();
   }

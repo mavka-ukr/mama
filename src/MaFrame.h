@@ -1,7 +1,7 @@
 #ifndef MA_FRAME_H
 #define MA_FRAME_H
 
-enum MaArgsType { MA_ARGS_NAMED, MA_ARGS_POSITIONED };
+enum MaArgsType : size_t { MA_ARGS_NAMED, MA_ARGS_POSITIONED };
 
 struct MaArgs {
   MaArgsType type;

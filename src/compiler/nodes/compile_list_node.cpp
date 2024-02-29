@@ -11,7 +11,7 @@ namespace mavka::mama {
       if (result.error) {
         return result;
       }
-      code->instructions.push_back(MaInstruction::listappend());
+      code->instructions.push_back(MaInstruction::listAppend());
     }
     return success();
   }

@@ -1,16 +1,14 @@
 #include "../../mama.h"
 
 namespace mavka::mama {
-  MaCompilationResult compile_structure_node(
-      MaMa* M,
-      MaCode* code,
-      mavka::ast::ASTValue* ast_value) {
+  MaCompilationResult compile_structure_node(MaMa* M,
+                                             MaCode* code,
+                                             mavka::ast::ASTValue* ast_value) {
     const auto structure_node = ast_value->data.StructureNode;
     if (structure_node->parent) {
       return error(ast_value, "Наслідування структур тимчасово недоступне.");
     }
-    code->instructions.push_back(MaInstruction::struct_(
-        new MaStructInstructionArgs(structure_node->name)));
+    code->instructions.push_back(MaInstruction::struct_(structure_node->name));
     for (const auto& param : structure_node->params) {
       if (param->data.ParamNode->value) {
         const auto value_result =
@@ -26,12 +24,11 @@ namespace mavka::mama {
             VESetR,
             {.set = new MaSetInstructionArgs(param->data.ParamNode->name)}});
       } else {
-        code->instructions.push_back(MaInstruction::structparam(
-            new MaStructParamInstructionArgs(param->data.ParamNode->name)));
+        code->instructions.push_back(
+            MaInstruction::structParam(param->data.ParamNode->name));
       }
     }
-    code->instructions.push_back(
-        MaInstruction::store(new MaStoreInstructionArgs(structure_node->name)));
+    code->instructions.push_back(MaInstruction::store(structure_node->name));
     return success();
   }
 } // namespace mavka::mama

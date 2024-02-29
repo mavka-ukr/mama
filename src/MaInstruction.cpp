@@ -1,8 +1,8 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  std::string getopname(const MaV v) {
-    switch (v) {
+  std::string MaInstruction::to_string() {
+    switch (this->v) {
       case VConstant:
         return "VConstant";
       case VAdd:
@@ -95,8 +95,8 @@ namespace mavka::mama {
         return "VTryDone";
       case VNot:
         return "VNot";
-      case VInitargs:
-        return "VInitargs";
+      case VArgs:
+        return "VArgs";
       case VDiiaParam:
         return "VDiiaParam";
       case VStructParam:
@@ -128,9 +128,8 @@ namespace mavka::mama {
       case VPushArg:
         return "VPushArg";
       default:
-        break;
+        return std::to_string(v);
     }
-    return std::to_string(v);
   }
   MaInstruction MaInstruction::pop() {
     return MaInstruction{VPop};
@@ -150,14 +149,15 @@ namespace mavka::mama {
   MaInstruction MaInstruction::no() {
     return MaInstruction{VNo};
   }
-  MaInstruction MaInstruction::initargs(MaInitArgsInstructionArgs* args) {
-    return MaInstruction{VInitargs, {.initargs = args}};
+  MaInstruction MaInstruction::args(MaArgsType args_type) {
+    return MaInstruction{VArgs, {.args_type = args_type}};
   }
-  MaInstruction MaInstruction::pusharg() {
+  MaInstruction MaInstruction::pushArg() {
     return MaInstruction{VPushArg};
   }
-  MaInstruction MaInstruction::storearg(MaStoreArgInstructionArgs* args) {
-    return MaInstruction{VStoreArg, {.storearg = args}};
+  MaInstruction MaInstruction::storeArg(const std::string& name) {
+    return MaInstruction{VStoreArg,
+                         {.storeArg = new MaStoreArgInstructionArgs(name)}};
   }
   MaInstruction MaInstruction::call(MaLocation location) {
     return MaInstruction{VCall, {}, location};
@@ -165,83 +165,94 @@ namespace mavka::mama {
   MaInstruction MaInstruction::return_() {
     return MaInstruction{VReturn};
   }
-  MaInstruction MaInstruction::diia(MaDiiaInstructionArgs* args) {
-    return MaInstruction{VDiia, {.diia = args}};
+  MaInstruction MaInstruction::diia(MaCode* code, const std::string& name) {
+    return MaInstruction{VDiia,
+                         {.diia = new MaDiiaInstructionArgs(code, name)}};
   }
-  MaInstruction MaInstruction::diiaparam(MaDiiaParamInstructionArgs* args) {
-    return MaInstruction{VDiiaParam, {.diiaparam = args}};
+  MaInstruction MaInstruction::diiaParam(const std::string& name) {
+    return MaInstruction{VDiiaParam,
+                         {.diiaParam = new MaDiiaParamInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::store(MaStoreInstructionArgs* args) {
-    return MaInstruction{VStore, {.store = args}};
+  MaInstruction MaInstruction::store(const std::string& name) {
+    return MaInstruction{VStore, {.store = new MaStoreInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::load(MaLoadInstructionArgs* args) {
-    return MaInstruction{VLoad, {.load = args}};
+  MaInstruction MaInstruction::load(const std::string& name) {
+    return MaInstruction{VLoad, {.load = new MaLoadInstructionArgs(name)}};
   }
   MaInstruction MaInstruction::jump(size_t index) {
     return MaInstruction{VJump, {.jump = index}};
   }
-  MaInstruction MaInstruction::jumpiftrue(size_t index) {
-    return MaInstruction{VJumpIfTrue, {.jumpiftrue = index}};
+  MaInstruction MaInstruction::jumpIfTrue(size_t index) {
+    return MaInstruction{VJumpIfTrue, {.jumpIfTrue = index}};
   }
-  MaInstruction MaInstruction::jumpiffalse(size_t index) {
-    return MaInstruction{VJumpIfFalse, {.jumpiffalse = index}};
+  MaInstruction MaInstruction::jumpIfFalse(size_t index) {
+    return MaInstruction{VJumpIfFalse, {.jumpIfFalse = index}};
   }
-  MaInstruction MaInstruction::get(MaGetInstructionArgs* args) {
-    return MaInstruction{VGet, {.get = args}};
+  MaInstruction MaInstruction::get(const std::string& name) {
+    return MaInstruction{VGet, {.get = new MaGetInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::set(MaSetInstructionArgs* args) {
-    return MaInstruction{VSet, {.set = args}};
+  MaInstruction MaInstruction::set(const std::string& name) {
+    return MaInstruction{VSet, {.set = new MaSetInstructionArgs(name)}};
   }
   MaInstruction MaInstruction::try_(MaTryInstructionArgs* args) {
     return MaInstruction{VTry, {.try_ = args}};
   }
-  MaInstruction MaInstruction::trydone(MaTryDoneInstructionArgs* args) {
-    return MaInstruction{VTryDone, {.trydone = args}};
-  }
-  MaInstruction MaInstruction::throw_(MaThrowInstructionArgs* args) {
-    return MaInstruction{VThrow, {.throw_ = args}};
+  MaInstruction MaInstruction::throw_(MaLocation location) {
+    return MaInstruction{VThrow,
+                         {.throw_ = new MaThrowInstructionArgs(location)}};
   }
   MaInstruction MaInstruction::list() {
     return MaInstruction{VList};
   }
-  MaInstruction MaInstruction::listappend() {
+  MaInstruction MaInstruction::listAppend() {
     return MaInstruction{VListAppend};
   }
   MaInstruction MaInstruction::dict() {
     return MaInstruction{VDict};
   }
-  MaInstruction MaInstruction::dictset(MaDictSetInstructionArgs* args) {
-    return MaInstruction{VDictSet, {.dictset = args}};
+  MaInstruction MaInstruction::dictSet(const std::string& key) {
+    return MaInstruction{VDictSet,
+                         {.dictSet = new MaDictSetInstructionArgs(key)}};
   }
-  MaInstruction MaInstruction::struct_(MaStructInstructionArgs* args) {
-    return MaInstruction{VStruct, {.struct_ = args}};
+  MaInstruction MaInstruction::struct_(const std::string& name) {
+    return MaInstruction{VStruct,
+                         {.struct_ = new MaStructInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::structparam(MaStructParamInstructionArgs* args) {
-    return MaInstruction{VStructParam, {.structparam = args}};
+  MaInstruction MaInstruction::structParam(const std::string& name) {
+    return MaInstruction{
+        VStructParam, {.structParam = new MaStructParamInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::structmethod() {
+  MaInstruction MaInstruction::structMethod() {
     return MaInstruction{VStructMethod};
   }
-  MaInstruction MaInstruction::module(MaModuleInstructionArgs* args) {
-    return MaInstruction{VModule, {.module = args}};
+  MaInstruction MaInstruction::module(MaCode* code, const std::string& name) {
+    return MaInstruction{VModule,
+                         {.module = new MaModuleInstructionArgs(code, name)}};
   }
-  MaInstruction MaInstruction::give(MaGiveInstructionArgs* args) {
-    return MaInstruction{VGive, {.give = args}};
+  MaInstruction MaInstruction::give(const std::string& name) {
+    return MaInstruction{VGive, {.give = new MaGiveInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::moduledone() {
+  MaInstruction MaInstruction::moduleDone() {
     return MaInstruction{VModuleDone};
   }
-  MaInstruction MaInstruction::keepmodule() {
+  MaInstruction MaInstruction::keepModule() {
     return MaInstruction{VKeepModule};
   }
-  MaInstruction MaInstruction::loadmodule() {
+  MaInstruction MaInstruction::loadModule() {
     return MaInstruction{VLoadModule};
   }
-  MaInstruction MaInstruction::moduleload(MaModuleLoadInstructionArgs* args) {
-    return MaInstruction{VModuleLoad, {.moduleload = args}};
+  MaInstruction MaInstruction::moduleLoad(const std::string& name,
+                                          const std::string& as) {
+    return MaInstruction{
+        VModuleLoad, {.moduleLoad = new MaModuleLoadInstructionArgs(name, as)}};
   }
-  MaInstruction MaInstruction::take(MaTakeInstructionArgs* args) {
-    return MaInstruction{VTake, {.take = args}};
+  MaInstruction MaInstruction::take(
+      const std::string& repository,
+      bool relative,
+      const std::vector<std::string>& path_parts) {
+    return MaInstruction{
+        VTake,
+        {.take = new MaTakeInstructionArgs(repository, relative, path_parts)}};
   }
   MaInstruction MaInstruction::eq() {
     return MaInstruction{VEq};

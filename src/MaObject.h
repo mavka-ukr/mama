@@ -32,15 +32,15 @@ struct MaObject {
       call;
 };
 
-union MaCellV {
-  MaObject* object;
-  double number;
-  MaArgs* args;
-};
-
 struct MaCell {
   unsigned char type;
-  MaCellV v;
+  union {
+    MaObject* object;
+    double number;
+    MaArgs* args;
+  } v;
+
+  std::string get_name() const;
 };
 
 class MaString final {
@@ -128,10 +128,6 @@ inline MaCell ma_object_get(const MaObject* object, const std::string& name) {
     return object->properties.at(name);
   }
   return MA_MAKE_EMPTY();
-}
-
-inline bool ma_object_has(const MaObject* object, const std::string& name) {
-  return object->properties.contains(name);
 }
 
 void init_object(MaMa* M);

@@ -14,7 +14,7 @@ namespace mavka::mama {
     if (condition_result.error) {
       return condition_result;
     }
-    code->instructions.push_back(MaInstruction::jumpiffalse(0));
+    code->instructions.push_back(MaInstruction::jumpIfFalse(0));
     const auto jump_if_false_instruction_index = code->instructions.size() - 1;
     const auto body_result = compile_body(M, code, while_node->body);
     if (body_result.error) {
@@ -22,14 +22,14 @@ namespace mavka::mama {
     }
     code->instructions.push_back(MaInstruction::jump(continue_index));
     const auto break_index = code->instructions.size();
-    code->instructions[jump_if_false_instruction_index].args.jumpiffalse =
+    code->instructions[jump_if_false_instruction_index].data.jumpIfFalse =
         break_index;
     for (const auto& jump : jumps) {
       if (jump.continue_node) {
-        code->instructions[jump.continue_node->code_index].args.jump =
+        code->instructions[jump.continue_node->code_index].data.jump =
             continue_index;
       } else if (jump.break_node) {
-        code->instructions[jump.break_node->code_index].args.jump = break_index;
+        code->instructions[jump.break_node->code_index].data.jump = break_index;
       }
     }
     return success();

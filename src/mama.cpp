@@ -4,18 +4,16 @@
   M->throw_cell = create_string(M, (v)); \
   throw MaException();
 
-#define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell)                 \
-  DO_THROW_STRING("Дію \"" + std::string(varname) +                       \
-                  "\" не визначено для типу \"" + getcelltypename(cell) + \
-                  "\".")
+#define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
+  DO_THROW_STRING("Дію \"" + std::string(varname) +       \
+                  "\" не визначено для типу \"" + cell.get_name() + "\".")
 
-#define DO_THROW_PROP_NOT_DEFINED_FOR_TYPE(varname, cell)                 \
-  DO_THROW_STRING("Властивість \"" + std::string(varname) +               \
-                  "\" не визначено для типу \"" + getcelltypename(cell) + \
-                  "\".")
+#define DO_THROW_PROP_NOT_DEFINED_FOR_TYPE(varname, cell)   \
+  DO_THROW_STRING("Властивість \"" + std::string(varname) + \
+                  "\" не визначено для типу \"" + cell.get_name() + "\".")
 
 #define DO_THROW_CANNOT_CALL_CELL(cell) \
-  DO_THROW_STRING("Неможливо викликати \"" + getcelltypename(cell) + "\".")
+  DO_THROW_STRING("Неможливо викликати \"" + cell.get_name() + "\".")
 
 #define OBJECT_GET(cell, varname, propname)                       \
   MaCell varname{};                                               \
@@ -25,7 +23,7 @@
     if ((cell).v.object->properties.contains(propname)) {         \
       varname = (cell).v.object->properties[propname];            \
     } else {                                                      \
-      DO_THROW_PROP_NOT_DEFINED_FOR_TYPE(propname, cell)          \
+      varname = MA_MAKE_EMPTY();                                  \
     }                                                             \
   }
 
@@ -56,11 +54,11 @@ namespace mavka::mama {
           break;
         }
         case VConstant: {
-          PUSH(M->constants[I.args.constant]);
+          PUSH(M->constants[I.data.constant]);
           break;
         }
         case VNumber: {
-          PUSH_NUMBER(I.args.number);
+          PUSH_NUMBER(I.data.number);
           break;
         }
         case VEmpty: {
@@ -75,8 +73,8 @@ namespace mavka::mama {
           PUSH_NO();
           break;
         }
-        case VInitargs: {
-          PUSH_ARGS(new MaArgs(I.args.initargs->args_type));
+        case VArgs: {
+          PUSH_ARGS(new MaArgs(I.data.args_type));
           break;
         }
         case VPushArg: {
@@ -88,7 +86,7 @@ namespace mavka::mama {
         case VStoreArg: {
           POP_VALUE(value_cell);
           TOP_VALUE(args_cell);
-          ARGS_SET(args_cell, I.args.store->name, value_cell);
+          ARGS_SET(args_cell, I.data.store->name, value_cell);
           break;
         }
         case VCall: {
@@ -102,7 +100,7 @@ namespace mavka::mama {
         }
         case VDiia: {
           const auto diia_cell =
-              create_diia(M, I.args.diia->name, I.args.diia->code, nullptr);
+              create_diia(M, I.data.diia->name, I.data.diia->code, nullptr);
           diia_cell.v.object->d.diia->scope = frame->scope;
           diia_cell.v.object->d.diia->module = M->current_module;
           PUSH(diia_cell);
@@ -112,35 +110,35 @@ namespace mavka::mama {
           POP_VALUE(default_value_cell);
           TOP_VALUE(diia_cell);
           diia_cell.v.object->d.diia->params.push_back(
-              MaDiiaParam{.name = I.args.diiaparam->name,
+              MaDiiaParam{.name = I.data.diiaParam->name,
                           .default_value = default_value_cell});
           break;
         }
         case VStore: {
           POP_VALUE(value);
-          frame->scope->set_variable(I.args.store->name, value);
+          frame->scope->set_variable(I.data.store->name, value);
           break;
         }
         case VLoad: {
           const auto scope = frame->scope;
-          if (scope->has_variable(I.args.load->name)) {
-            PUSH(scope->get_variable(I.args.load->name));
+          if (scope->has_variable(I.data.load->name)) {
+            PUSH(scope->get_variable(I.data.load->name));
             break;
           }
-          DO_THROW_STRING("Субʼєкт \"" + I.args.load->name + "\" не визначено.")
+          DO_THROW_STRING("Субʼєкт \"" + I.data.load->name + "\" не визначено.")
         }
         case VJump: {
-          i = I.args.jump;
+          i = I.data.jump;
           goto start;
         }
         case VJumpIfTrue: {
           POP_VALUE(cell);
           if (IS_NUMBER(cell) && cell.v.number != 0.0) {
-            i = I.args.jumpiftrue;
+            i = I.data.jumpIfTrue;
             goto start;
           }
           if (!IS_NO(cell)) {
-            i = I.args.jumpiftrue;
+            i = I.data.jumpIfTrue;
             goto start;
           }
           break;
@@ -148,15 +146,15 @@ namespace mavka::mama {
         case VJumpIfFalse: {
           POP_VALUE(cell);
           if (IS_EMPTY(cell)) {
-            i = I.args.jumpiffalse;
+            i = I.data.jumpIfFalse;
             goto start;
           } else if (IS_NUMBER(cell)) {
             if (cell.v.number == 0.0) {
-              i = I.args.jumpiffalse;
+              i = I.data.jumpIfFalse;
               goto start;
             }
           } else if (IS_NO(cell)) {
-            i = I.args.jumpiffalse;
+            i = I.data.jumpIfFalse;
             goto start;
           }
           break;
@@ -165,11 +163,11 @@ namespace mavka::mama {
           TOP_VALUE(cell);
           if (IS_NUMBER(cell)) {
             if (cell.v.number != 0.0) {
-              i = I.args.jumpiftrue;
+              i = I.data.jumpIfTrue;
               goto start;
             }
           } else if (!IS_NO(cell)) {
-            i = I.args.jumpiftrue;
+            i = I.data.jumpIfTrue;
             goto start;
           }
           break;
@@ -177,15 +175,15 @@ namespace mavka::mama {
         case VEJumpIfFalse: {
           TOP_VALUE(cell);
           if (IS_EMPTY(cell)) {
-            i = I.args.jumpiffalse;
+            i = I.data.jumpIfFalse;
             goto start;
           }
           if (IS_NUMBER(cell) && cell.v.number == 0.0) {
-            i = I.args.jumpiffalse;
+            i = I.data.jumpIfFalse;
             goto start;
           }
           if (IS_NO(cell)) {
-            i = I.args.jumpiffalse;
+            i = I.data.jumpIfFalse;
             goto start;
           }
           break;
@@ -193,11 +191,11 @@ namespace mavka::mama {
         case VGet: {
           POP_VALUE(cell);
           if (IS_OBJECT(cell)) {
-            OBJECT_GET(cell, value, I.args.get->name);
+            OBJECT_GET(cell, value, I.data.get->name);
             PUSH(value);
             break;
           }
-          DO_THROW_PROP_NOT_DEFINED_FOR_TYPE(I.args.get->name, cell);
+          PUSH_EMPTY();
           break;
         }
         case VSet: {
@@ -207,7 +205,7 @@ namespace mavka::mama {
             if (IS_OBJECT_STRING(cell)) {
               break;
             }
-            OBJECT_SET(cell, I.args.set->name, value);
+            OBJECT_SET(cell, I.data.set->name, value);
             break;
           }
           break;
@@ -216,27 +214,27 @@ namespace mavka::mama {
           POP_VALUE(value);
           TOP_VALUE(cell);
           if (IS_OBJECT(cell)) {
-            ma_object_set(cell.v.object, I.args.set->name, value);
+            ma_object_set(cell.v.object, I.data.set->name, value);
           }
           break;
         }
         case VTry: {
           const auto frames_size = M->frame_stack.size();
           try {
-            run(M, I.args.try_->try_code);
+            run(M, I.data.try_->try_code);
           } catch (const MaException& e) {
             const auto value = M->throw_cell;
             PUSH(value);
             while (M->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            run(M, I.args.try_->catch_code);
+            run(M, I.data.try_->catch_code);
           }
           break;
         }
         case VTryDone: {
           FRAME_POP();
-          i = I.args.trydone->index;
+          i = I.data.tryDone->index;
           break;
         }
         case VThrow: {
@@ -261,12 +259,12 @@ namespace mavka::mama {
         case VDictSet: {
           POP_VALUE(value);
           TOP_VALUE(dict_cell);
-          dict_cell.v.object->d.dict->set(create_string(M, I.args.dictset->key),
+          dict_cell.v.object->d.dict->set(create_string(M, I.data.dictSet->key),
                                           value);
           break;
         }
         case VStruct: {
-          const auto structure_cell = create_structure(M, I.args.struct_->name);
+          const auto structure_cell = create_structure(M, I.data.struct_->name);
           PUSH(structure_cell);
           break;
         }
@@ -274,7 +272,7 @@ namespace mavka::mama {
           POP_VALUE(default_value_cell);
           TOP_VALUE(structure_cell);
           structure_cell.v.object->d.structure->params.push_back(
-              MaDiiaParam{.name = I.args.diiaparam->name,
+              MaDiiaParam{.name = I.data.diiaParam->name,
                           .default_value = default_value_cell});
           break;
         }
@@ -289,20 +287,20 @@ namespace mavka::mama {
             }
           }
           DO_THROW_STRING("Неможливо створити метод для типу " +
-                          getcelltypename(structure_cell))
+                          structure_cell.get_name())
         }
         case VModule: {
-          const auto module_cell = create_module(M, I.args.module->name);
+          const auto module_cell = create_module(M, I.data.module->name);
           const auto module_scope = new MaScope(frame->scope);
           const auto module_frame =
               new MaFrame(module_scope, module_cell.v.object, frame->module);
           FRAME_PUSH(module_frame);
-          frame->scope->set_variable(I.args.module->name, module_cell);
+          frame->scope->set_variable(I.data.module->name, module_cell);
           break;
         }
         case VGive: {
           POP_VALUE(value);
-          frame->object->properties.insert_or_assign(I.args.give->name, value);
+          frame->object->properties.insert_or_assign(I.data.give->name, value);
         }
         case VModuleDone: {
           FRAME_POP();
@@ -819,8 +817,8 @@ namespace mavka::mama {
         }
         case VTake: {
           const auto module_object =
-              ma_take(M, I.args.take->repository, I.args.take->relative,
-                      I.args.take->path_parts);
+              ma_take(M, I.data.take->repository, I.data.take->relative,
+                      I.data.take->path_parts);
           PUSH_OBJECT(module_object);
           break;
         }
@@ -836,13 +834,12 @@ namespace mavka::mama {
         }
         case VModuleLoad: {
           TOP_VALUE(module_cell);
-          OBJECT_GET(module_cell, value, I.args.moduleload->name);
-          frame->scope->set_variable(I.args.moduleload->as, value);
+          OBJECT_GET(module_cell, value, I.data.moduleLoad->name);
+          frame->scope->set_variable(I.data.moduleLoad->as, value);
           break;
         }
         default: {
-          std::cout << "unsupported instruction " << getopname(I.v)
-                    << std::endl;
+          std::cout << "unsupported instruction " << I.to_string() << std::endl;
           return;
         }
       }

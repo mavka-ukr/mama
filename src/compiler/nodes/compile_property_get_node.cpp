@@ -10,8 +10,7 @@ namespace mavka::mama {
     if (result.error) {
       return result;
     }
-    code->instructions.push_back(
-        MaInstruction::get(new MaGetInstructionArgs(property_get_node->name)));
+    code->instructions.push_back(MaInstruction::get(property_get_node->name));
     return success();
   }
 } // namespace mavka::mama

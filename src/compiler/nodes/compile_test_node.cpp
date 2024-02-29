@@ -18,7 +18,7 @@ namespace mavka::mama {
       if (right.error) {
         return right;
       }
-      code->instructions[jump_if_false_instruction_index].args.jumpiffalse =
+      code->instructions[jump_if_false_instruction_index].data.jumpIfFalse =
           code->instructions.size();
     } else if (test_node->op == ast::TEST_OR) {
       const auto left = compile_node(M, code, test_node->left);
@@ -32,7 +32,7 @@ namespace mavka::mama {
       if (right.error) {
         return right;
       }
-      code->instructions[jump_if_true_instruction_index].args.jumpiftrue =
+      code->instructions[jump_if_true_instruction_index].data.jumpIfTrue =
           code->instructions.size();
     }
     return success();

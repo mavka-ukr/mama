@@ -17,8 +17,7 @@ namespace mavka::mama {
         if (diia_node->name.empty()) {
           return error(ast_value, "Не вказано назву дії.");
         }
-        code->instructions.push_back(
-            MaInstruction::store(new MaStoreInstructionArgs(diia_node->name)));
+        code->instructions.push_back(MaInstruction::store(diia_node->name));
       }
     } else {
       if (diia_node->ee) {
@@ -28,10 +27,8 @@ namespace mavka::mama {
         if (result.error) {
           return result;
         }
-        code->instructions.push_back(MaInstruction::load(
-            new MaLoadInstructionArgs(diia_node->structure)));
-        code->instructions.push_back(
-            MaInstruction::set(new MaSetInstructionArgs(diia_node->name)));
+        code->instructions.push_back(MaInstruction::load(diia_node->structure));
+        code->instructions.push_back(MaInstruction::set(diia_node->name));
       } else {
         const auto result = compile_method(
             M, code, diia_node->structure, diia_node->ee, diia_node->async,

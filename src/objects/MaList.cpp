@@ -66,50 +66,51 @@ namespace mavka::mama {
   }
 
   MaCell ma_list_iterate_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
+    const auto list_object = o->d.diia_native->me;
     const auto iterator_object_cell = create_empty_object(M);
     const auto iterator_object = iterator_object_cell.v.object;
 
     ma_object_set(iterator_object, "_список",
                   MaCell{MA_CELL_OBJECT, {.object = o}});
 
-    if (o->d.diia_native->me->d.list->size() == 0) {
+    if (list_object->d.list->size() == 0) {
       ma_object_set(iterator_object, "завершено", MA_MAKE_YES());
-    } else if (o->d.diia_native->me->d.list->size() == 1) {
+    } else if (list_object->d.list->size() == 1) {
       ma_object_set(iterator_object, "завершено", MA_MAKE_NO());
-      ma_object_set(iterator_object, "значення",
-                    o->d.diia_native->me->d.list->data[0]);
+      ma_object_set(iterator_object, "значення", list_object->d.list->data[0]);
       const auto next_diia_native_cell = create_diia_native(
           M, "далі",
-          [](MaMa* M, MaObject* iterator_me, MaArgs* args) {
-            ma_object_set(iterator_me, "завершено", MA_MAKE_YES());
+          [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
+            const auto iterator_object = iterator_o->d.diia_native->me;
+            ma_object_set(iterator_object, "завершено", MA_MAKE_YES());
             return MA_MAKE_EMPTY();
           },
           iterator_object);
       ma_object_set(iterator_object, "далі", next_diia_native_cell);
     } else {
       ma_object_set(iterator_object, "завершено", MA_MAKE_NO());
-      ma_object_set(iterator_object, "значення",
-                    o->d.diia_native->me->d.list->data[0]);
+      ma_object_set(iterator_object, "значення", list_object->d.list->data[0]);
       ma_object_set(iterator_object, "_індекс", MA_MAKE_NUMBER(1));
       const auto next_diia_native_cell = create_diia_native(
           M, "далі",
-          [](MaMa* M, MaObject* iterator_me, MaArgs* args) {
-            const auto i = iterator_me->properties["_індекс"].v.number;
+          [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
+            const auto iterator_object = iterator_o->d.diia_native->me;
+            const auto i = iterator_object->properties["_індекс"].v.number;
             const auto list =
-                iterator_me->properties["_список"].v.object->d.list;
+                iterator_o->properties["_список"].v.object->d.list;
             if (i < list->size()) {
-              ma_object_set(iterator_me, "завершено", MA_MAKE_NO());
-              ma_object_set(iterator_me, "значення", list->data[i]);
-              ma_object_set(iterator_me, "_індекс", MA_MAKE_NUMBER(i + 1));
+              ma_object_set(iterator_object, "завершено", MA_MAKE_NO());
+              ma_object_set(iterator_object, "значення", list->data[i]);
+              ma_object_set(iterator_object, "_індекс", MA_MAKE_NUMBER(i + 1));
             } else {
-              ma_object_set(iterator_me, "завершено", MA_MAKE_YES());
+              ma_object_set(iterator_object, "завершено", MA_MAKE_YES());
             }
             return MA_MAKE_EMPTY();
           },
           iterator_object);
       ma_object_set(iterator_object, "далі", next_diia_native_cell);
     }
-    RETURN(iterator_object_cell);
+    return iterator_object_cell;
   }
 
   MaCell ma_list_get_element_diia_native_fn(MaMa* M,
