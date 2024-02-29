@@ -136,6 +136,32 @@
   FRAME_POP();
 
 #define OBJECT_HAS(object, name) (object)->properties.contains((name))
+#define OBJECT_GET(cell, varname, propname)                       \
+  MaCell varname{};                                               \
+  if ((cell).v.object->get) {                                     \
+    varname = (cell).v.object->get(M, (cell).v.object, propname); \
+  } else {                                                        \
+    if ((cell).v.object->properties.contains(propname)) {         \
+      varname = (cell).v.object->properties[propname];            \
+    } else {                                                      \
+      varname = MA_MAKE_EMPTY();                                  \
+    }                                                             \
+  }
+#define OBJECT_SET(cell, propname, value)                      \
+  if ((cell).v.object->set) {                                  \
+    (cell).v.object->set(M, (cell).v.object, propname, value); \
+  } else {                                                     \
+    (cell).v.object->properties[propname] = value;             \
+  }
+
+#define DO_THROW_STRING(v)               \
+  M->throw_cell = create_string(M, (v)); \
+  throw MaException();
+#define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
+  DO_THROW_STRING("Дію \"" + std::string(varname) +       \
+                  "\" не визначено для типу \"" + cell.get_name() + "\".")
+#define DO_THROW_CANNOT_CALL_CELL(cell) \
+  DO_THROW_STRING("Неможливо викликати \"" + cell.get_name() + "\".")
 
 namespace mavka::mama {
   struct MaMa;
@@ -169,7 +195,13 @@ namespace mavka::mama {
 #include "compiler/compiler.h"
 #include "helpers.h"
 
-  class MaException : public std::exception {};
+  class MaException : public std::exception {
+   public:
+    MaLocation location;
+
+    MaException() : location({.line = 0, .column = 0}) {}
+    MaException(MaLocation location) { this->location = location; }
+  };
 
   struct MaCode {
     std::vector<MaInstruction> instructions;
@@ -200,7 +232,7 @@ namespace mavka::mama {
     MaObject* module_structure_object;
   };
 
-  void run(MaMa* M, MaCode* code);
+  void ma_run(MaMa* M, MaCode* code);
 
   MaCell ma_call(MaMa* M,
                  MaCell cell,
@@ -210,7 +242,10 @@ namespace mavka::mama {
                        MaCell cell,
                        const std::unordered_map<std::string, MaCell>& args,
                        MaLocation location);
-  MaCell docall(MaMa* M, MaCell cell, MaArgs* args, MaLocation location);
+  MaCell ma_call_handler(MaMa* M,
+                         MaCell cell,
+                         MaArgs* args,
+                         MaLocation location);
 
   MaObject* ma_take(MaMa* M,
                     const std::string& repository,

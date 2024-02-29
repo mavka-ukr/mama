@@ -11,10 +11,10 @@ namespace mavka::mama {
     }
 
     const auto args_type = call_node->args.empty()
-                               ? MA_ARGS_POSITIONED
+                               ? MA_ARGS_TYPE_POSITIONED
                                : (call_node->args[0]->data.ArgNode->name.empty()
-                                      ? MA_ARGS_POSITIONED
-                                      : MA_ARGS_NAMED);
+                                      ? MA_ARGS_TYPE_POSITIONED
+                                      : MA_ARGS_TYPE_NAMED);
 
     const auto instruction_location =
         MaLocation(ast_value->start_line, ast_value->start_column);

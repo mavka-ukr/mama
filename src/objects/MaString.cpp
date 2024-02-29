@@ -59,7 +59,7 @@ namespace mavka::mama {
   }
 
   MaCell ma_string_split_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "роздільник", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "роздільник", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       const auto delim = cell.v.object->d.string->data;
       if (delim.empty()) {
@@ -93,13 +93,13 @@ namespace mavka::mama {
   }
 
   MaCell ma_string_replace_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto first = ARGS_GET(args, 0, "старе", MA_MAKE_EMPTY());
+    const auto first = MA_ARGS_GET(args, 0, "старе", MA_MAKE_EMPTY());
     if (!IS_STRING(first)) {
       M->throw_cell = create_string(
           M, "Для дії \"замінити\" перший аргумент повинен бути текстом.");
       throw MaException();
     }
-    const auto second = ARGS_GET(args, 1, "нове", MA_MAKE_EMPTY());
+    const auto second = MA_ARGS_GET(args, 1, "нове", MA_MAKE_EMPTY());
     if (!IS_STRING(second)) {
       M->throw_cell = create_string(
           M, "Для дії \"замінити\" другий аргумент повинен бути текстом.");
@@ -122,7 +122,7 @@ namespace mavka::mama {
   MaCell ma_string_starts_with_diia_native_fn(MaMa* M,
                                               MaObject* o,
                                               MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       if (o->d.diia_native->me->d.string->data.find(
               cell.v.object->d.string->data) == 0) {
@@ -139,7 +139,7 @@ namespace mavka::mama {
   MaCell ma_string_ends_with_diia_native_fn(MaMa* M,
                                             MaObject* o,
                                             MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       const auto str = cell.v.object->d.string;
       if (o->d.diia_native->me->d.string->length() < str->length()) {
@@ -164,7 +164,7 @@ namespace mavka::mama {
   }
 
   MaCell ma_string_mag_add_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto arg_cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto arg_cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_EMPTY(arg_cell)) {
       RETURN(create_string(M, o->d.diia_native->me->d.string->data + "пусто"));
     }
@@ -193,7 +193,7 @@ namespace mavka::mama {
   MaCell ma_string_mag_contains_diia_native_fn(MaMa* M,
                                                MaObject* o,
                                                MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       if (o->d.diia_native->me->d.string->data.find(
               cell.v.object->d.string->data) != std::string::npos) {
@@ -210,7 +210,7 @@ namespace mavka::mama {
   MaCell ma_string_mag_get_element_diia_native_fn(MaMa* M,
                                                   MaObject* o,
                                                   MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "позиція", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "позиція", MA_MAKE_EMPTY());
     if (IS_NUMBER(cell)) {
       const auto i = cell.v.number;
       if (i < o->d.diia_native->me->d.string->length()) {
@@ -298,7 +298,7 @@ namespace mavka::mama {
   MaCell text_structure_object_mag_call_diia_native_fn(MaMa* M,
                                                        MaObject* o,
                                                        MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_NUMBER(cell)) {
       RETURN(create_string(M, ma_number_to_string(cell.v.number)));
     }
@@ -312,7 +312,7 @@ namespace mavka::mama {
       if (cell.v.object->type == MA_OBJECT_STRING) {
         RETURN(cell);
       } else if (OBJECT_HAS(cell.v.object, MAG_TEXT)) {
-        return ma_call(M, cell.v.object->properties[MAG_TEXT], {}, {});
+        return ma_call_handler(M, cell.v.object->properties[MAG_TEXT], {}, {});
       }
     }
     M->throw_cell = create_string(M, "Неможливо перетворити на текст.");

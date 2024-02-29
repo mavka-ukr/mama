@@ -23,10 +23,10 @@ namespace mavka::mama {
       for (int i = 0; i < o->d.diia->params.size(); ++i) {
         const auto& param = o->d.diia->params[i];
         const auto arg_value =
-            ARGS_GET(args, i, param.name, param.default_value);
+            MA_ARGS_GET(args, i, param.name, param.default_value);
         frame->scope->set_variable(param.name, arg_value);
       }
-      run(M, o->d.diia->code);
+      ma_run(M, o->d.diia->code);
       const auto result = frame->stack.top();
       FRAME_POP();
       return result;

@@ -51,14 +51,21 @@ set(MAMA_SRC
         objects/MaObject.cpp
         objects/MaString.cpp
         objects/MaStructure.cpp
-        MaInstruction.cpp
-        helpers.cpp
-        mama.cpp
-        mama.h
-        MaScope.cpp
         utils/chrono.h
         utils/tools.cpp
         utils/tools.h
+        helpers.cpp
+        helpers.h
+        ma_call.cpp
+        ma_take.cpp
+        MaFrame.h
+        MaInstruction.cpp
+        MaInstruction.h
+        ma_run.cpp
+        mama.h
+        MaObject.h
+        MaScope.cpp
+        MaScope.h
 )
 
 add_library(mama ${MAMA_SRC})

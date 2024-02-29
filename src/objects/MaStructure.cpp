@@ -19,7 +19,7 @@ namespace mavka::mama {
   MaCell structure_structure_object_get_structure_diia_native_fn(MaMa* M,
                                                                  MaObject* o,
                                                                  MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_EMPTY(cell)) {
       RETURN_EMPTY();
     }
@@ -48,7 +48,7 @@ namespace mavka::mama {
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
         const auto arg_value =
-            ARGS_GET(args, i, param.name, param.default_value);
+            MA_ARGS_GET(args, i, param.name, param.default_value);
         ma_object_set(object_cell.v.object, param.name, arg_value);
       }
       FRAME_POP();

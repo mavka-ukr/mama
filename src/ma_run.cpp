@@ -1,41 +1,7 @@
 #include "mama.h"
 
-#define DO_THROW_STRING(v)               \
-  M->throw_cell = create_string(M, (v)); \
-  throw MaException();
-
-#define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
-  DO_THROW_STRING("Дію \"" + std::string(varname) +       \
-                  "\" не визначено для типу \"" + cell.get_name() + "\".")
-
-#define DO_THROW_PROP_NOT_DEFINED_FOR_TYPE(varname, cell)   \
-  DO_THROW_STRING("Властивість \"" + std::string(varname) + \
-                  "\" не визначено для типу \"" + cell.get_name() + "\".")
-
-#define DO_THROW_CANNOT_CALL_CELL(cell) \
-  DO_THROW_STRING("Неможливо викликати \"" + cell.get_name() + "\".")
-
-#define OBJECT_GET(cell, varname, propname)                       \
-  MaCell varname{};                                               \
-  if ((cell).v.object->get) {                                     \
-    varname = (cell).v.object->get(M, (cell).v.object, propname); \
-  } else {                                                        \
-    if ((cell).v.object->properties.contains(propname)) {         \
-      varname = (cell).v.object->properties[propname];            \
-    } else {                                                      \
-      varname = MA_MAKE_EMPTY();                                  \
-    }                                                             \
-  }
-
-#define OBJECT_SET(cell, propname, value)                      \
-  if ((cell).v.object->set) {                                  \
-    (cell).v.object->set(M, (cell).v.object, propname, value); \
-  } else {                                                     \
-    (cell).v.object->properties[propname] = value;             \
-  }
-
 namespace mavka::mama {
-  void run(MaMa* M, MaCode* code) {
+  void ma_run(MaMa* M, MaCode* code) {
     READ_TOP_FRAME();
     auto size = code->instructions.size();
     size_t i = 0;
@@ -80,19 +46,19 @@ namespace mavka::mama {
         case VPushArg: {
           POP_VALUE(value_cell);
           TOP_VALUE(args_cell);
-          ARGS_PUSH(args_cell, value_cell);
+          MA_ARGS_PUSH(args_cell, value_cell);
           break;
         }
         case VStoreArg: {
           POP_VALUE(value_cell);
           TOP_VALUE(args_cell);
-          ARGS_SET(args_cell, I.data.store->name, value_cell);
+          MA_ARGS_SET(args_cell, I.data.store->name, value_cell);
           break;
         }
         case VCall: {
           POP_VALUE(args_cell);
           POP_VALUE(cell);
-          PUSH(docall(M, cell, args_cell.v.args, I.location));
+          PUSH(ma_call_handler(M, cell, args_cell.v.args, I.location));
           break;
         }
         case VReturn: {
@@ -221,14 +187,14 @@ namespace mavka::mama {
         case VTry: {
           const auto frames_size = M->frame_stack.size();
           try {
-            run(M, I.data.try_->try_code);
+            ma_run(M, I.data.try_->try_code);
           } catch (const MaException& e) {
             const auto value = M->throw_cell;
             PUSH(value);
             while (M->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            run(M, I.data.try_->catch_code);
+            ma_run(M, I.data.try_->catch_code);
           }
           break;
         }
@@ -240,7 +206,7 @@ namespace mavka::mama {
         case VThrow: {
           POP_VALUE(cell);
           M->throw_cell = cell;
-          throw MaException();
+          throw MaException(I.data.throw_->location);
         }
         case VList: {
           PUSH(create_list(M));
@@ -531,7 +497,7 @@ namespace mavka::mama {
             PUSH_NUMBER(-value.v.number);
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_NEGATIVE);
-            PUSH(ma_call(M, diia_cell, {}, {}));
+            PUSH(ma_call_handler(M, diia_cell, {}, {}));
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_NEGATIVE, value);
@@ -544,7 +510,7 @@ namespace mavka::mama {
             PUSH_NUMBER(value.v.number * -1);
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_POSITIVE);
-            PUSH(ma_call(M, diia_cell, {}, {}));
+            PUSH(ma_call_handler(M, diia_cell, {}, {}));
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_POSITIVE, value);
@@ -558,7 +524,7 @@ namespace mavka::mama {
                 static_cast<double>(~static_cast<long>(value.v.number)));
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_BW_NOT);
-            PUSH(ma_call(M, diia_cell, {}, {}));
+            PUSH(ma_call_handler(M, diia_cell, {}, {}));
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_NOT, value);
@@ -846,110 +812,5 @@ namespace mavka::mama {
 
       i++;
     }
-  }
-
-  MaCell ma_call(MaMa* M,
-                 MaCell cell,
-                 const std::vector<MaCell>& args,
-                 MaLocation location) {
-    return docall(M, cell, new MaArgs(MA_ARGS_POSITIONED, {}, args), location);
-  }
-
-  MaCell ma_call_named(MaMa* M,
-                       MaCell cell,
-                       const std::unordered_map<std::string, MaCell>& args,
-                       MaLocation location) {
-    return docall(M, cell, new MaArgs(MA_ARGS_NAMED, args, {}), location);
-  }
-
-  MaCell docall(MaMa* M, MaCell cell, MaArgs* args, MaLocation location) {
-  repeat:
-    if (IS_OBJECT(cell)) {
-      const auto object = cell.v.object;
-
-      if (object->properties.contains(MAG_CALL)) {
-        cell = object->properties[MAG_CALL];
-        goto repeat;
-      } else if (object->call) {
-        return object->call(M, object, args, location);
-      }
-    }
-    DO_THROW_CANNOT_CALL_CELL(cell);
-  }
-
-  MaObject* ma_take(MaMa* M,
-                    const std::string& repository,
-                    bool relative,
-                    const std::vector<std::string>& path_parts) {
-    const auto path =
-        M->cwd + "/" + internal::tools::implode(path_parts, "/") + ".м";
-    if (!std::filesystem::exists(path)) {
-      DO_THROW_STRING("Не вдалося прочитати файл \"" + path + "\".");
-    }
-    return ma_take(M, path);
-  }
-
-  MaObject* ma_take(MaMa* M, const std::string& path) {
-    const auto canonical_path = std::filesystem::canonical(path).string();
-
-    const auto fs_path = std::filesystem::path(canonical_path);
-    if (!fs_path.has_filename()) {
-      DO_THROW_STRING("Не вдалося прочитати файл \"" + canonical_path + "\".");
-    }
-
-    const auto name = fs_path.stem().string();
-
-    if (M->loaded_file_modules.contains(canonical_path)) {
-      return M->loaded_file_modules[canonical_path];
-    }
-
-    auto file = std::ifstream(canonical_path);
-    if (!file.is_open()) {
-      DO_THROW_STRING("Не вдалося прочитати файл \"" + canonical_path + "\".");
-    }
-
-    const auto source = std::string(std::istreambuf_iterator(file),
-                                    std::istreambuf_iterator<char>());
-
-    const auto parser_result = parser::parse(source, canonical_path);
-    if (!parser_result.errors.empty()) {
-      const auto error = parser_result.errors[0];
-      DO_THROW_STRING(error.path + ":" + std::to_string(error.line) + ":" +
-                      std::to_string(error.column) + ": " + error.message);
-    }
-
-    const auto module_code = new MaCode();
-    module_code->path = canonical_path;
-
-    const auto module_cell = create_module(M, name);
-    const auto module_object = module_cell.v.object;
-    module_object->d.module->code = module_code;
-    module_object->d.module->is_file_module = true;
-    if (M->main_module == nullptr) {
-      M->main_module = module_cell.v.object;
-    }
-    M->loaded_file_modules.insert_or_assign(canonical_path, module_object);
-
-    const auto body_compilation_result =
-        compile_body(M, module_code, parser_result.module_node->body);
-    if (body_compilation_result.error) {
-      DO_THROW_STRING(canonical_path + ":" +
-                      std::to_string(body_compilation_result.error->line) +
-                      ":" +
-                      std::to_string(body_compilation_result.error->column) +
-                      ": " + body_compilation_result.error->message);
-    }
-
-    READ_TOP_FRAME();
-    const auto module_scope = new MaScope(frame->scope);
-    const auto module_frame =
-        new MaFrame(module_scope, module_object, module_object);
-    FRAME_PUSH(module_frame);
-    const auto prev_module = M->current_module;
-    M->current_module = module_object;
-    run(M, module_code);
-    M->current_module = prev_module;
-    FRAME_POP();
-    return module_object;
   }
 } // namespace mavka::mama

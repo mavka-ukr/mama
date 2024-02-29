@@ -4,7 +4,7 @@ namespace mavka::mama {
   MaCell number_structure_object_mag_call_diia_native_fn(MaMa* M,
                                                          MaObject* o,
                                                          MaArgs* args) {
-    const auto cell = ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_EMPTY(cell)) {
       RETURN_NUMBER(0);
     }
@@ -19,7 +19,8 @@ namespace mavka::mama {
     }
     if (IS_OBJECT(cell)) {
       if (OBJECT_HAS(cell.v.object, MAG_NUMBER)) {
-        return ma_call(M, cell.v.object->properties[MAG_NUMBER], {}, {});
+        return ma_call_handler(M, cell.v.object->properties[MAG_NUMBER], {},
+                               {});
       }
     }
     M->throw_cell = create_string(M, "Неможливо перетворити на число.");
