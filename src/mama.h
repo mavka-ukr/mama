@@ -215,7 +215,6 @@ namespace mavka::mama {
     MaScope* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
-    MaObject* current_module;
 
     MaCell throw_cell;
 
@@ -232,7 +231,7 @@ namespace mavka::mama {
     MaObject* module_structure_object;
   };
 
-  void ma_run(MaMa* M, MaCode* code);
+  void ma_run(MaMa* M, MaObject* fm, MaCode* code);
 
   MaCell ma_call(MaMa* M,
                  MaCell cell,

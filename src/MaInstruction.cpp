@@ -103,8 +103,6 @@ namespace mavka::mama {
         return "VStructParam";
       case VStructMethod:
         return "VStructMethod";
-      case VModuleDone:
-        return "VModuleDone";
       case VStoreArg:
         return "VStoreArg";
       case VNumber:
@@ -115,14 +113,10 @@ namespace mavka::mama {
         return "VYes";
       case VNo:
         return "VNo";
-      case VKeepModule:
-        return "VKeepModule";
       case VIs:
         return "VIs";
       case VTake:
         return "VTake";
-      case VLoadModule:
-        return "VLoadModule";
       case VModuleLoad:
         return "VModuleLoad";
       case VPushArg:
@@ -231,15 +225,6 @@ namespace mavka::mama {
   }
   MaInstruction MaInstruction::give(const std::string& name) {
     return MaInstruction{VGive, {.give = new MaGiveInstructionArgs(name)}};
-  }
-  MaInstruction MaInstruction::moduleDone() {
-    return MaInstruction{VModuleDone};
-  }
-  MaInstruction MaInstruction::keepModule() {
-    return MaInstruction{VKeepModule};
-  }
-  MaInstruction MaInstruction::loadModule() {
-    return MaInstruction{VLoadModule};
   }
   MaInstruction MaInstruction::moduleLoad(const std::string& name,
                                           const std::string& as) {

@@ -46,9 +46,6 @@ typedef enum {
 
   VModule,
   VGive,
-  VModuleDone,
-  VKeepModule,
-  VLoadModule,
   VModuleLoad,
   VTake,
 
@@ -221,9 +218,6 @@ struct MaInstruction {
   static MaInstruction structMethod();
   static MaInstruction module(MaCode* code, const std::string& name);
   static MaInstruction give(const std::string& name);
-  static MaInstruction moduleDone();
-  static MaInstruction keepModule();
-  static MaInstruction loadModule();
   static MaInstruction moduleLoad(const std::string& name,
                                   const std::string& as);
   static MaInstruction take(const std::string& repository,

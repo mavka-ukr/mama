@@ -84,7 +84,7 @@ class MaDiia final {
   MaCode* code;
   MaObject* me;
   MaScope* scope;
-  MaObject* module;
+  MaObject* fm;
   std::vector<MaDiiaParam> params;
 };
 

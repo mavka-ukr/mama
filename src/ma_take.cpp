@@ -69,10 +69,7 @@ namespace mavka::mama {
     const auto module_frame =
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
-    const auto prev_module = M->current_module;
-    M->current_module = module_object;
-    ma_run(M, module_code);
-    M->current_module = prev_module;
+    ma_run(M, module_object, module_code);
     FRAME_POP();
     return module_object;
   }

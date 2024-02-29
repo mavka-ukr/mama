@@ -1,7 +1,7 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  void ma_run(MaMa* M, MaCode* code) {
+  void ma_run(MaMa* M, MaObject* fm, MaCode* code) {
     READ_TOP_FRAME();
     auto size = code->instructions.size();
     size_t i = 0;
@@ -68,7 +68,7 @@ namespace mavka::mama {
           const auto diia_cell =
               create_diia(M, I.data.diia->name, I.data.diia->code, nullptr);
           diia_cell.v.object->d.diia->scope = frame->scope;
-          diia_cell.v.object->d.diia->module = M->current_module;
+          diia_cell.v.object->d.diia->fm = fm;
           PUSH(diia_cell);
           break;
         }
@@ -187,14 +187,14 @@ namespace mavka::mama {
         case VTry: {
           const auto frames_size = M->frame_stack.size();
           try {
-            ma_run(M, I.data.try_->try_code);
+            ma_run(M, fm, I.data.try_->try_code);
           } catch (const MaException& e) {
             const auto value = M->throw_cell;
             PUSH(value);
             while (M->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            ma_run(M, I.data.try_->catch_code);
+            ma_run(M, M->frame_stack.top()->module, I.data.try_->catch_code);
           }
           break;
         }
@@ -267,10 +267,6 @@ namespace mavka::mama {
         case VGive: {
           POP_VALUE(value);
           frame->object->properties.insert_or_assign(I.data.give->name, value);
-        }
-        case VModuleDone: {
-          FRAME_POP();
-          break;
         }
         case VEq: {
           POP_VALUE(right);
@@ -786,16 +782,6 @@ namespace mavka::mama {
               ma_take(M, I.data.take->repository, I.data.take->relative,
                       I.data.take->path_parts);
           PUSH_OBJECT(module_object);
-          break;
-        }
-        case VKeepModule: {
-          const auto current_module_path = frame->object->d.module->name;
-          M->loaded_file_modules.insert_or_assign(current_module_path,
-                                                  frame->object);
-          break;
-        }
-        case VLoadModule: {
-          PUSH(MA_MAKE_OBJECT(frame->object));
           break;
         }
         case VModuleLoad: {
