@@ -15,10 +15,10 @@ namespace mavka::mama {
     if (body_result.error) {
       return body_result;
     }
-    diia_code->instructions.push_back(MaInstruction::empty());
-    diia_code->instructions.push_back(MaInstruction::return_());
+    diia_code->push(MaInstruction::empty());
+    diia_code->push(MaInstruction::return_());
 
-    code->instructions.push_back(MaInstruction::diia(diia_code, name));
+    code->push(MaInstruction::diia(diia_code, name));
     for (const auto& param : params) {
       if (param->data.ParamNode->variadic) {
         return error(param, "Варіативні параметри наразі не підтримуються.");
@@ -30,10 +30,9 @@ namespace mavka::mama {
           return value_result;
         }
       } else {
-        code->instructions.push_back(MaInstruction::empty());
+        code->push(MaInstruction::empty());
       }
-      code->instructions.push_back(
-          MaInstruction::diiaParam(param->data.ParamNode->name));
+      code->push(MaInstruction::diiaParam(param->data.ParamNode->name));
     }
     return success();
   }
@@ -49,13 +48,13 @@ namespace mavka::mama {
       const std::vector<ast::ASTValue*>& params,
       const ast::ASTValue* return_types,
       const std::vector<ast::ASTValue*>& body) {
-    code->instructions.push_back(MaInstruction::load(structure));
+    code->push(MaInstruction::load(structure));
     const auto result = compile_diia(M, code, async, generics, name, params,
                                      return_types, body);
     if (result.error) {
       return result;
     }
-    code->instructions.push_back(MaInstruction::structMethod());
+    code->push(MaInstruction::structMethod());
     return success();
   }
 } // namespace mavka::mama

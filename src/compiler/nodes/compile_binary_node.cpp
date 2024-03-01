@@ -16,52 +16,52 @@ namespace mavka::mama {
     const auto instruction_location =
         MaLocation(ast_value->start_line, ast_value->start_column);
     if (binary_node->op == ast::ARITHMETIC_ADD) {
-      code->instructions.push_back(MaInstruction::add(instruction_location));
+      code->push(MaInstruction::add(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_SUB) {
-      code->instructions.push_back(MaInstruction::sub(instruction_location));
+      code->push(MaInstruction::sub(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_MUL) {
-      code->instructions.push_back(MaInstruction::mul(instruction_location));
+      code->push(MaInstruction::mul(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_DIV) {
-      code->instructions.push_back(MaInstruction::div(instruction_location));
+      code->push(MaInstruction::div(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_MOD) {
-      code->instructions.push_back(MaInstruction::mod(instruction_location));
+      code->push(MaInstruction::mod(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_DIVDIV) {
-      code->instructions.push_back(MaInstruction::divdiv(instruction_location));
+      code->push(MaInstruction::divdiv(instruction_location));
     } else if (binary_node->op == ast::ARITHMETIC_POW) {
-      code->instructions.push_back(MaInstruction::pow(instruction_location));
+      code->push(MaInstruction::pow(instruction_location));
     } else if (binary_node->op == ast::BITWISE_XOR) {
-      code->instructions.push_back(MaInstruction::xor_());
+      code->push(MaInstruction::xor_());
     } else if (binary_node->op == ast::BITWISE_OR) {
-      code->instructions.push_back(MaInstruction::bor());
+      code->push(MaInstruction::bor());
     } else if (binary_node->op == ast::BITWISE_AND) {
-      code->instructions.push_back(MaInstruction::band());
+      code->push(MaInstruction::band());
     } else if (binary_node->op == ast::BITWISE_SHIFT_LEFT) {
-      code->instructions.push_back(MaInstruction::shl());
+      code->push(MaInstruction::shl());
     } else if (binary_node->op == ast::BITWISE_SHIFT_RIGHT) {
-      code->instructions.push_back(MaInstruction::shr());
+      code->push(MaInstruction::shr());
     } else if (binary_node->op == ast::COMPARISON_EQ) {
-      code->instructions.push_back(MaInstruction::eq());
+      code->push(MaInstruction::eq());
     } else if (binary_node->op == ast::COMPARISON_NE) {
-      code->instructions.push_back(MaInstruction::eq());
-      code->instructions.push_back(MaInstruction::not_());
+      code->push(MaInstruction::eq());
+      code->push(MaInstruction::not_());
     } else if (binary_node->op == ast::COMPARISON_GT) {
-      code->instructions.push_back(MaInstruction::gt());
+      code->push(MaInstruction::gt());
     } else if (binary_node->op == ast::COMPARISON_GE) {
-      code->instructions.push_back(MaInstruction::ge());
+      code->push(MaInstruction::ge());
     } else if (binary_node->op == ast::COMPARISON_LT) {
-      code->instructions.push_back(MaInstruction::lt());
+      code->push(MaInstruction::lt());
     } else if (binary_node->op == ast::COMPARISON_LE) {
-      code->instructions.push_back(MaInstruction::le());
+      code->push(MaInstruction::le());
     } else if (binary_node->op == ast::COMPARISON_CONTAINS) {
-      code->instructions.push_back(MaInstruction::contains());
+      code->push(MaInstruction::contains());
     } else if (binary_node->op == ast::COMPARISON_NOT_CONTAINS) {
-      code->instructions.push_back(MaInstruction::contains());
-      code->instructions.push_back(MaInstruction::not_());
+      code->push(MaInstruction::contains());
+      code->push(MaInstruction::not_());
     } else if (binary_node->op == ast::COMPARISON_IS) {
-      code->instructions.push_back(MaInstruction::is());
+      code->push(MaInstruction::is());
     } else if (binary_node->op == ast::COMPARISON_NOT_IS) {
-      code->instructions.push_back(MaInstruction::is());
-      code->instructions.push_back(MaInstruction::not_());
+      code->push(MaInstruction::is());
+      code->push(MaInstruction::not_());
     } else if (binary_node->op == ast::UTIL_AS) {
       return error(ast_value, "Вказівка \"як\" тимчасово недоступна.");
     }

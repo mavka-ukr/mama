@@ -13,12 +13,12 @@ namespace mavka::mama {
     }
     const auto catch_code = new MaCode();
     catch_code->path = code->path;
-    catch_code->instructions.push_back(MaInstruction::store(try_node->name));
+    catch_code->push(MaInstruction::store(try_node->name));
     const auto catch_result = compile_body(M, catch_code, try_node->catch_body);
     if (catch_result.error) {
       return catch_result;
     }
-    code->instructions.push_back(
+    code->push(
         MaInstruction::try_(new MaTryInstructionArgs(try_code, catch_code)));
     return success();
   }

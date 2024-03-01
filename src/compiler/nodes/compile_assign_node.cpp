@@ -9,8 +9,7 @@ namespace mavka::mama {
     if (result.error) {
       return result;
     }
-    code->instructions.push_back(
-        MaInstruction::store(assign_simple_node->name));
+    code->push(MaInstruction::store(assign_simple_node->name));
     return success();
   }
 } // namespace mavka::mama

@@ -10,10 +10,10 @@ namespace mavka::mama {
       if (left.error) {
         return left;
       }
-      code->instructions.push_back(MaInstruction{VEJumpIfFalse});
+      code->push(MaInstruction{VEJumpIfFalse});
       const auto jump_if_false_instruction_index =
           code->instructions.size() - 1;
-      code->instructions.push_back(MaInstruction::pop());
+      code->push(MaInstruction::pop());
       const auto right = compile_node(M, code, test_node->right);
       if (right.error) {
         return right;
@@ -25,9 +25,9 @@ namespace mavka::mama {
       if (left.error) {
         return left;
       }
-      code->instructions.push_back(MaInstruction{VEJumpIfTrue});
+      code->push(MaInstruction{VEJumpIfTrue});
       const auto jump_if_true_instruction_index = code->instructions.size() - 1;
-      code->instructions.push_back(MaInstruction::pop());
+      code->push(MaInstruction::pop());
       const auto right = compile_node(M, code, test_node->right);
       if (right.error) {
         return right;

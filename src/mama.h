@@ -206,6 +206,10 @@ namespace mavka::mama {
   struct MaCode {
     std::vector<MaInstruction> instructions;
     std::string path;
+
+    inline void push(const MaInstruction& instruction) {
+      instructions.push_back(instruction);
+    }
   };
 
   struct MaMa {

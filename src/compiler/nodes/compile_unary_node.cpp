@@ -1,23 +1,22 @@
 #include "../../mama.h"
 
 namespace mavka::mama {
-  MaCompilationResult compile_unary_node(
-      MaMa* M,
-      MaCode* code,
-      mavka::ast::ASTValue* ast_value) {
+  MaCompilationResult compile_unary_node(MaMa* M,
+                                         MaCode* code,
+                                         mavka::ast::ASTValue* ast_value) {
     const auto unary_node = ast_value->data.UnaryNode;
     const auto result = compile_node(M, code, unary_node->value);
     if (result.error) {
       return result;
     }
     if (unary_node->op == ast::UNARY_POSITIVE) {
-      code->instructions.push_back(MaInstruction::positive());
+      code->push(MaInstruction::positive());
     } else if (unary_node->op == ast::UNARY_NEGATIVE) {
-      code->instructions.push_back(MaInstruction::negative());
+      code->push(MaInstruction::negative());
     } else if (unary_node->op == ast::UNARY_NOT) {
-      code->instructions.push_back(MaInstruction::not_());
+      code->push(MaInstruction::not_());
     } else if (unary_node->op == ast::UNARY_BITWISE_NOT) {
-      code->instructions.push_back(MaInstruction::bnot());
+      code->push(MaInstruction::bnot());
     }
     return success();
   }

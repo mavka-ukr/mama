@@ -8,10 +8,6 @@ namespace mavka::mama {
       return error(nullptr, "null node");
     }
 
-    //    if (ast_value->kind == ast::KindNone) {
-    //      return success();
-    //    }
-
     if (ast_value->kind == ast::KindPropertySetNode) {
       return compile_property_set_node(M, code, ast_value);
     }

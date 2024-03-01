@@ -8,7 +8,7 @@ namespace mavka::mama {
     if (structure_node->parent) {
       return error(ast_value, "Наслідування структур тимчасово недоступне.");
     }
-    code->instructions.push_back(MaInstruction::struct_(structure_node->name));
+    code->push(MaInstruction::struct_(structure_node->name));
     for (const auto& param : structure_node->params) {
       if (param->data.ParamNode->value) {
         const auto value_result =
@@ -17,18 +17,17 @@ namespace mavka::mama {
           return value_result;
         }
       } else {
-        code->instructions.push_back(MaInstruction::empty());
+        code->push(MaInstruction::empty());
       }
       if (param->data.ParamNode->ee) {
-        code->instructions.push_back(MaInstruction{
+        code->push(MaInstruction{
             VESetR,
             {.set = new MaSetInstructionArgs(param->data.ParamNode->name)}});
       } else {
-        code->instructions.push_back(
-            MaInstruction::structParam(param->data.ParamNode->name));
+        code->push(MaInstruction::structParam(param->data.ParamNode->name));
       }
     }
-    code->instructions.push_back(MaInstruction::store(structure_node->name));
+    code->push(MaInstruction::store(structure_node->name));
     return success();
   }
 } // namespace mavka::mama

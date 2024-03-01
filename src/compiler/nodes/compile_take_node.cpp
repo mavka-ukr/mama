@@ -7,19 +7,18 @@ namespace mavka::mama {
     const auto take_node = ast_value->data.TakeNode;
     const auto parts = mavka::internal::tools::explode(take_node->name, ".");
 
-    code->instructions.push_back(
+    code->push(
         MaInstruction::take(take_node->repo, take_node->relative, parts));
 
     if (take_node->elements.empty()) {
       if (take_node->as.empty()) {
-        code->instructions.push_back(MaInstruction::store(parts.back()));
+        code->push(MaInstruction::store(parts.back()));
       } else {
-        code->instructions.push_back(MaInstruction::store(take_node->as));
+        code->push(MaInstruction::store(take_node->as));
       }
     } else {
       for (const auto& element : take_node->elements) {
-        code->instructions.push_back(
-            MaInstruction::moduleLoad(element.first, element.second));
+        code->push(MaInstruction::moduleLoad(element.first, element.second));
       }
     }
     return success();

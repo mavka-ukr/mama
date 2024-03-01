@@ -9,7 +9,7 @@ namespace mavka::mama {
     if (result.error) {
       return result;
     }
-    code->instructions.push_back(MaInstruction::throw_(
+    code->push(MaInstruction::throw_(
         {.line = ast_value->start_line, .column = ast_value->start_column}));
     return success();
   }

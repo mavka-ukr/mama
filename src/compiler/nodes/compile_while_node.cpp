@@ -1,10 +1,9 @@
 #include "../../mama.h"
 
 namespace mavka::mama {
-  MaCompilationResult compile_while_node(
-      MaMa* M,
-      MaCode* code,
-      mavka::ast::ASTValue* ast_value) {
+  MaCompilationResult compile_while_node(MaMa* M,
+                                         MaCode* code,
+                                         mavka::ast::ASTValue* ast_value) {
     const auto while_node = ast_value->data.WhileNode;
     std::vector<EachNodeJumps> jumps;
     find_each_node_jumps(M, code, while_node->body, jumps);
@@ -14,13 +13,13 @@ namespace mavka::mama {
     if (condition_result.error) {
       return condition_result;
     }
-    code->instructions.push_back(MaInstruction::jumpIfFalse(0));
+    code->push(MaInstruction::jumpIfFalse(0));
     const auto jump_if_false_instruction_index = code->instructions.size() - 1;
     const auto body_result = compile_body(M, code, while_node->body);
     if (body_result.error) {
       return body_result;
     }
-    code->instructions.push_back(MaInstruction::jump(continue_index));
+    code->push(MaInstruction::jump(continue_index));
     const auto break_index = code->instructions.size();
     code->instructions[jump_if_false_instruction_index].data.jumpIfFalse =
         break_index;

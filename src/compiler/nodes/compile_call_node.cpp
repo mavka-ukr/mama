@@ -19,7 +19,7 @@ namespace mavka::mama {
     const auto instruction_location =
         MaLocation(ast_value->start_line, ast_value->start_column);
 
-    code->instructions.push_back(MaInstruction::args(args_type));
+    code->push(MaInstruction::args(args_type));
 
     for (const auto& arg : call_node->args) {
       const auto arg_result = compile_node(M, code, arg->data.ArgNode->value);
@@ -27,14 +27,13 @@ namespace mavka::mama {
         return arg_result;
       }
       if (arg->data.ArgNode->name.empty()) {
-        code->instructions.push_back(MaInstruction::pushArg());
+        code->push(MaInstruction::pushArg());
       } else {
-        code->instructions.push_back(
-            MaInstruction::storeArg(arg->data.ArgNode->name));
+        code->push(MaInstruction::storeArg(arg->data.ArgNode->name));
       }
     }
 
-    code->instructions.push_back(MaInstruction::call(instruction_location));
+    code->push(MaInstruction::call(instruction_location));
 
     return success();
   }

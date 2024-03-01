@@ -14,7 +14,7 @@ namespace mavka::mama {
     if (result.error) {
       return result;
     }
-    code->instructions.push_back(MaInstruction::set(property_set_node->name));
+    code->push(MaInstruction::set(property_set_node->name));
     return success();
   }
 } // namespace mavka::mama

@@ -5,13 +5,13 @@ namespace mavka::mama {
                                         MaCode* code,
                                         mavka::ast::ASTValue* ast_value) {
     const auto list_node = ast_value->data.ListNode;
-    code->instructions.push_back(MaInstruction::list());
+    code->push(MaInstruction::list());
     for (auto& element : list_node->elements) {
       const auto result = compile_node(M, code, element);
       if (result.error) {
         return result;
       }
-      code->instructions.push_back(MaInstruction::listAppend());
+      code->push(MaInstruction::listAppend());
     }
     return success();
   }
