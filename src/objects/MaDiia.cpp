@@ -14,9 +14,8 @@ namespace mavka::mama {
     cell.v.object->call = [](MaMa* M, MaObject* o, MaArgs* args,
                              MaLocation location) {
       const auto diia_scope = new MaScope(o->d.diia->scope);
-      const auto frame =
-          new MaFrame(diia_scope, o, M->frame_stack.top()->module, location);
-      FRAME_PUSH(frame);
+      READ_TOP_FRAME();
+      frame->scope = diia_scope;
       if (o->d.diia->me) {
         frame->scope->set_variable("я", MA_MAKE_OBJECT(o->d.diia->me));
       }
@@ -28,7 +27,6 @@ namespace mavka::mama {
       }
       ma_run(M, frame->module, o->d.diia->code);
       const auto result = frame->stack.top();
-      FRAME_POP();
       return result;
     };
     return cell;
@@ -46,11 +44,7 @@ namespace mavka::mama {
                                     M->diia_structure_object, diia_native);
     cell.v.object->call = [](MaMa* M, MaObject* o, MaArgs* args,
                              MaLocation location) {
-      FRAME_PUSH(
-          new MaFrame(nullptr, o, M->frame_stack.top()->module, location));
-      const auto result = o->d.diia_native->fn(M, o, args);
-      FRAME_POP();
-      return result;
+      return o->d.diia_native->fn(M, o, args);
     };
     return cell;
   }

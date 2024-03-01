@@ -42,8 +42,6 @@ namespace mavka::mama {
     structure_object->get = ma_structure_get_handler;
     structure_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
                                 MaLocation location) {
-      FRAME_PUSH(
-          new MaFrame(nullptr, o, M->frame_stack.top()->module, location));
       const auto object_cell = create_object(M, MA_OBJECT, o, nullptr);
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
@@ -51,7 +49,6 @@ namespace mavka::mama {
             MA_ARGS_GET(args, i, param.name, param.default_value);
         ma_object_set(object_cell.v.object, param.name, arg_value);
       }
-      FRAME_POP();
       return object_cell;
     };
     return MaCell{MA_CELL_OBJECT, {.object = structure_object}};

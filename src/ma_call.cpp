@@ -13,7 +13,11 @@ namespace mavka::mama {
         cell = object->properties[MAG_CALL];
         goto repeat;
       } else if (object->call) {
-        return object->call(M, object, args, location);
+        FRAME_PUSH(
+            new MaFrame(nullptr, object, M->frame_stack.top()->module, location));
+        const auto result = object->call(M, object, args, location);
+        FRAME_POP();
+        return result;
       }
     }
     DO_THROW_CANNOT_CALL_CELL(cell);
