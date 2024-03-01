@@ -65,11 +65,11 @@ namespace mavka::mama {
           return;
         }
         case VDiia: {
-          const auto diia_cell =
-              create_diia(M, I.data.diia->name, I.data.diia->code, nullptr);
-          diia_cell.v.object->d.diia->scope = frame->scope;
-          diia_cell.v.object->d.diia->fm = fm;
-          PUSH(diia_cell);
+          const auto diia_object =
+              MaDiia::Create(M, I.data.diia->name, I.data.diia->code, nullptr);
+          diia_object->d.diia->scope = frame->scope;
+          diia_object->d.diia->fm = fm;
+          PUSH_OBJECT(diia_object);
           break;
         }
         case VDiiaParam: {
@@ -209,7 +209,7 @@ namespace mavka::mama {
           throw MaException(I.data.throw_->location);
         }
         case VList: {
-          PUSH(create_list(M));
+          PUSH_OBJECT(MaList::Create(M));
           break;
         }
         case VListAppend: {
@@ -219,19 +219,20 @@ namespace mavka::mama {
           break;
         }
         case VDict: {
-          PUSH(create_dict(M));
+          PUSH_OBJECT(MaDict::Create(M));
           break;
         }
         case VDictSet: {
           POP_VALUE(value);
           TOP_VALUE(dict_cell);
-          dict_cell.v.object->d.dict->set(create_string(M, I.data.dictSet->key),
-                                          value);
+          dict_cell.v.object->d.dict->set(
+              MA_MAKE_OBJECT(MaText::Create(M, I.data.dictSet->key)), value);
           break;
         }
         case VStruct: {
-          const auto structure_cell = create_structure(M, I.data.struct_->name);
-          PUSH(structure_cell);
+          const auto structure_object =
+              MaStructure::Create(M, I.data.struct_->name);
+          PUSH_OBJECT(structure_object);
           break;
         }
         case VStructParam: {
@@ -256,12 +257,13 @@ namespace mavka::mama {
                           structure_cell.get_name())
         }
         case VModule: {
-          const auto module_cell = create_module(M, I.data.module->name);
+          const auto module_object = MaModule::Create(M, I.data.module->name);
           const auto module_scope = new MaScope(frame->scope);
           const auto module_frame =
-              new MaFrame(module_scope, module_cell.v.object, frame->module);
+              new MaFrame(module_scope, module_object, frame->module);
           FRAME_PUSH(module_frame);
-          frame->scope->set_variable(I.data.module->name, module_cell);
+          frame->scope->set_variable(I.data.module->name,
+                                     MA_MAKE_OBJECT(module_object));
           break;
         }
         case VGive: {

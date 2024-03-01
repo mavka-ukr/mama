@@ -49,7 +49,7 @@ set(MAMA_SRC
         objects/MaModule.cpp
         objects/MaNumber.cpp
         objects/MaObject.cpp
-        objects/MaString.cpp
+        objects/MaText.cpp
         objects/MaStructure.cpp
         utils/chrono.h
         utils/tools.cpp
@@ -62,6 +62,7 @@ set(MAMA_SRC
         MaInstruction.cpp
         MaInstruction.h
         ma_run.cpp
+        mama.cpp
         mama.h
         MaObject.h
         MaScope.cpp

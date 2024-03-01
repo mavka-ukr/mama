@@ -1,7 +1,7 @@
 #ifndef MA_OBJECT_H
 #define MA_OBJECT_H
 
-class MaString;
+class MaText;
 class MaList;
 class MaDict;
 class MaDiia;
@@ -14,7 +14,7 @@ struct MaObject {
   unsigned char type;
   union {
     void* ptr;
-    MaString* string;
+    MaText* string;
     MaList* list;
     MaDict* dict;
     MaDiia* diia;
@@ -30,6 +30,14 @@ struct MaObject {
   std::function<MaCell(MaMa* M, MaObject* o, const std::string& name)> get;
   std::function<MaCell(MaMa* M, MaObject* o, MaArgs* args, MaLocation location)>
       call;
+
+  static void Init(MaMa* M);
+
+  static MaObject* Instance(MaMa* M,
+                            unsigned char type,
+                            MaObject* structure_object,
+                            void* d);
+  static MaObject* Empty(MaMa* M);
 };
 
 struct MaCell {
@@ -43,9 +51,12 @@ struct MaCell {
   std::string get_name() const;
 };
 
-class MaString final {
+class MaText final {
  public:
   std::string data;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M, const std::string& value);
 
   size_t length() const;
   std::string substr(size_t start, size_t length) const;
@@ -54,6 +65,9 @@ class MaString final {
 class MaList final {
  public:
   std::vector<MaCell> data;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M);
 
   void append(MaCell cell);
   void set(size_t index, MaCell cell);
@@ -65,6 +79,9 @@ class MaList final {
 class MaDict final {
  public:
   std::vector<std::pair<MaCell, MaCell>> data;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M);
 
   void set(MaCell key, MaCell value);
   MaCell get(MaCell key) const;
@@ -86,6 +103,14 @@ class MaDiia final {
   MaScope* scope;
   MaObject* fm;
   std::vector<MaDiiaParam> params;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M,
+                          const std::string& o,
+                          MaCode* code,
+                          MaObject* me);
+
+  MaObject* Bind(MaMa* M, MaObject* object);
 };
 
 class MaStructure final {
@@ -93,6 +118,10 @@ class MaStructure final {
   std::string name;
   std::vector<MaDiiaParam> params;
   std::vector<MaObject*> methods;
+
+  static void Init(MaMa* M);
+  static void Init2(MaMa* M);
+  static MaObject* Create(MaMa* M, const std::string& name);
 };
 
 typedef MaCell DiiaNativeFn(MaMa* M, MaObject* o, MaArgs* args);
@@ -102,6 +131,11 @@ class MaDiiaNative final {
   std::string name;
   std::function<DiiaNativeFn> fn;
   MaObject* me;
+
+  static MaObject* Create(MaMa* M,
+                          const std::string& name,
+                          const std::function<DiiaNativeFn>& diia_native_fn,
+                          MaObject* me);
 };
 
 class MaModule final {
@@ -109,6 +143,9 @@ class MaModule final {
   std::string name;
   MaCode* code;
   bool is_file_module;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M, const std::string& name);
 };
 
 inline std::string ma_number_to_string(const double number) {
@@ -130,33 +167,7 @@ inline MaCell ma_object_get(const MaObject* object, const std::string& name) {
   return MA_MAKE_EMPTY();
 }
 
-void init_object(MaMa* M);
-void init_structure(MaMa* M);
-void init_structure_2(MaMa* M);
-void init_number(MaMa* M);
-void init_logical(MaMa* M);
-void init_text(MaMa* M);
-void init_list(MaMa* M);
-void init_dict(MaMa* M);
-void init_diia(MaMa* M);
-void init_module(MaMa* M);
-void init_object(MaMa* M);
-
-MaCell create_empty_object(MaMa* M);
-MaCell create_object(MaMa* M,
-                     unsigned char type,
-                     MaObject* structure_object,
-                     void* d);
-MaCell create_string(MaMa* M, const std::string& value);
-MaCell create_diia(MaMa* M, const std::string& o, MaCode* code, MaObject* me);
-MaCell create_diia_native(MaMa* M,
-                          const std::string& name,
-                          const std::function<DiiaNativeFn>& diia_native_fn,
-                          MaObject* me);
-MaCell bind_diia(MaMa* M, MaObject* diia, MaObject* object);
-MaCell create_list(MaMa* M);
-MaCell create_dict(MaMa* M);
-MaCell create_structure(MaMa* M, const std::string& name);
-MaCell create_module(MaMa* M, const std::string& name);
+void InitNumber(MaMa* M);
+void InitLogical(MaMa* M);
 
 #endif // MA_OBJECT_H

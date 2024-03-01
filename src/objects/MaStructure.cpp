@@ -1,16 +1,17 @@
 #include "../mama.h"
 
 namespace mavka::mama {
+
   MaCell ma_structure_get_handler(MaMa* M,
                                   MaObject* o,
                                   const std::string& name) {
     if (name == "назва") {
-      return create_string(M, o->d.structure->name);
+      return MA_MAKE_OBJECT(MaText::Create(M, o->d.structure->name));
     }
     if (!o->properties.contains(name)) {
-      M->throw_cell =
-          create_string(M, "Властивість \"" + name +
-                               "\" не визначено для типу \"Структура\".");
+      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
+          M,
+          "Властивість \"" + name + "\" не визначено для типу \"Структура\"."));
       throw MaException();
     }
     return o->properties[name];
@@ -32,7 +33,7 @@ namespace mavka::mama {
     RETURN_OBJECT(cell.v.object->structure);
   }
 
-  MaCell create_structure(MaMa* M, const std::string& name) {
+  MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
     const auto structure = new MaStructure();
     structure->name = name;
     const auto structure_object = new MaObject();
@@ -42,31 +43,31 @@ namespace mavka::mama {
     structure_object->get = ma_structure_get_handler;
     structure_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
                                 MaLocation location) {
-      const auto object_cell = create_object(M, MA_OBJECT, o, nullptr);
+      const auto object = MaObject::Instance(M, MA_OBJECT, o, nullptr);
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
         const auto arg_value =
             MA_ARGS_GET(args, i, param.name, param.default_value);
-        ma_object_set(object_cell.v.object, param.name, arg_value);
+        ma_object_set(object, param.name, arg_value);
       }
-      return object_cell;
+      return MA_MAKE_OBJECT(object);
     };
-    return MaCell{MA_CELL_OBJECT, {.object = structure_object}};
+    return structure_object;
   }
 
-  void init_structure(MaMa* M) {
-    const auto structure_structure_cell = create_structure(M, "Структура");
-    M->structure_structure_object = structure_structure_cell.v.object;
-    M->global_scope->set_variable("Структура", structure_structure_cell);
-    structure_structure_cell.v.object->structure =
-        structure_structure_cell.v.object;
+  void MaStructure::Init(MaMa* M) {
+    const auto structure_structure_object = MaStructure::Create(M, "Структура");
+    M->structure_structure_object = structure_structure_object;
+    M->global_scope->set_variable("Структура",
+                                  MA_MAKE_OBJECT(structure_structure_object));
+    structure_structure_object->structure = structure_structure_object;
   }
 
-  void init_structure_2(MaMa* M) {
+  void MaStructure::Init2(MaMa* M) {
     ma_object_set(M->structure_structure_object, "дізнатись",
-                  create_diia_native(
+                  MA_MAKE_OBJECT(MaDiiaNative::Create(
                       M, "дізнатись",
                       structure_structure_object_get_structure_diia_native_fn,
-                      M->structure_structure_object));
+                      M->structure_structure_object)));
   }
 } // namespace mavka::mama

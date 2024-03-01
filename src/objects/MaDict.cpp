@@ -126,24 +126,25 @@ namespace mavka::mama {
     RETURN_EMPTY();
   }
 
-  MaCell create_dict(MaMa* M) {
+  MaObject* MaDict::Create(MaMa* M) {
     const auto dict = new MaDict();
-    const auto dict_cell =
-        create_object(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
-    ma_object_set(dict_cell.v.object, MAG_GET_ELEMENT,
-                  create_diia_native(M, MAG_GET_ELEMENT,
-                                     ma_dict_get_element_diia_native_fn,
-                                     dict_cell.v.object));
-    ma_object_set(dict_cell.v.object, MAG_SET_ELEMENT,
-                  create_diia_native(M, MAG_SET_ELEMENT,
-                                     ma_dict_set_element_diia_native_fn,
-                                     dict_cell.v.object));
-    return dict_cell;
+    const auto dict_object =
+        MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
+    ma_object_set(dict_object, MAG_GET_ELEMENT,
+                  MA_MAKE_OBJECT(MaDiiaNative::Create(
+                      M, MAG_GET_ELEMENT, ma_dict_get_element_diia_native_fn,
+                      dict_object)));
+    ma_object_set(dict_object, MAG_SET_ELEMENT,
+                  MA_MAKE_OBJECT(MaDiiaNative::Create(
+                      M, MAG_SET_ELEMENT, ma_dict_set_element_diia_native_fn,
+                      dict_object)));
+    return dict_object;
   }
 
-  void init_dict(MaMa* M) {
-    const auto dict_structure_cell = create_structure(M, "словник");
-    M->global_scope->set_variable("словник", dict_structure_cell);
-    M->dict_structure_object = dict_structure_cell.v.object;
+  void MaDict::Init(MaMa* M) {
+    const auto dict_structure_object = MaStructure::Create(M, "словник");
+    M->global_scope->set_variable("словник",
+                                  MA_MAKE_OBJECT(dict_structure_object));
+    M->dict_structure_object = dict_structure_object;
   }
 } // namespace mavka::mama

@@ -1,9 +1,10 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  void init_logical(MaMa* M) {
-    const auto logical_structure_cell = create_structure(M, "логічне");
-    M->global_scope->set_variable("логічне", logical_structure_cell);
-    M->logical_structure_object = logical_structure_cell.v.object;
+  void InitLogical(MaMa* M) {
+    const auto logical_structure_object = MaStructure::Create(M, "логічне");
+    M->global_scope->set_variable("логічне",
+                                  MA_MAKE_OBJECT(logical_structure_object));
+    M->logical_structure_object = logical_structure_object;
   }
 } // namespace mavka::mama

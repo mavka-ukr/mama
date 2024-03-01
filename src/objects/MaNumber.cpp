@@ -23,18 +23,20 @@ namespace mavka::mama {
                                {});
       }
     }
-    M->throw_cell = create_string(M, "Неможливо перетворити на число.");
+    M->throw_cell =
+        MA_MAKE_OBJECT(MaText::Create(M, "Неможливо перетворити на число."));
     throw MaException();
   }
 
-  void init_number(MaMa* M) {
-    const auto number_structure_cell = create_structure(M, "число");
-    M->global_scope->set_variable("число", number_structure_cell);
-    M->number_structure_object = number_structure_cell.v.object;
+  void InitNumber(MaMa* M) {
+    const auto number_structure_object = MaStructure::Create(M, "число");
+    M->global_scope->set_variable("число",
+                                  MA_MAKE_OBJECT(number_structure_object));
+    M->number_structure_object = number_structure_object;
     ma_object_set(
-        number_structure_cell.v.object, MAG_CALL,
-        create_diia_native(M, MAG_CALL,
-                           number_structure_object_mag_call_diia_native_fn,
-                           number_structure_cell.v.object));
+        number_structure_object, MAG_CALL,
+        MA_MAKE_OBJECT(MaDiiaNative::Create(
+            M, MAG_CALL, number_structure_object_mag_call_diia_native_fn,
+            number_structure_object)));
   }
 } // namespace mavka::mama

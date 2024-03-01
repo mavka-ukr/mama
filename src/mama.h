@@ -154,8 +154,8 @@
     (cell).v.object->properties[propname] = value;             \
   }
 
-#define DO_THROW_STRING(v)               \
-  M->throw_cell = create_string(M, (v)); \
+#define DO_THROW_STRING(v)                                \
+  M->throw_cell = MA_MAKE_OBJECT(MaText::Create(M, (v))); \
   throw MaException();
 #define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
   DO_THROW_STRING("Дію \"" + std::string(varname) +       \
@@ -171,7 +171,7 @@ namespace mavka::mama {
   class MaScope;
   struct MaCompilationError;
   struct MaCompilationResult;
-  class MaString;
+  class MaText;
   class MaList;
   class MaDict;
   class MaDiia;
@@ -233,6 +233,8 @@ namespace mavka::mama {
     MaObject* list_structure_object;
     MaObject* dict_structure_object;
     MaObject* module_structure_object;
+
+    static MaMa* Create();
   };
 
   void ma_run(MaMa* M, MaObject* fm, MaCode* code);

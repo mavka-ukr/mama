@@ -1,16 +1,18 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaCell create_module(MaMa* M, const std::string& name) {
+  MaObject* MaModule::Create(MaMa* M, const std::string& name) {
     const auto module = new MaModule();
     module->name = name;
-    return create_object(M, MA_OBJECT_MODULE, M->module_structure_object,
-                         module);
+    const auto module_object = MaObject::Instance(
+        M, MA_OBJECT_MODULE, M->module_structure_object, module);
+    return module_object;
   }
 
-  void init_module(MaMa* M) {
-    const auto module_structure_cell = create_structure(M, "Модуль");
-    M->global_scope->set_variable("Модуль", module_structure_cell);
-    M->module_structure_object = module_structure_cell.v.object;
+  void MaModule::Init(MaMa* M) {
+    const auto module_structure_object = MaStructure::Create(M, "Модуль");
+    M->global_scope->set_variable("Модуль",
+                                  MA_MAKE_OBJECT(module_structure_object));
+    M->module_structure_object = module_structure_object;
   }
 } // namespace mavka::mama

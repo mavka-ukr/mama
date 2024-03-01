@@ -45,12 +45,11 @@ namespace mavka::mama {
     const auto module_code = new MaCode();
     module_code->path = canonical_path;
 
-    const auto module_cell = create_module(M, name);
-    const auto module_object = module_cell.v.object;
+    const auto module_object = MaModule::Create(M, name);
     module_object->d.module->code = module_code;
     module_object->d.module->is_file_module = true;
     if (M->main_module == nullptr) {
-      M->main_module = module_cell.v.object;
+      M->main_module = module_object;
     }
     M->loaded_file_modules.insert_or_assign(canonical_path, module_object);
 
