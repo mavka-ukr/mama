@@ -82,13 +82,13 @@ namespace mavka::mama {
         }
         case VStore: {
           POP_VALUE(value);
-          frame->scope->set_variable(I.data.store->name, value);
+          frame->scope->SetSubject(I.data.store->name, value);
           break;
         }
         case VLoad: {
           const auto scope = frame->scope;
-          if (scope->has_variable(I.data.load->name)) {
-            PUSH(scope->get_variable(I.data.load->name));
+          if (scope->HasSubject(I.data.load->name)) {
+            PUSH(scope->GetSubject(I.data.load->name));
             break;
           }
           DO_THROW_STRING("Субʼєкт \"" + I.data.load->name + "\" не визначено.")
@@ -180,7 +180,7 @@ namespace mavka::mama {
           POP_VALUE(value);
           TOP_VALUE(cell);
           if (IS_OBJECT(cell)) {
-            ma_object_set(cell.v.object, I.data.set->name, value);
+            cell.v.object->SetProperty(I.data.set->name, value);
           }
           break;
         }
@@ -254,7 +254,7 @@ namespace mavka::mama {
             }
           }
           DO_THROW_STRING("Неможливо створити метод для типу " +
-                          structure_cell.get_name())
+                          structure_cell.GetName())
         }
         case VModule: {
           const auto module_object = MaModule::Create(M, I.data.module->name);
@@ -262,8 +262,8 @@ namespace mavka::mama {
           const auto module_frame =
               new MaFrame(module_scope, module_object, frame->module);
           FRAME_PUSH(module_frame);
-          frame->scope->set_variable(I.data.module->name,
-                                     MA_MAKE_OBJECT(module_object));
+          frame->scope->SetSubject(I.data.module->name,
+                                   MA_MAKE_OBJECT(module_object));
           break;
         }
         case VGive: {
@@ -789,7 +789,7 @@ namespace mavka::mama {
         case VModuleLoad: {
           TOP_VALUE(module_cell);
           OBJECT_GET(module_cell, value, I.data.moduleLoad->name);
-          frame->scope->set_variable(I.data.moduleLoad->as, value);
+          frame->scope->SetSubject(I.data.moduleLoad->as, value);
           break;
         }
         default: {

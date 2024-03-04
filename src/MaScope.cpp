@@ -1,50 +1,50 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  bool MaScope::has_variable(const std::string& name) {
-    if (this->variables.contains(name)) {
+  bool MaScope::HasSubject(const std::string& name) {
+    if (this->subjects.contains(name)) {
       return true;
     }
-    auto parent = this->parent;
-    while (parent) {
-      if (parent->variables.contains(name)) {
+    auto parent_temp = this->parent;
+    while (parent_temp) {
+      if (parent_temp->subjects.contains(name)) {
         return true;
       }
-      parent = parent->parent;
+      parent_temp = parent_temp->parent;
     }
     return false;
   }
 
-  bool MaScope::has_local_variable(const std::string& name) {
-    return this->variables.contains(name);
+  bool MaScope::HasLocalSubject(const std::string& name) {
+    return this->subjects.contains(name);
   }
 
-  MaCell MaScope::get_variable(const std::string& name) {
-    if (this->variables.contains(name)) {
-      return this->variables.at(name);
+  MaCell MaScope::GetSubject(const std::string& name) {
+    if (this->subjects.contains(name)) {
+      return this->subjects.at(name);
     }
     auto parent = this->parent;
     while (parent) {
-      if (parent->variables.contains(name)) {
-        return parent->variables[name];
+      if (parent->subjects.contains(name)) {
+        return parent->subjects[name];
       }
       parent = parent->parent;
     }
     return MA_MAKE_EMPTY();
   }
 
-  MaCell MaScope::get_local_variable(const std::string& name) {
-    if (this->has_local_variable(name)) {
-      return this->variables.at(name);
+  MaCell MaScope::GetLocalSubject(const std::string& name) {
+    if (this->HasLocalSubject(name)) {
+      return this->subjects.at(name);
     }
     return MA_MAKE_EMPTY();
   }
 
-  void MaScope::set_variable(const std::string& name, MaCell value) {
-    variables.insert_or_assign(name, value);
+  void MaScope::SetSubject(const std::string& name, MaCell value) {
+    this->subjects.insert_or_assign(name, value);
   }
 
-  void MaScope::delete_variable(const std::string& name) {
-    variables.erase(name);
+  void MaScope::DeleteSubject(const std::string& name) {
+    this->subjects.erase(name);
   }
 } // namespace mavka::mama

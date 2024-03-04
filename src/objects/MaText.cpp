@@ -58,7 +58,8 @@ namespace mavka::mama {
     return utf8_substr(this->data, start, length);
   }
 
-  MaCell ma_string_split_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
+  // розбити
+  MaCell MaText_SplitNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "роздільник", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       const auto delim = cell.v.object->d.string->data;
@@ -94,7 +95,8 @@ namespace mavka::mama {
     }
   }
 
-  MaCell ma_string_replace_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
+  // замінити
+  MaCell MaText_ReplaceNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto first = MA_ARGS_GET(args, 0, "старе", MA_MAKE_EMPTY());
     if (!IS_STRING(first)) {
       M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
@@ -121,9 +123,8 @@ namespace mavka::mama {
     RETURN(MA_MAKE_OBJECT(MaText::Create(M, new_string)));
   }
 
-  MaCell ma_string_starts_with_diia_native_fn(MaMa* M,
-                                              MaObject* o,
-                                              MaArgs* args) {
+  // починається
+  MaCell MaText_StartsWithNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       if (o->d.diia_native->me->d.string->data.find(
@@ -138,9 +139,8 @@ namespace mavka::mama {
     }
   }
 
-  MaCell ma_string_ends_with_diia_native_fn(MaMa* M,
-                                            MaObject* o,
-                                            MaArgs* args) {
+  // закінчується
+  MaCell MaText_EndsWithNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       const auto str = cell.v.object->d.string;
@@ -160,12 +160,14 @@ namespace mavka::mama {
     }
   }
 
-  MaCell ma_string_trim_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
+  // обтяти
+  MaCell MaText_TrimNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     RETURN(MA_MAKE_OBJECT(MaText::Create(
         M, internal::tools::trim(o->d.diia_native->me->d.string->data))));
   }
 
-  MaCell ma_string_mag_add_diia_native_fn(MaMa* M, MaObject* o, MaArgs* args) {
+  // чародія_додати
+  MaCell MaText_MagAddNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto arg_cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_EMPTY(arg_cell)) {
       RETURN(MA_MAKE_OBJECT(
@@ -193,13 +195,12 @@ namespace mavka::mama {
     }
     M->throw_cell = MA_MAKE_OBJECT(
         MaText::Create(M, "Неможливо додати до тексту обʼєкт типу \"" +
-                              arg_cell.get_name() + "\"."));
+                              arg_cell.GetName() + "\"."));
     throw MaException();
   }
 
-  MaCell ma_string_mag_contains_diia_native_fn(MaMa* M,
-                                               MaObject* o,
-                                               MaArgs* args) {
+  // чародія_містить
+  MaCell MaText_MagContainsNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_STRING(cell)) {
       if (o->d.diia_native->me->d.string->data.find(
@@ -214,9 +215,8 @@ namespace mavka::mama {
     }
   }
 
-  MaCell ma_string_mag_get_element_diia_native_fn(MaMa* M,
-                                                  MaObject* o,
-                                                  MaArgs* args) {
+  // чародія_отримати
+  MaCell MaText_MagGetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "позиція", MA_MAKE_EMPTY());
     if (IS_NUMBER(cell)) {
       const auto i = cell.v.number;
@@ -228,21 +228,19 @@ namespace mavka::mama {
     RETURN_EMPTY();
   }
 
-  MaCell ma_string_mag_iterator_diia_native_fn(MaMa* M,
-                                               MaObject* o,
-                                               MaArgs* args) {
+  // чародія_перебір
+  MaCell MaText_MagIteratorNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
         M, "Дія \"" + std::string(MAG_ITERATOR) + "\" тимчасово недоступна."));
     throw MaException();
   }
 
-  MaCell ma_string_mag_number_diia_native_fn(MaMa* M,
-                                             MaObject* o,
-                                             MaArgs* args) {
+  // чародія_число
+  MaCell MaText_MagNumberNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     RETURN_NUMBER(std::stod(o->d.diia_native->me->d.string->data));
   }
 
-  MaCell ma_string_get_handler(MaMa* M, MaObject* me, const std::string& name) {
+  MaCell MaString_GetHandler(MaMa* M, MaObject* me, const std::string& name) {
     if (name == "довжина") {
       return MA_MAKE_INTEGER(me->d.string->length());
     }
@@ -259,54 +257,50 @@ namespace mavka::mama {
     string->data = value;
     const auto string_object = MaObject::Instance(
         M, MA_OBJECT_STRING, M->text_structure_object, string);
-    string_object->get = ma_string_get_handler;
-    ma_object_set(
-        string_object, "розбити",
+    string_object->get = MaString_GetHandler;
+    string_object->SetProperty(
+        "розбити", MA_MAKE_OBJECT(MaDiiaNative::Create(
+                       M, "розбити", MaText_SplitNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        "замінити",
         MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, "розбити", ma_string_split_diia_native_fn, string_object)));
-    ma_object_set(
-        string_object, "замінити",
+            M, "замінити", MaText_ReplaceNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        "починається",
         MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, "замінити", ma_string_replace_diia_native_fn, string_object)));
-    ma_object_set(string_object, "починається",
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, "починається", ma_string_starts_with_diia_native_fn,
-                      string_object)));
-    ma_object_set(string_object, "закінчується",
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, "закінчується", ma_string_ends_with_diia_native_fn,
-                      string_object)));
-    ma_object_set(
-        string_object, "обтяти",
+            M, "починається", MaText_StartsWithNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        "закінчується",
         MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, "обтяти", ma_string_trim_diia_native_fn, string_object)));
-    ma_object_set(
-        string_object, MAG_ADD,
+            M, "закінчується", MaText_EndsWithNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        "обтяти", MA_MAKE_OBJECT(MaDiiaNative::Create(
+                      M, "обтяти", MaText_TrimNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        MAG_ADD, MA_MAKE_OBJECT(MaDiiaNative::Create(
+                     M, MAG_ADD, MaText_MagAddNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        MAG_CONTAINS,
         MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, MAG_ADD, ma_string_mag_add_diia_native_fn, string_object)));
-    ma_object_set(string_object, MAG_CONTAINS,
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, MAG_CONTAINS, ma_string_mag_contains_diia_native_fn,
-                      string_object)));
-    ma_object_set(
-        string_object, MAG_GET_ELEMENT,
+            M, MAG_CONTAINS, MaText_MagContainsNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        MAG_GET_ELEMENT, MA_MAKE_OBJECT(MaDiiaNative::Create(
+                             M, MAG_GET_ELEMENT,
+                             MaText_MagGetElementNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        MAG_ITERATOR,
         MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, MAG_GET_ELEMENT, ma_string_mag_get_element_diia_native_fn,
-            string_object)));
-    ma_object_set(string_object, MAG_ITERATOR,
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, MAG_ITERATOR, ma_string_mag_iterator_diia_native_fn,
-                      string_object)));
-    ma_object_set(string_object, MAG_NUMBER,
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, MAG_NUMBER, ma_string_mag_number_diia_native_fn,
-                      string_object)));
+            M, MAG_ITERATOR, MaText_MagIteratorNativeDiiaFn, string_object)));
+    string_object->SetProperty(
+        MAG_NUMBER,
+        MA_MAKE_OBJECT(MaDiiaNative::Create(
+            M, MAG_NUMBER, MaText_MagNumberNativeDiiaFn, string_object)));
     return string_object;
   }
 
-  MaCell text_structure_object_mag_call_diia_native_fn(MaMa* M,
-                                                       MaObject* o,
-                                                       MaArgs* args) {
+  MaCell MaText_Structure_MagCallNativeDiiaFn(MaMa* M,
+                                              MaObject* o,
+                                              MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_NUMBER(cell)) {
       RETURN(MA_MAKE_OBJECT(
@@ -321,8 +315,8 @@ namespace mavka::mama {
     if (IS_OBJECT(cell)) {
       if (cell.v.object->type == MA_OBJECT_STRING) {
         RETURN(cell);
-      } else if (OBJECT_HAS(cell.v.object, MAG_TEXT)) {
-        return ma_call_handler(M, cell.v.object->properties[MAG_TEXT], {}, {});
+      } else if (cell.v.object->HasProperty(MAG_TEXT)) {
+        return ma_call_handler(M, cell.v.object->GetProperty(MAG_TEXT), {}, {});
       }
     }
     M->throw_cell =
@@ -332,13 +326,11 @@ namespace mavka::mama {
 
   void MaText::Init(MaMa* M) {
     const auto text_structure_object = MaStructure::Create(M, "текст");
-    M->global_scope->set_variable("текст",
-                                  MA_MAKE_OBJECT(text_structure_object));
+    M->global_scope->SetSubject("текст", MA_MAKE_OBJECT(text_structure_object));
     M->text_structure_object = text_structure_object;
-    ma_object_set(
-        text_structure_object, MAG_CALL,
-        MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, MAG_CALL, text_structure_object_mag_call_diia_native_fn,
-            text_structure_object)));
+    text_structure_object->SetProperty(
+        MAG_CALL, MA_MAKE_OBJECT(MaDiiaNative::Create(
+                      M, MAG_CALL, MaText_Structure_MagCallNativeDiiaFn,
+                      text_structure_object)));
   }
 } // namespace mavka::mama

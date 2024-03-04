@@ -1,26 +1,26 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaCell number_structure_object_mag_call_diia_native_fn(MaMa* M,
-                                                         MaObject* o,
-                                                         MaArgs* args) {
-    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
-    if (IS_EMPTY(cell)) {
+  MaCell MaNumber_Structure_MagCallNativeDiiaFn(MaMa* M,
+                                                MaObject* o,
+                                                MaArgs* args) {
+    const auto value_cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    if (IS_EMPTY(value_cell)) {
       RETURN_NUMBER(0);
     }
-    if (IS_NUMBER(cell)) {
-      RETURN(cell);
+    if (IS_NUMBER(value_cell)) {
+      RETURN(value_cell);
     }
-    if (IS_YES(cell)) {
+    if (IS_YES(value_cell)) {
       RETURN_NUMBER(1);
     }
-    if (IS_NO(cell)) {
+    if (IS_NO(value_cell)) {
       RETURN_NUMBER(0);
     }
-    if (IS_OBJECT(cell)) {
-      if (OBJECT_HAS(cell.v.object, MAG_NUMBER)) {
-        return ma_call_handler(M, cell.v.object->properties[MAG_NUMBER], {},
-                               {});
+    if (IS_OBJECT(value_cell)) {
+      if (value_cell.v.object->HasProperty(MAG_NUMBER)) {
+        return ma_call_handler(M, value_cell.v.object->GetProperty(MAG_NUMBER),
+                               {}, {});
       }
     }
     M->throw_cell =
@@ -30,13 +30,12 @@ namespace mavka::mama {
 
   void InitNumber(MaMa* M) {
     const auto number_structure_object = MaStructure::Create(M, "число");
-    M->global_scope->set_variable("число",
-                                  MA_MAKE_OBJECT(number_structure_object));
+    M->global_scope->SetSubject("число",
+                                MA_MAKE_OBJECT(number_structure_object));
     M->number_structure_object = number_structure_object;
-    ma_object_set(
-        number_structure_object, MAG_CALL,
-        MA_MAKE_OBJECT(MaDiiaNative::Create(
-            M, MAG_CALL, number_structure_object_mag_call_diia_native_fn,
-            number_structure_object)));
+    number_structure_object->SetProperty(
+        MAG_CALL, MA_MAKE_OBJECT(MaDiiaNative::Create(
+                      M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
+                      number_structure_object)));
   }
 } // namespace mavka::mama

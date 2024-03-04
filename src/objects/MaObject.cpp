@@ -3,8 +3,8 @@
 namespace mavka::mama {
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
-    M->global_scope->set_variable("обʼєкт",
-                                  MA_MAKE_OBJECT(object_structure_object));
+    M->global_scope->SetSubject("обʼєкт",
+                                MA_MAKE_OBJECT(object_structure_object));
     M->object_structure_object = object_structure_object;
     M->structure_structure_object->structure = object_structure_object;
   }
@@ -28,5 +28,43 @@ namespace mavka::mama {
   MaObject* MaObject::Empty(MaMa* M) {
     return MaObject::Instance(M, MA_OBJECT, M->object_structure_object,
                               nullptr);
+  }
+
+  void MaObject::Retain() {
+    if (this->ref_count == 0) {
+      this->ref_count = 1;
+    } else {
+      ++this->ref_count;
+    }
+  };
+
+  void MaObject::Release() {
+    if (this->ref_count == 0) {
+      return;
+    }
+    --this->ref_count;
+    if (this->ref_count == 0) {
+      // todo: handle full delete
+      delete this;
+    }
+  };
+
+  bool MaObject::HasProperty(const std::string& name) {
+    return this->properties.contains(name);
+  }
+
+  void MaObject::SetProperty(const std::string& name, MaCell value) {
+    this->properties.insert_or_assign(name, value);
+  }
+
+  MaCell MaObject::GetProperty(const std::string& name) {
+    return this->properties[name];
+  }
+
+  MaCell MaObject::GetPropertyOrEmpty(const std::string& name) {
+    if (this->properties.contains(name)) {
+      return this->properties[name];
+    }
+    RETURN_EMPTY();
   }
 } // namespace mavka::mama

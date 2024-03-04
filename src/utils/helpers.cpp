@@ -1,7 +1,7 @@
-#include "mama.h"
+#include "../mama.h"
 
 namespace mavka::mama {
-  std::string MaCell::get_name() const {
+  std::string MaCell::GetName() const {
     if (type == MA_CELL_OBJECT) {
       if (v.object->structure) {
         return v.object->structure->d.structure->name;
@@ -31,5 +31,11 @@ namespace mavka::mama {
                                     MaInstruction instruction) {
     std::cout << code << "[" << index << "]: " << instruction.to_string()
               << std::endl;
+  }
+
+  std::string ma_number_to_string(const double number) {
+    std::ostringstream stream;
+    stream << number;
+    return stream.str();
   }
 } // namespace mavka::mama

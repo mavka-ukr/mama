@@ -54,8 +54,8 @@ set(MAMA_SRC
         utils/chrono.h
         utils/tools.cpp
         utils/tools.h
-        helpers.cpp
-        helpers.h
+        utils/helpers.cpp
+        utils/helpers.h
         ma_call.cpp
         ma_take.cpp
         MaFrame.h

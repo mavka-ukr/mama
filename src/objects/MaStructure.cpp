@@ -1,10 +1,7 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-
-  MaCell ma_structure_get_handler(MaMa* M,
-                                  MaObject* o,
-                                  const std::string& name) {
+  MaCell MaStructure_GetHandler(MaMa* M, MaObject* o, const std::string& name) {
     if (name == "назва") {
       return MA_MAKE_OBJECT(MaText::Create(M, o->d.structure->name));
     }
@@ -17,9 +14,8 @@ namespace mavka::mama {
     return o->properties[name];
   }
 
-  MaCell structure_structure_object_get_structure_diia_native_fn(MaMa* M,
-                                                                 MaObject* o,
-                                                                 MaArgs* args) {
+  // дізнатись
+  MaCell MaStructure_DiscoverNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
     if (IS_EMPTY(cell)) {
       RETURN_EMPTY();
@@ -40,7 +36,7 @@ namespace mavka::mama {
     structure_object->type = MA_OBJECT_STRUCTURE;
     structure_object->d.structure = structure;
     structure_object->structure = structure_object;
-    structure_object->get = ma_structure_get_handler;
+    structure_object->get = MaStructure_GetHandler;
     structure_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
                                 MaLocation location) {
       const auto object = MaObject::Instance(M, MA_OBJECT, o, nullptr);
@@ -48,7 +44,7 @@ namespace mavka::mama {
         const auto& param = o->d.structure->params[i];
         const auto arg_value =
             MA_ARGS_GET(args, i, param.name, param.default_value);
-        ma_object_set(object, param.name, arg_value);
+        object->SetProperty(param.name, arg_value);
       }
       return MA_MAKE_OBJECT(object);
     };
@@ -58,16 +54,15 @@ namespace mavka::mama {
   void MaStructure::Init(MaMa* M) {
     const auto structure_structure_object = MaStructure::Create(M, "Структура");
     M->structure_structure_object = structure_structure_object;
-    M->global_scope->set_variable("Структура",
-                                  MA_MAKE_OBJECT(structure_structure_object));
+    M->global_scope->SetSubject("Структура",
+                                MA_MAKE_OBJECT(structure_structure_object));
     structure_structure_object->structure = structure_structure_object;
   }
 
   void MaStructure::Init2(MaMa* M) {
-    ma_object_set(M->structure_structure_object, "дізнатись",
-                  MA_MAKE_OBJECT(MaDiiaNative::Create(
-                      M, "дізнатись",
-                      structure_structure_object_get_structure_diia_native_fn,
-                      M->structure_structure_object)));
+    M->structure_structure_object->SetProperty(
+        "дізнатись", MA_MAKE_OBJECT(MaDiiaNative::Create(
+                         M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
+                         M->structure_structure_object)));
   }
 } // namespace mavka::mama

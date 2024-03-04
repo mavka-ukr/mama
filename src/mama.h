@@ -135,7 +135,6 @@
   const auto name = FRAME_TOP(); \
   FRAME_POP();
 
-#define OBJECT_HAS(object, name) (object)->properties.contains((name))
 #define OBJECT_GET(cell, varname, propname)                       \
   MaCell varname{};                                               \
   if ((cell).v.object->get) {                                     \
@@ -159,9 +158,9 @@
   throw MaException();
 #define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
   DO_THROW_STRING("Дію \"" + std::string(varname) +       \
-                  "\" не визначено для типу \"" + cell.get_name() + "\".")
+                  "\" не визначено для типу \"" + cell.GetName() + "\".")
 #define DO_THROW_CANNOT_CALL_CELL(cell) \
-  DO_THROW_STRING("Неможливо викликати \"" + cell.get_name() + "\".")
+  DO_THROW_STRING("Неможливо викликати \"" + cell.GetName() + "\".")
 
 namespace mavka::mama {
   struct MaMa;
@@ -193,7 +192,7 @@ namespace mavka::mama {
 #include "MaObject.h"
 #include "MaScope.h"
 #include "compiler/compiler.h"
-#include "helpers.h"
+#include "utils/helpers.h"
 
   class MaException : public std::exception {
    public:

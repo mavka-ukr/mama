@@ -11,6 +11,7 @@ class MaModule;
 struct MaCell;
 
 struct MaObject {
+  size_t ref_count;
   unsigned char type;
   union {
     void* ptr;
@@ -32,12 +33,19 @@ struct MaObject {
       call;
 
   static void Init(MaMa* M);
-
   static MaObject* Instance(MaMa* M,
                             unsigned char type,
                             MaObject* structure_object,
                             void* d);
   static MaObject* Empty(MaMa* M);
+
+  void Retain();
+  void Release();
+
+  bool HasProperty(const std::string& name);
+  void SetProperty(const std::string& name, MaCell value);
+  MaCell GetProperty(const std::string& name);
+  MaCell GetPropertyOrEmpty(const std::string& name);
 };
 
 struct MaCell {
@@ -48,7 +56,7 @@ struct MaCell {
     MaArgs* args;
   } v;
 
-  std::string get_name() const;
+  std::string GetName() const;
 };
 
 class MaText final {
@@ -147,25 +155,6 @@ class MaModule final {
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& name);
 };
-
-inline std::string ma_number_to_string(const double number) {
-  std::ostringstream stream;
-  stream << number;
-  return stream.str();
-}
-
-inline void ma_object_set(MaObject* object,
-                          const std::string& name,
-                          MaCell value) {
-  object->properties.insert_or_assign(name, value);
-}
-
-inline MaCell ma_object_get(const MaObject* object, const std::string& name) {
-  if (object->properties.contains(name)) {
-    return object->properties.at(name);
-  }
-  return MA_MAKE_EMPTY();
-}
 
 void InitNumber(MaMa* M);
 void InitLogical(MaMa* M);
