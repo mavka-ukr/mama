@@ -12,12 +12,16 @@
 
 ## Використання
 
+Клон репо:
+
 ```shell
 git clone https://github.com/mavka-ukr/mama
 cd mama
 git submodule update --init --recursive
 cd ..
 ```
+
+CMakeLists.txt:
 
 ```CMake
 cmake_minimum_required(VERSION 3.26)
@@ -27,11 +31,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(mama)
 
-add_executable(mavka dev/mavka.cpp)
+add_executable(mavka mavka.cpp)
 target_link_libraries(mavka PRIVATE mama)
 target_compile_options(mavka PRIVATE -fexceptions)
 set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
 ```
+
+mavka.cpp:
 
 ```c++
 #include "mama/src/mama.h"
@@ -44,8 +50,8 @@ MaCell TakePath(MaMa* M,
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
-    return MaCell::Error(MaError::Create(
-        M, "Шлях \"" + canonical_path.string() + "\" не існує.", location));
+    return MaCell::Error(
+        MaError::Create(M, "Шлях \"" + path + "\" не існує.", location));
   }
   if (!std::filesystem::is_regular_file(canonical_path)) {
     return MaCell::Error(MaError::Create(
@@ -106,16 +112,28 @@ int main(int argc, char** argv) {
 
 ## Розробка
 
+Клон репо:
+
 ```shell
 git clone https://github.com/mavka-ukr/mama
 cd mama
 git submodule update --init --recursive
 ```
 
+Будування Мавки для тестування:
+
 ```shell
-bash dev/build.sh
+bash testing/build.sh
 ```
 
+Використання Мавки для тестування:
+
 ```
-./build/мавка ./dev/старт.м
+./build/мавка ./testing/старт.м
+```
+
+Запуск тестів:
+
+```
+bash testing/test.sh
 ```

@@ -4,5 +4,5 @@ set -e
 
 mkdir -p build
 cd build
-cmake .. -DMAMA_DEV_MAVKA=ON
+cmake .. -DMAMA_TESTING=ON
 make -j4 mavka
