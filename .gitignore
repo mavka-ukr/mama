@@ -24,6 +24,5 @@
 /node_modules/
 /.паки/
 /х.м
-/CMakeLists.txt
 /mavka.cpp
 /build.sh
