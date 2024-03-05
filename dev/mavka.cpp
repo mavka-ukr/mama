@@ -14,7 +14,7 @@ std::string cell_to_string(MaCell cell, int depth) {
   }
   if (IS_NUMBER(cell)) {
     if (std::isinf(cell.AsNumber())) {
-      return "бескінечність";
+      return "нескінченність";
     }
     if (std::isnan(cell.AsNumber())) {
       return "невизначеність";
