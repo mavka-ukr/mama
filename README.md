@@ -4,11 +4,19 @@
 
 Машина вказівок Мавки.
 
+## Вимоги
+
+- Clang
+- CMake
+- Make
+
 ## Використання
 
 ```shell
 git clone https://github.com/mavka-ukr/mama
+cd mama
 git submodule update --init --recursive
+cd ..
 ```
 
 ```CMake
@@ -19,7 +27,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(mama)
 
-add_executable(mavka mavka.cpp)
+add_executable(mavka dev/mavka.cpp)
 target_link_libraries(mavka PRIVATE mama)
 target_compile_options(mavka PRIVATE -fexceptions)
 set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
@@ -94,4 +102,20 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+```
+
+## Розробка
+
+```shell
+git clone https://github.com/mavka-ukr/mama
+cd mama
+git submodule update --init --recursive
+```
+
+```shell
+bash dev/build.sh
+```
+
+```
+./build/мавка ./dev/старт.м
 ```

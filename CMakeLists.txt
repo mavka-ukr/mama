@@ -71,8 +71,8 @@ set(MAMA_SRC
 add_library(mama ${MAMA_SRC})
 target_link_libraries(mama mavka_parser tsl::ordered_map)
 
-if (MAMA_TESTING_MAVKA)
-    add_executable(mavka mavka.cpp)
+if (MAMA_DEV_MAVKA)
+    add_executable(mavka dev/mavka.cpp)
     target_link_libraries(mavka PRIVATE mama)
     target_compile_options(mavka PRIVATE -fexceptions)
     set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
