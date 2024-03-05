@@ -13,6 +13,12 @@ std::string cell_to_string(MaCell cell, int depth) {
     return "пусто";
   }
   if (IS_NUMBER(cell)) {
+    if (std::isinf(cell.AsNumber())) {
+      return "бескінечність";
+    }
+    if (std::isnan(cell.AsNumber())) {
+      return "невизначеність";
+    }
     return ma_number_to_string(cell.v.number);
   }
   if (IS_YES(cell)) {
@@ -90,7 +96,7 @@ std::string cell_to_string(MaCell cell, int depth) {
   return "<невідомо>";
 }
 
-void init_print(MaMa* M, MaScope* S) {
+void init_print(MaMa* M) {
   const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
                             const MaLocation& location) {
     if (args->type == MA_ARGS_TYPE_POSITIONED) {
@@ -104,7 +110,26 @@ void init_print(MaMa* M, MaScope* S) {
     }
     return MaCell::Empty();
   };
-  S->SetSubject("друк", MaNative::Create(M, "друк", native_fn, nullptr));
+  M->global_scope->SetSubject("друк",
+                              MaNative::Create(M, "друк", native_fn, nullptr));
+}
+
+void init_read(MaMa* M) {
+  const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
+                            const MaLocation& location) {
+    const auto prefix = args->Get(0, "префікс");
+    if (prefix.IsObject() && prefix.IsObjectText()) {
+      std::cout << prefix.AsText()->data;
+    }
+    std::string value;
+    getline(std::cin, value);
+    if (std::cin.eof()) {
+      return MaCell::Empty();
+    }
+    return MaCell::Object(MaText::Create(M, value));
+  };
+  M->global_scope->SetSubject(
+      "читати", MaNative::Create(M, "читати", native_fn, nullptr));
 }
 
 MaCell TakePath(MaMa* M,
@@ -165,7 +190,8 @@ int main(int argc, char** argv) {
   const auto M = MaMa::Create();
   M->TakeFn = TakeFn;
 
-  init_print(M, M->global_scope);
+  init_print(M);
+  init_read(M);
 
   const auto take_result = TakePath(M, args[1], {});
   if (take_result.IsError()) {
