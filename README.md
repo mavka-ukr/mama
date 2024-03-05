@@ -89,11 +89,9 @@ int main(int argc, char** argv) {
   const auto take_result = TakePath(M, "./старт.м", {});
   if (take_result.IsError()) {
     std::cerr << cell_to_string(take_result.v.error->value) << std::endl;
-    M->Destroy();
     return 1;
   }
 
-  M->Destroy();
   return 0;
 }
 ```
