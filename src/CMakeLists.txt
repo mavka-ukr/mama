@@ -57,11 +57,11 @@ set(MAMA_SRC
         utils/helpers.cpp
         utils/helpers.h
         MaArgs.cpp
+        MaCell.cpp
         MaFrame.h
         MaInstruction.cpp
         MaInstruction.h
-        ma_run.cpp
-        mama.cpp
+        MaMa.cpp
         mama.h
         MaObject.h
         MaScope.cpp

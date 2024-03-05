@@ -227,13 +227,13 @@ namespace mavka::mama {
 
     static MaMa* Create();
 
+    MaCell Run(MaCode* code);
+
     MaCell Take(const std::string& repository,
                 bool relative,
                 const std::vector<std::string>& path_parts);
     MaCell Take(const std::string& path);
   };
-
-  MaCell ma_run(MaMa* M, MaCode* code);
 } // namespace mavka::mama
 
 #endif // MAMA_H

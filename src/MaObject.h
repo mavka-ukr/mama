@@ -32,6 +32,19 @@ struct MaObject {
   std::function<MaCell(MaMa* M, MaObject* o, MaArgs* args, MaLocation location)>
       call;
 
+  [[always_inline]] inline bool IsText() const {
+    return this->type == MA_OBJECT_STRING;
+  };
+  [[always_inline]] inline bool IsList() const {
+    return this->type == MA_OBJECT_LIST;
+  };
+  [[always_inline]] inline bool IsDict() const {
+    return this->type == MA_OBJECT_DICT;
+  };
+  [[always_inline]] inline MaText* AsText() const { return this->d.string; };
+  [[always_inline]] inline MaList* AsList() const { return this->d.list; };
+  [[always_inline]] inline MaDict* AsDict() const { return this->d.dict; };
+
   static void Init(MaMa* M);
   static MaObject* Instance(MaMa* M,
                             unsigned char type,
@@ -66,6 +79,7 @@ struct MaCell {
   MaCell Call(MaMa* M,
               const std::unordered_map<std::string, MaCell>& args,
               const MaLocation& location) const;
+  bool IsSame(const MaCell& other) const;
 
   [[always_inline]] inline bool IsEmpty() const {
     return this->type == MA_CELL_EMPTY;
@@ -82,11 +96,29 @@ struct MaCell {
   [[always_inline]] inline bool IsObject() const {
     return this->type == MA_CELL_OBJECT;
   };
+  [[always_inline]] inline bool IsObjectText() const {
+    return this->v.object->IsText();
+  };
   [[always_inline]] inline bool IsArgs() const {
     return this->type == MA_CELL_ARGS;
   };
   [[always_inline]] inline bool IsError() const {
     return this->type == MA_CELL_ERROR;
+  };
+  [[always_inline]] inline double AsNumber() const { return this->v.number; };
+  [[always_inline]] inline MaObject* AsObject() const {
+    return this->v.object;
+  };
+  [[always_inline]] inline MaArgs* AsArgs() const { return this->v.args; };
+  [[always_inline]] inline MaError* AsError() const { return this->v.error; };
+  [[always_inline]] inline MaText* AsText() const {
+    return this->v.object->AsText();
+  };
+  [[always_inline]] inline MaList* AsList() const {
+    return this->v.object->AsList();
+  };
+  [[always_inline]] inline MaDict* AsDict() const {
+    return this->v.object->AsDict();
   };
 
   [[always_inline]] inline static MaCell Empty() {
@@ -115,8 +147,8 @@ class MaText final {
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& value);
 
-  size_t length() const;
-  std::string substr(size_t start, size_t length) const;
+  size_t Length() const;
+  std::string Substr(size_t start, size_t length) const;
 };
 
 class MaList final {
@@ -140,10 +172,10 @@ class MaDict final {
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M);
 
-  void set(MaCell key, MaCell value);
-  MaCell get(MaCell key) const;
-  void remove(MaCell key);
-  size_t size() const;
+  void Set(const MaCell& key, const MaCell& value);
+  MaCell Get(const MaCell& key) const;
+  void Remove(const MaCell& key);
+  size_t Size() const;
 };
 
 class MaDiiaParam final {
