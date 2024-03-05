@@ -39,22 +39,21 @@ namespace mavka::mama {
     return diia_object;
   }
 
-  MaObject* MaDiiaNative::Create(
-      MaMa* M,
-      const std::string& name,
-      const std::function<DiiaNativeFn>& diia_native_fn,
-      MaObject* me) {
-    const auto diia_native = new MaDiiaNative();
-    diia_native->name = name;
-    diia_native->fn = diia_native_fn;
-    diia_native->me = me;
-    const auto diia_native_object = MaObject::Instance(
-        M, MA_OBJECT_DIIA_NATIVE, M->diia_structure_object, diia_native);
-    diia_native_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
-                                  const MaLocation& location) {
-      return o->d.diia_native->fn(M, o, args, location);
+  MaObject* MaNative::Create(MaMa* M,
+                             const std::string& name,
+                             const std::function<NativeFn>& native_fn,
+                             MaObject* me) {
+    const auto native = new MaNative();
+    native->name = name;
+    native->fn = native_fn;
+    native->me = me;
+    const auto native_object = MaObject::Instance(
+        M, MA_OBJECT_NATIVE, M->diia_structure_object, native);
+    native_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
+                             const MaLocation& location) {
+      return o->d.native->fn(M, o, args, location);
     };
-    return diia_native_object;
+    return native_object;
   }
 
   void MaDiia::Init(MaMa* M) {

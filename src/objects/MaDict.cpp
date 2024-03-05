@@ -41,7 +41,7 @@ namespace mavka::mama {
                                           MaArgs* args,
                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
-    return o->d.diia_native->me->d.dict->Get(key);
+    return o->d.native->me->d.dict->Get(key);
   }
 
   // чародія_покласти
@@ -51,7 +51,7 @@ namespace mavka::mama {
                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
-    o->d.diia_native->me->d.dict->Set(key, value);
+    o->d.native->me->d.dict->Set(key, value);
     return MaCell::Empty();
   }
 
@@ -61,12 +61,12 @@ namespace mavka::mama {
         MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
     dict_object->SetProperty(
         MAG_GET_ELEMENT,
-        MaDiiaNative::Create(M, MAG_GET_ELEMENT,
-                             MaDict_MagGetElementNativeDiiaFn, dict_object));
+        MaNative::Create(M, MAG_GET_ELEMENT, MaDict_MagGetElementNativeDiiaFn,
+                         dict_object));
     dict_object->SetProperty(
         MAG_SET_ELEMENT,
-        MaDiiaNative::Create(M, MAG_SET_ELEMENT,
-                             MaDict_MagSetElementNativeDiiaFn, dict_object));
+        MaNative::Create(M, MAG_SET_ELEMENT, MaDict_MagSetElementNativeDiiaFn,
+                         dict_object));
     return dict_object;
   }
 

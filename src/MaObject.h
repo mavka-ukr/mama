@@ -6,7 +6,7 @@ class MaList;
 class MaDict;
 class MaDiia;
 class MaStructure;
-class MaDiiaNative;
+class MaNative;
 class MaModule;
 struct MaCell;
 
@@ -15,12 +15,12 @@ struct MaObject {
   unsigned char type;
   union {
     void* ptr;
-    MaText* string;
+    MaText* text;
     MaList* list;
     MaDict* dict;
     MaDiia* diia;
+    MaNative* native;
     MaStructure* structure;
-    MaDiiaNative* diia_native;
     MaModule* module;
   } d;
   MaObject* structure;
@@ -41,9 +41,31 @@ struct MaObject {
   [[always_inline]] inline bool IsDict() const {
     return this->type == MA_OBJECT_DICT;
   };
-  [[always_inline]] inline MaText* AsText() const { return this->d.string; };
+  [[always_inline]] inline bool IsDiia() const {
+    return this->type == MA_OBJECT_DIIA;
+  };
+  [[always_inline]] inline bool IsNative() const {
+    return this->type == MA_OBJECT_NATIVE;
+  };
+  [[always_inline]] inline bool IsStructure() const {
+    return this->type == MA_OBJECT_STRUCTURE;
+  };
+  [[always_inline]] inline bool IsModule() const {
+    return this->type == MA_OBJECT_MODULE;
+  };
+  [[always_inline]] inline MaText* AsText() const { return this->d.text; };
   [[always_inline]] inline MaList* AsList() const { return this->d.list; };
   [[always_inline]] inline MaDict* AsDict() const { return this->d.dict; };
+  [[always_inline]] inline MaDiia* AsDiia() const { return this->d.diia; };
+  [[always_inline]] inline MaNative* AsNative() const {
+    return this->d.native;
+  };
+  [[always_inline]] inline MaStructure* AsStructure() const {
+    return this->d.structure;
+  };
+  [[always_inline]] inline MaModule* AsModule() const {
+    return this->d.module;
+  };
 
   static void Init(MaMa* M);
   static MaObject* Instance(MaMa* M,
@@ -213,20 +235,20 @@ class MaStructure final {
   static MaObject* Create(MaMa* M, const std::string& name);
 };
 
-typedef MaCell DiiaNativeFn(MaMa* M,
-                            MaObject* o,
-                            MaArgs* args,
-                            MaLocation location);
+typedef MaCell NativeFn(MaMa* M,
+                        MaObject* o,
+                        MaArgs* args,
+                        MaLocation location);
 
-class MaDiiaNative final {
+class MaNative final {
  public:
   std::string name;
-  std::function<DiiaNativeFn> fn;
+  std::function<NativeFn> fn;
   MaObject* me;
 
   static MaObject* Create(MaMa* M,
                           const std::string& name,
-                          const std::function<DiiaNativeFn>& diia_native_fn,
+                          const std::function<NativeFn>& native_fn,
                           MaObject* me);
 };
 

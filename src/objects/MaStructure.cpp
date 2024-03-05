@@ -57,7 +57,7 @@ namespace mavka::mama {
   void MaStructure::Init2(MaMa* M) {
     M->structure_structure_object->SetProperty(
         "дізнатись",
-        MaDiiaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
+        MaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
                              M->structure_structure_object));
   }
 } // namespace mavka::mama

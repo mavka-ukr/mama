@@ -34,7 +34,8 @@ namespace mavka::mama {
     M->global_scope->SetSubject("число", number_structure_object);
     M->number_structure_object = number_structure_object;
     number_structure_object->SetProperty(
-        MAG_CALL, MaDiiaNative::Create(M, MAG_CALL,
+        MAG_CALL,
+        MaNative::Create(M, MAG_CALL,
                                        MaNumber_Structure_MagCallNativeDiiaFn,
                                        number_structure_object));
   }

@@ -49,8 +49,7 @@ namespace mavka::mama {
         if (cell.type == MA_CELL_OBJECT) {
           if (item.v.object->type == MA_OBJECT_STRING) {
             if (cell.v.object->type == MA_OBJECT_STRING) {
-              if (item.v.object->d.string->data ==
-                  cell.v.object->d.string->data) {
+              if (item.v.object->d.text->data == cell.v.object->d.text->data) {
                 return true;
               }
             }
@@ -66,11 +65,11 @@ namespace mavka::mama {
   }
 
   // чародія_перебір
-  MaCell MaList_MagIteratorDiiaNativeFn(MaMa* M,
-                                        MaObject* o,
-                                        MaArgs* args,
-                                        const MaLocation& location) {
-    const auto list_object = o->d.diia_native->me;
+  MaCell MaList_MagIteratorNativeFn(MaMa* M,
+                                    MaObject* o,
+                                    MaArgs* args,
+                                    const MaLocation& location) {
+    const auto list_object = o->d.native->me;
     const auto iterator_object = MaObject::Empty(M);
 
     iterator_object->SetProperty("_список", o);
@@ -80,25 +79,25 @@ namespace mavka::mama {
     } else if (list_object->d.list->size() == 1) {
       iterator_object->SetProperty("завершено", MaCell::No());
       iterator_object->SetProperty("значення", list_object->d.list->data[0]);
-      const auto next_diia_native_object = MaDiiaNative::Create(
+      const auto next_native_object = MaNative::Create(
           M, "далі",
           [](MaMa* M, MaObject* iterator_o, MaArgs* args,
              const MaLocation& location) {
-            const auto iterator_object = iterator_o->d.diia_native->me;
+            const auto iterator_object = iterator_o->d.native->me;
             iterator_object->SetProperty("завершено", MaCell::Yes());
             return MaCell::Empty();
           },
           iterator_object);
-      iterator_object->SetProperty("далі", next_diia_native_object);
+      iterator_object->SetProperty("далі", next_native_object);
     } else {
       iterator_object->SetProperty("завершено", MaCell::No());
       iterator_object->SetProperty("значення", list_object->d.list->data[0]);
       iterator_object->SetProperty("_індекс", MaCell::Number(1));
-      const auto next_diia_native_object = MaDiiaNative::Create(
+      const auto next_native_object = MaNative::Create(
           M, "далі",
           [](MaMa* M, MaObject* iterator_o, MaArgs* args,
              const MaLocation& location) {
-            const auto iterator_object = iterator_o->d.diia_native->me;
+            const auto iterator_object = iterator_o->d.native->me;
             const auto i = iterator_object->properties["_індекс"].v.number;
             const auto list =
                 iterator_o->properties["_список"].v.object->d.list;
@@ -112,7 +111,7 @@ namespace mavka::mama {
             return MaCell::Empty();
           },
           iterator_object);
-      iterator_object->SetProperty("далі", next_diia_native_object);
+      iterator_object->SetProperty("далі", next_native_object);
     }
     return MaCell::Object(iterator_object);
   }
@@ -124,7 +123,7 @@ namespace mavka::mama {
                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     if (!IS_EMPTY(key)) {
-      RETURN(o->d.diia_native->me->d.list->get(key.v.number));
+      RETURN(o->d.native->me->d.list->get(key.v.number));
     }
     RETURN_EMPTY();
   }
@@ -136,7 +135,7 @@ namespace mavka::mama {
                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
-    o->d.diia_native->me->d.list->set(key.v.number, value);
+    o->d.native->me->d.list->set(key.v.number, value);
     RETURN_EMPTY();
   }
 
@@ -146,8 +145,8 @@ namespace mavka::mama {
                                    MaArgs* args,
                                    const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
-    o->d.diia_native->me->d.list->append(cell);
-    return MaCell::Number(o->d.diia_native->me->d.list->size());
+    o->d.native->me->d.list->append(cell);
+    return MaCell::Number(o->d.native->me->d.list->size());
   }
 
   // чародія_містить
@@ -156,7 +155,7 @@ namespace mavka::mama {
                                         MaArgs* args,
                                         const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
-    if (o->d.diia_native->me->d.list->contains(cell)) {
+    if (o->d.native->me->d.list->contains(cell)) {
       RETURN_YES();
     } else {
       RETURN_NO();
@@ -182,23 +181,23 @@ namespace mavka::mama {
     list_object->get = MaListGetHandler;
     list_object->SetProperty(
         MAG_ITERATOR,
-        MaDiiaNative::Create(M, MAG_ITERATOR, MaList_MagIteratorDiiaNativeFn,
-                             list_object));
+        MaNative::Create(M, MAG_ITERATOR, MaList_MagIteratorNativeFn,
+                         list_object));
     list_object->SetProperty(
         MAG_GET_ELEMENT,
-        MaDiiaNative::Create(M, MAG_GET_ELEMENT,
-                             MaList_MagGetElementNativeDiiaFn, list_object));
+        MaNative::Create(M, MAG_GET_ELEMENT, MaList_MagGetElementNativeDiiaFn,
+                         list_object));
     list_object->SetProperty(
         MAG_SET_ELEMENT,
-        MaDiiaNative::Create(M, MAG_SET_ELEMENT,
-                             MaList_MagSetElementNativeDiiaFn, list_object));
+        MaNative::Create(M, MAG_SET_ELEMENT, MaList_MagSetElementNativeDiiaFn,
+                         list_object));
     list_object->SetProperty(
-        "додати", MaDiiaNative::Create(M, "додати", MaList_AppendNativeDiiaFn,
-                                       list_object));
+        "додати",
+        MaNative::Create(M, "додати", MaList_AppendNativeDiiaFn, list_object));
     list_object->SetProperty(
         MAG_CONTAINS,
-        MaDiiaNative::Create(M, MAG_CONTAINS, MaList_MagContainsNativeDiiaFn,
-                             list_object));
+        MaNative::Create(M, MAG_CONTAINS, MaList_MagContainsNativeDiiaFn,
+                         list_object));
     return list_object;
   }
 

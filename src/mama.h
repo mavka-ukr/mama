@@ -74,7 +74,7 @@
 
 #define MA_OBJECT 0
 #define MA_OBJECT_DIIA 1
-#define MA_OBJECT_DIIA_NATIVE 2
+#define MA_OBJECT_NATIVE 2
 #define MA_OBJECT_STRING 3
 #define MA_OBJECT_LIST 4
 #define MA_OBJECT_DICT 5
@@ -91,10 +91,6 @@
 #define IS_OBJECT(cell) ((cell).type == MA_CELL_OBJECT)
 #define IS_OBJECT_STRING(cell) (cell).v.object->type == MA_OBJECT_STRING
 #define IS_OBJECT_STRUCTURE(cell) (cell).v.object->type == MA_OBJECT_STRUCTURE
-#define IS_OBJECT_DIIA(cell) (cell).v.object->type == MA_OBJECT_DIIA
-#define IS_OBJECT_DIIA_NATIVE(cell) \
-  (cell).v.object->type == MA_OBJECT_DIIA_NATIVE
-#define IS_STRING(cell) IS_OBJECT(cell) && IS_OBJECT_STRING(cell)
 #define IS_ARGS(cell) ((cell).type == MA_CELL_ARGS)
 #define IS_ERROR(cell) ((cell).type == MA_CELL_ERROR)
 
@@ -121,7 +117,7 @@
   const auto name = TOP(); \
   POP();
 
-#define OBJECT_STRING_DATA(cell) (cell).v.object->d.string->data
+#define OBJECT_STRING_DATA(cell) (cell).v.object->d.text->data
 
 #define READ_TOP_FRAME() const auto frame = M->frame_stack.top();
 #define FRAME_POP() M->frame_stack.pop();
@@ -173,7 +169,7 @@ namespace mavka::mama {
   class MaDict;
   class MaDiia;
   class MaStructure;
-  class MaDiiaNative;
+  class MaNative;
   class MaModule;
   struct MaCell;
   struct MaObject;

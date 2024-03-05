@@ -68,7 +68,7 @@ namespace mavka::mama {
         }
         if (thisObject->type == MA_OBJECT_STRING &&
             otherObject->type == MA_OBJECT_STRING) {
-          return thisObject->d.string->data == otherObject->d.string->data;
+          return thisObject->d.text->data == otherObject->d.text->data;
         }
       }
       return false;
