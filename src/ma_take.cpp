@@ -68,7 +68,7 @@ namespace mavka::mama {
     const auto module_frame =
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
-    const auto result = ma_run(M, module_object, module_code);
+    const auto result = ma_run(M, module_code);
     if (IS_ERROR(result)) {
       return result;
     }

@@ -236,7 +236,7 @@ namespace mavka::mama {
     static MaMa* Create();
   };
 
-  MaCell ma_run(MaMa* M, MaObject* fm, MaCode* code);
+  MaCell ma_run(MaMa* M, MaCode* code);
 
   MaCell ma_call(MaMa* M,
                  MaCell cell,

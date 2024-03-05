@@ -1,7 +1,7 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  MaCell ma_run(MaMa* M, MaObject* fm, MaCode* code) {
+  MaCell ma_run(MaMa* M, MaCode* code) {
     READ_TOP_FRAME();
     auto size = code->instructions.size();
     size_t i = 0;
@@ -73,7 +73,7 @@ namespace mavka::mama {
           const auto diia_object =
               MaDiia::Create(M, I.data.diia->name, I.data.diia->code, nullptr);
           diia_object->d.diia->scope = frame->scope;
-          diia_object->d.diia->fm = fm;
+          diia_object->d.diia->fm = frame->module;
           PUSH_OBJECT(diia_object);
           break;
         }
@@ -191,15 +191,14 @@ namespace mavka::mama {
         }
         case VTry: {
           const auto frames_size = M->frame_stack.size();
-          const auto result = ma_run(M, fm, I.data.try_->try_code);
+          const auto result = ma_run(M, I.data.try_->try_code);
           if (IS_ERROR(result)) {
             const auto value = M->throw_cell;
             PUSH(value);
             while (M->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            const auto result2 = ma_run(M, M->frame_stack.top()->module,
-                                        I.data.try_->catch_code);
+            const auto result2 = ma_run(M, I.data.try_->catch_code);
             if (IS_ERROR(result2)) {
               return result2;
             }
