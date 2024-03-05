@@ -1,10 +1,10 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  MaObject* ma_take(MaMa* M,
-                    const std::string& repository,
-                    bool relative,
-                    const std::vector<std::string>& path_parts) {
+  MaCell ma_take(MaMa* M,
+                 const std::string& repository,
+                 bool relative,
+                 const std::vector<std::string>& path_parts) {
     const auto path =
         M->cwd + "/" + internal::tools::implode(path_parts, "/") + ".м";
     if (!std::filesystem::exists(path)) {
@@ -13,7 +13,7 @@ namespace mavka::mama {
     return ma_take(M, path);
   }
 
-  MaObject* ma_take(MaMa* M, const std::string& path) {
+  MaCell ma_take(MaMa* M, const std::string& path) {
     const auto canonical_path = std::filesystem::canonical(path).string();
 
     const auto fs_path = std::filesystem::path(canonical_path);
@@ -24,7 +24,7 @@ namespace mavka::mama {
     const auto name = fs_path.stem().string();
 
     if (M->loaded_file_modules.contains(canonical_path)) {
-      return M->loaded_file_modules[canonical_path];
+      return MA_MAKE_OBJECT(M->loaded_file_modules[canonical_path]);
     }
 
     auto file = std::ifstream(canonical_path);
@@ -68,8 +68,11 @@ namespace mavka::mama {
     const auto module_frame =
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
-    ma_run(M, module_object, module_code);
+    const auto result = ma_run(M, module_object, module_code);
+    if (IS_ERROR(result)) {
+      return result;
+    }
     FRAME_POP();
-    return module_object;
+    return MA_MAKE_OBJECT(module_object);
   }
 } // namespace mavka::mama

@@ -5,13 +5,12 @@ namespace mavka::mama {
     if (name == "назва") {
       return MA_MAKE_OBJECT(MaText::Create(M, o->d.structure->name));
     }
-    if (!o->properties.contains(name)) {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M,
-          "Властивість \"" + name + "\" не визначено для типу \"Структура\"."));
-      throw MaException();
+    if (!o->HasProperty(name)) {
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(
+          MaText::Create(M, "Властивість \"" + name +
+                                "\" не визначено для типу \"Структура\"."))));
     }
-    return o->properties[name];
+    return o->GetProperty(name);
   }
 
   // дізнатись

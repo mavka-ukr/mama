@@ -23,9 +23,8 @@ namespace mavka::mama {
                                {}, {});
       }
     }
-    M->throw_cell =
-        MA_MAKE_OBJECT(MaText::Create(M, "Неможливо перетворити на число."));
-    throw MaException();
+    RETURN_ERROR(new MaError(
+        MA_MAKE_OBJECT(MaText::Create(M, "Неможливо перетворити на число."))));
   }
 
   void InitNumber(MaMa* M) {

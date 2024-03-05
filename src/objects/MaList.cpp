@@ -152,9 +152,9 @@ namespace mavka::mama {
       return MA_MAKE_INTEGER(me->d.list->size());
     }
     if (!me->properties.contains(name)) {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Властивість \"" + name + "\" не визначено для типу \"список\"."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M,
+          "Властивість \"" + name + "\" не визначено для типу \"список\"."))));
     }
     return me->properties[name];
   }

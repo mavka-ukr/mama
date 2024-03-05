@@ -89,9 +89,8 @@ namespace mavka::mama {
       }
       RETURN_OBJECT(list_object);
     } else {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"розбити\" потрібен текстовий аргумент."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"розбити\" потрібен текстовий аргумент."))));
     }
   }
 
@@ -99,15 +98,13 @@ namespace mavka::mama {
   MaCell MaText_ReplaceNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
     const auto first = MA_ARGS_GET(args, 0, "старе", MA_MAKE_EMPTY());
     if (!IS_STRING(first)) {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"замінити\" перший аргумент повинен бути текстом."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"замінити\" перший аргумент повинен бути текстом."))));
     }
     const auto second = MA_ARGS_GET(args, 1, "нове", MA_MAKE_EMPTY());
     if (!IS_STRING(second)) {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"замінити\" другий аргумент повинен бути текстом."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"замінити\" другий аргумент повинен бути текстом."))));
     }
     const auto first_string = first.v.object->d.string->data;
     const auto second_string = second.v.object->d.string->data;
@@ -133,9 +130,8 @@ namespace mavka::mama {
       }
       RETURN_NO();
     } else {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"починається\" потрібен текстовий аргумент."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"починається\" потрібен текстовий аргумент."))));
     }
   }
 
@@ -154,9 +150,8 @@ namespace mavka::mama {
       }
       RETURN_NO();
     } else {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"закінчується\" потрібен текстовий аргумент."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"закінчується\" потрібен текстовий аргумент."))));
     }
   }
 
@@ -193,10 +188,9 @@ namespace mavka::mama {
                                   arg_cell.v.object->d.string->data)));
       }
     }
-    M->throw_cell = MA_MAKE_OBJECT(
+    RETURN_ERROR(new MaError(MA_MAKE_OBJECT(
         MaText::Create(M, "Неможливо додати до тексту обʼєкт типу \"" +
-                              arg_cell.GetName() + "\"."));
-    throw MaException();
+                              arg_cell.GetName() + "\"."))));
   }
 
   // чародія_містить
@@ -209,9 +203,8 @@ namespace mavka::mama {
       }
       RETURN_NO();
     } else {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Для дії \"чародія_містить\" потрібен текстовий аргумент."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M, "Для дії \"чародія_містить\" потрібен текстовий аргумент."))));
     }
   }
 
@@ -230,9 +223,9 @@ namespace mavka::mama {
 
   // чародія_перебір
   MaCell MaText_MagIteratorNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
-    M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-        M, "Дія \"" + std::string(MAG_ITERATOR) + "\" тимчасово недоступна."));
-    throw MaException();
+    RETURN_ERROR(new MaError(
+        MA_MAKE_OBJECT(MaText::Create(M, "Дія \"" + std::string(MAG_ITERATOR) +
+                                             "\" тимчасово недоступна."))));
   }
 
   // чародія_число
@@ -245,9 +238,9 @@ namespace mavka::mama {
       return MA_MAKE_INTEGER(me->d.string->length());
     }
     if (!me->properties.contains(name)) {
-      M->throw_cell = MA_MAKE_OBJECT(MaText::Create(
-          M, "Властивість \"" + name + "\" не визначено для типу \"текст\"."));
-      throw MaException();
+      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(
+          M,
+          "Властивість \"" + name + "\" не визначено для типу \"текст\"."))));
     }
     return me->properties[name];
   }
@@ -319,9 +312,8 @@ namespace mavka::mama {
         return ma_call_handler(M, cell.v.object->GetProperty(MAG_TEXT), {}, {});
       }
     }
-    M->throw_cell =
-        MA_MAKE_OBJECT(MaText::Create(M, "Неможливо перетворити на текст."));
-    throw MaException();
+    RETURN_ERROR(new MaError(
+        MA_MAKE_OBJECT(MaText::Create(M, "Неможливо перетворити на текст."))));
   }
 
   void MaText::Init(MaMa* M) {

@@ -70,6 +70,7 @@
 #define MA_CELL_NO 3
 #define MA_CELL_OBJECT 4
 #define MA_CELL_ARGS 5
+#define MA_CELL_ERROR 6
 
 #define MA_OBJECT 0
 #define MA_OBJECT_DIIA 1
@@ -88,6 +89,7 @@
 #define MA_MAKE_NO() (MaCell{MA_CELL_NO})
 #define MA_MAKE_OBJECT(value) (MaCell{MA_CELL_OBJECT, {.object = (value)}})
 #define MA_MAKE_ARGS(value) (MaCell{MA_CELL_ARGS, {.args = (value)}})
+#define MA_MAKE_ERROR(value) (MaCell{MA_CELL_ERROR, {.error = (value)}})
 
 #define IS_EMPTY(cell) ((cell).type == MA_CELL_EMPTY)
 #define IS_NUMBER(cell) ((cell).type == MA_CELL_NUMBER)
@@ -100,6 +102,8 @@
 #define IS_OBJECT_DIIA_NATIVE(cell) \
   (cell).v.object->type == MA_OBJECT_DIIA_NATIVE
 #define IS_STRING(cell) IS_OBJECT(cell) && IS_OBJECT_STRING(cell)
+#define IS_ARGS(cell) ((cell).type == MA_CELL_ARGS)
+#define IS_ERROR(cell) ((cell).type == MA_CELL_ERROR)
 
 #define PUSH(cell) frame->stack.push(cell)
 #define PUSH_EMPTY() PUSH(MA_MAKE_EMPTY())
@@ -117,6 +121,7 @@
 #define RETURN_YES() return MA_MAKE_YES();
 #define RETURN_NO() return MA_MAKE_NO();
 #define RETURN_OBJECT(v) return MA_MAKE_OBJECT((v));
+#define RETURN_ERROR(v) return MA_MAKE_ERROR((v));
 
 #define TOP() frame->stack.top()
 #define TOP_VALUE(name) const auto name = TOP();
@@ -153,9 +158,8 @@
     (cell).v.object->properties[propname] = value;             \
   }
 
-#define DO_THROW_STRING(v)                                \
-  M->throw_cell = MA_MAKE_OBJECT(MaText::Create(M, (v))); \
-  throw MaException();
+#define DO_THROW_STRING(v) \
+  RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(M, (v)))));
 #define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
   DO_THROW_STRING("Дію \"" + std::string(varname) +       \
                   "\" не визначено для типу \"" + cell.GetName() + "\".")
@@ -180,7 +184,7 @@ namespace mavka::mama {
   struct MaCell;
   struct MaObject;
   struct MaCode;
-  class MaException;
+  struct MaError;
 
   struct MaLocation {
     size_t line;
@@ -194,12 +198,8 @@ namespace mavka::mama {
 #include "compiler/compiler.h"
 #include "utils/helpers.h"
 
-  class MaException : public std::exception {
-   public:
-    MaLocation location;
-
-    MaException() : location({.line = 0, .column = 0}) {}
-    MaException(MaLocation location) { this->location = location; }
+  struct MaError {
+    MaCell value;
   };
 
   struct MaCode {
@@ -236,7 +236,7 @@ namespace mavka::mama {
     static MaMa* Create();
   };
 
-  void ma_run(MaMa* M, MaObject* fm, MaCode* code);
+  MaCell ma_run(MaMa* M, MaObject* fm, MaCode* code);
 
   MaCell ma_call(MaMa* M,
                  MaCell cell,
@@ -251,11 +251,11 @@ namespace mavka::mama {
                          MaArgs* args,
                          MaLocation location);
 
-  MaObject* ma_take(MaMa* M,
-                    const std::string& repository,
-                    bool relative,
-                    const std::vector<std::string>& path_parts);
-  MaObject* ma_take(MaMa* M, const std::string& path);
+  MaCell ma_take(MaMa* M,
+                 const std::string& repository,
+                 bool relative,
+                 const std::vector<std::string>& path_parts);
+  MaCell ma_take(MaMa* M, const std::string& path);
 } // namespace mavka::mama
 
 #endif // MAMA_H

@@ -1,14 +1,14 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  void ma_run(MaMa* M, MaObject* fm, MaCode* code) {
+  MaCell ma_run(MaMa* M, MaObject* fm, MaCode* code) {
     READ_TOP_FRAME();
     auto size = code->instructions.size();
     size_t i = 0;
     for (;;) {
     start:
       if (i >= size) {
-        return;
+        return frame->stack.top();
       }
       auto I = code->instructions[i];
 
@@ -58,11 +58,16 @@ namespace mavka::mama {
         case VCall: {
           POP_VALUE(args_cell);
           POP_VALUE(cell);
-          PUSH(ma_call_handler(M, cell, args_cell.v.args, I.location));
+          const auto result =
+              ma_call_handler(M, cell, args_cell.v.args, I.location);
+          if (IS_ERROR(result)) {
+            return result;
+          }
+          PUSH(result);
           break;
         }
         case VReturn: {
-          return;
+          return frame->stack.top();
         }
         case VDiia: {
           const auto diia_object =
@@ -186,15 +191,18 @@ namespace mavka::mama {
         }
         case VTry: {
           const auto frames_size = M->frame_stack.size();
-          try {
-            ma_run(M, fm, I.data.try_->try_code);
-          } catch (const MaException& e) {
+          const auto result = ma_run(M, fm, I.data.try_->try_code);
+          if (IS_ERROR(result)) {
             const auto value = M->throw_cell;
             PUSH(value);
             while (M->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            ma_run(M, M->frame_stack.top()->module, I.data.try_->catch_code);
+            const auto result2 = ma_run(M, M->frame_stack.top()->module,
+                                        I.data.try_->catch_code);
+            if (IS_ERROR(result2)) {
+              return result2;
+            }
           }
           break;
         }
@@ -205,8 +213,7 @@ namespace mavka::mama {
         }
         case VThrow: {
           POP_VALUE(cell);
-          M->throw_cell = cell;
-          throw MaException(I.data.throw_->location);
+          RETURN_ERROR(new MaError(cell));
         }
         case VList: {
           PUSH_OBJECT(MaList::Create(M));
@@ -341,7 +348,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_GREATER, left);
@@ -365,7 +377,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER_EQUAL);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_GREATER_EQUAL, left);
@@ -389,7 +406,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_LESSER, left);
@@ -413,7 +435,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER_EQUAL);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_LESSER_EQUAL, left);
@@ -425,7 +452,12 @@ namespace mavka::mama {
           POP_VALUE(left);
           if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_CONTAINS);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_CONTAINS, left);
@@ -495,7 +527,11 @@ namespace mavka::mama {
             PUSH_NUMBER(-value.v.number);
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_NEGATIVE);
-            PUSH(ma_call_handler(M, diia_cell, {}, {}));
+            const auto result = ma_call_handler(M, diia_cell, {}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_NEGATIVE, value);
@@ -508,7 +544,11 @@ namespace mavka::mama {
             PUSH_NUMBER(value.v.number * -1);
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_POSITIVE);
-            PUSH(ma_call_handler(M, diia_cell, {}, {}));
+            const auto result = ma_call_handler(M, diia_cell, {}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_POSITIVE, value);
@@ -522,7 +562,11 @@ namespace mavka::mama {
                 static_cast<double>(~static_cast<long>(value.v.number)));
           } else if (IS_OBJECT(value)) {
             OBJECT_GET(value, diia_cell, MAG_BW_NOT);
-            PUSH(ma_call_handler(M, diia_cell, {}, {}));
+            const auto result = ma_call_handler(M, diia_cell, {}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_NOT, value);
@@ -542,7 +586,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_ADD);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_ADD, left);
@@ -562,7 +610,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_SUB);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_SUB, left);
@@ -582,7 +634,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MUL);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_MUL, left);
@@ -602,7 +658,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIV);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_DIV, left);
@@ -622,7 +682,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MOD);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_MOD, left);
@@ -642,7 +706,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIVDIV);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_DIVDIV, left);
@@ -662,7 +730,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_POW);
-            PUSH(ma_call(M, diia_cell, {right}, I.location));
+            const auto result = ma_call(M, diia_cell, {right}, I.location);
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_POW, left);
@@ -684,7 +756,11 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_XOR);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_XOR, left);
@@ -706,7 +782,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_OR);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_OR, left);
@@ -728,7 +809,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_AND);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_AND, left);
@@ -750,7 +836,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_LEFT);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_SHIFT_LEFT, left);
@@ -772,7 +863,12 @@ namespace mavka::mama {
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_RIGHT);
-            PUSH(ma_call(M, diia_cell, {right}, {}));
+            const auto result = ma_call(M, diia_cell, {right}, {});
+            if (IS_ERROR(result)) {
+              return result;
+            }
+            PUSH(result);
+            ;
             break;
           } else {
             DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_SHIFT_RIGHT, left);
@@ -783,7 +879,7 @@ namespace mavka::mama {
           const auto module_object =
               ma_take(M, I.data.take->repository, I.data.take->relative,
                       I.data.take->path_parts);
-          PUSH_OBJECT(module_object);
+          PUSH(module_object);
           break;
         }
         case VModuleLoad: {
@@ -794,11 +890,13 @@ namespace mavka::mama {
         }
         default: {
           std::cout << "unsupported instruction " << I.to_string() << std::endl;
-          return;
+          return frame->stack.top();
         }
       }
 
       i++;
     }
+
+    return frame->stack.top();
   }
 } // namespace mavka::mama

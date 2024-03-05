@@ -54,6 +54,7 @@ struct MaCell {
     MaObject* object;
     double number;
     MaArgs* args;
+    MaError* error;
   } v;
 
   std::string GetName() const;
