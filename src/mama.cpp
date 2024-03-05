@@ -14,6 +14,10 @@ namespace mavka::mama {
     MaList::Init(M);
     MaDict::Init(M);
     MaStructure::Init2(M);
+    const auto main_module_object = MaModule::Create(M, "мавка");
+    const auto main_frame =
+        new MaFrame(M->global_scope, main_module_object, main_module_object);
+    FRAME_PUSH(main_frame);
     return M;
   }
 } // namespace mavka::mama

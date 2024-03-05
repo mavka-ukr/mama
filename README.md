@@ -28,9 +28,16 @@ set_target_properties(mavka PROPERTIES OUTPUT_NAME "мавка")
 ```c++
 #include "mama/src/mama.h"
 
-int main(int argc, char **argv) {
-    const auto M = new mavka::mama::MaMa();
+using namespace mavka;
 
-    return 0;
+int main(int argc, char** argv) {
+  const auto M = mama::MaMa::Create();
+
+  const auto result = mama::ma_take(M, "./старт.м");
+  if (IS_ERROR(result)) {
+    std::cerr << mama::cell_to_string(result.v.error->value) << std::endl;
+  }
+
+  return 0;
 }
 ```
