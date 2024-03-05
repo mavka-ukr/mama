@@ -33,11 +33,14 @@ using namespace mavka;
 int main(int argc, char** argv) {
   const auto M = mama::MaMa::Create();
 
-  const auto result = mama::ma_take(M, "./старт.м");
-  if (IS_ERROR(result)) {
-    std::cerr << mama::cell_to_string(result.v.error->value) << std::endl;
+  const auto take_result = mama::ma_take(M, "./старт.м");
+  if (IS_ERROR(take_result)) {
+    std::cerr << mama::cell_to_string(take_result.v.error->value) << std::endl;
+    M->Destroy();
+    return 1;
   }
 
+  M->Destroy();
   return 0;
 }
 ```
