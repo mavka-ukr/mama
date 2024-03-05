@@ -17,12 +17,11 @@ namespace mavka::mama {
       READ_TOP_FRAME();
       frame->scope = diia_scope;
       if (o->d.diia->me) {
-        frame->scope->SetSubject("я", MA_MAKE_OBJECT(o->d.diia->me));
+        frame->scope->SetSubject("я", MaCell::Object(o->d.diia->me));
       }
       for (int i = 0; i < o->d.diia->params.size(); ++i) {
         const auto& param = o->d.diia->params[i];
-        const auto arg_value =
-            MA_ARGS_GET(args, i, param.name, param.default_value);
+        const auto arg_value = args->Get(i, param.name, param.default_value);
         frame->scope->SetSubject(param.name, arg_value);
       }
       const auto result = ma_run(M, o->d.diia->code);
@@ -60,7 +59,7 @@ namespace mavka::mama {
 
   void MaDiia::Init(MaMa* M) {
     const auto diia_structure_object = MaStructure::Create(M, "Дія");
-    M->global_scope->SetSubject("Дія", MA_MAKE_OBJECT(diia_structure_object));
+    M->global_scope->SetSubject("Дія", MaCell::Object(diia_structure_object));
     M->diia_structure_object = diia_structure_object;
   }
 } // namespace mavka::mama

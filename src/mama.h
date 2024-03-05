@@ -81,13 +81,6 @@
 #define MA_OBJECT_STRUCTURE 6
 #define MA_OBJECT_MODULE 7
 
-#define MA_MAKE_EMPTY() (MaCell{MA_CELL_EMPTY})
-#define MA_MAKE_NUMBER(value) (MaCell{MA_CELL_NUMBER, {.number = (value)}})
-#define MA_MAKE_INTEGER(value) \
-  (MaCell{MA_CELL_NUMBER, {.number = ((double)(value))}})
-#define MA_MAKE_YES() (MaCell{MA_CELL_YES})
-#define MA_MAKE_NO() (MaCell{MA_CELL_NO})
-#define MA_MAKE_OBJECT(value) (MaCell{MA_CELL_OBJECT, {.object = (value)}})
 #define MA_MAKE_ARGS(value) (MaCell{MA_CELL_ARGS, {.args = (value)}})
 #define MA_MAKE_ERROR(value) (MaCell{MA_CELL_ERROR, {.error = (value)}})
 
@@ -106,21 +99,19 @@
 #define IS_ERROR(cell) ((cell).type == MA_CELL_ERROR)
 
 #define PUSH(cell) frame->stack.push(cell)
-#define PUSH_EMPTY() PUSH(MA_MAKE_EMPTY())
-#define PUSH_NUMBER(v) PUSH(MA_MAKE_NUMBER((v)))
-#define PUSH_INTEGER(v) PUSH(MA_MAKE_INTEGER((v)))
-#define PUSH_YES() PUSH(MA_MAKE_YES())
-#define PUSH_NO() PUSH(MA_MAKE_NO())
-#define PUSH_OBJECT(v) PUSH(MA_MAKE_OBJECT((v)))
+#define PUSH_EMPTY() PUSH(MaCell::Empty())
+#define PUSH_NUMBER(v) PUSH(MaCell::Number((v)))
+#define PUSH_YES() PUSH(MaCell::Yes())
+#define PUSH_NO() PUSH(MaCell::No())
+#define PUSH_OBJECT(v) PUSH(MaCell::Object((v)))
 #define PUSH_ARGS(v) PUSH(MA_MAKE_ARGS((v)))
 
 #define RETURN(cell) return cell;
-#define RETURN_EMPTY() return MA_MAKE_EMPTY();
-#define RETURN_NUMBER(v) return MA_MAKE_NUMBER((v));
-#define RETURN_INTEGER(v) return MA_MAKE_INTEGER((v));
-#define RETURN_YES() return MA_MAKE_YES();
-#define RETURN_NO() return MA_MAKE_NO();
-#define RETURN_OBJECT(v) return MA_MAKE_OBJECT((v));
+#define RETURN_EMPTY() return MaCell::Empty();
+#define RETURN_NUMBER(v) return MaCell::Number((v));
+#define RETURN_YES() return MaCell::Yes();
+#define RETURN_NO() return MaCell::No();
+#define RETURN_OBJECT(v) return MaCell::Object((v));
 #define RETURN_ERROR(v) return MA_MAKE_ERROR((v));
 
 #define TOP() frame->stack.top()
@@ -148,7 +139,7 @@
     if ((cell).v.object->properties.contains(propname)) {         \
       varname = (cell).v.object->properties[propname];            \
     } else {                                                      \
-      varname = MA_MAKE_EMPTY();                                  \
+      varname = MaCell::Empty();                                  \
     }                                                             \
   }
 #define OBJECT_SET(cell, propname, value)                      \
@@ -159,7 +150,7 @@
   }
 
 #define DO_RETURN_STRING_ERROR(v) \
-  RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(M, (v)))));
+  RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(M, (v)))));
 #define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell)          \
   DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                \
                          "\" не визначено для типу \"" + cell.GetName() + \
@@ -243,25 +234,6 @@ namespace mavka::mama {
   };
 
   MaCell ma_run(MaMa* M, MaCode* code);
-
-  MaCell ma_call(MaMa* M,
-                 MaCell cell,
-                 const std::vector<MaCell>& args,
-                 MaLocation location);
-  MaCell ma_call_named(MaMa* M,
-                       MaCell cell,
-                       const std::unordered_map<std::string, MaCell>& args,
-                       MaLocation location);
-  MaCell ma_call_handler(MaMa* M,
-                         MaCell cell,
-                         MaArgs* args,
-                         MaLocation location);
-
-  MaCell ma_take(MaMa* M,
-                 const std::string& repository,
-                 bool relative,
-                 const std::vector<std::string>& path_parts);
-  MaCell ma_take(MaMa* M, const std::string& path);
 } // namespace mavka::mama
 
 #endif // MAMA_H

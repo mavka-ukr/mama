@@ -4,7 +4,7 @@ namespace mavka::mama {
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
     M->global_scope->SetSubject("обʼєкт",
-                                MA_MAKE_OBJECT(object_structure_object));
+                                MaCell::Object(object_structure_object));
     M->object_structure_object = object_structure_object;
     M->structure_structure_object->structure = object_structure_object;
   }
@@ -20,7 +20,7 @@ namespace mavka::mama {
     for (const auto& method : structure_object->d.structure->methods) {
       const auto bound_diia_object = method->d.diia->Bind(M, object);
       object->properties.insert_or_assign(method->d.diia->name,
-                                          MA_MAKE_OBJECT(bound_diia_object));
+                                          MaCell::Object(bound_diia_object));
     }
     return object;
   }

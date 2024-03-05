@@ -12,7 +12,7 @@ namespace mavka::mama {
   void MaModule::Init(MaMa* M) {
     const auto module_structure_object = MaStructure::Create(M, "Модуль");
     M->global_scope->SetSubject("Модуль",
-                                MA_MAKE_OBJECT(module_structure_object));
+                                MaCell::Object(module_structure_object));
     M->module_structure_object = module_structure_object;
   }
 } // namespace mavka::mama

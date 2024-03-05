@@ -58,6 +58,53 @@ struct MaCell {
   } v;
 
   std::string GetName() const;
+  MaCell Call(MaMa* M, MaArgs* args, const MaLocation& location) const;
+  MaCell Call(MaMa* M,
+              const std::vector<MaCell>& args,
+              const MaLocation& location) const;
+  MaCell Call(MaMa* M,
+              const std::unordered_map<std::string, MaCell>& args,
+              const MaLocation& location) const;
+
+  [[always_inline]] inline bool IsEmpty() const {
+    return this->type == MA_CELL_EMPTY;
+  };
+  [[always_inline]] inline bool IsNumber() const {
+    return this->type == MA_CELL_NUMBER;
+  };
+  [[always_inline]] inline bool IsYes() const {
+    return this->type == MA_CELL_YES;
+  };
+  [[always_inline]] inline bool IsNo() const {
+    return this->type == MA_CELL_NO;
+  };
+  [[always_inline]] inline bool IsObject() const {
+    return this->type == MA_CELL_OBJECT;
+  };
+  [[always_inline]] inline bool IsArgs() const {
+    return this->type == MA_CELL_ARGS;
+  };
+  [[always_inline]] inline bool IsError() const {
+    return this->type == MA_CELL_ERROR;
+  };
+
+  [[always_inline]] inline static MaCell Empty() {
+    return MaCell{MA_CELL_EMPTY};
+  };
+  [[always_inline]] inline static MaCell Number(double value) {
+    return MaCell{MA_CELL_NUMBER, {.number = value}};
+  };
+  [[always_inline]] inline static MaCell Yes() { return MaCell{MA_CELL_YES}; };
+  [[always_inline]] inline static MaCell No() { return MaCell{MA_CELL_NO}; };
+  [[always_inline]] inline static MaCell Object(MaObject* value) {
+    return MaCell{MA_CELL_OBJECT, {.object = value}};
+  };
+  [[always_inline]] inline static MaCell Args(MaArgs* value) {
+    return MaCell{MA_CELL_ARGS, {.args = value}};
+  };
+  [[always_inline]] inline static MaCell Error(MaError* value) {
+    return MaCell{MA_CELL_ERROR, {.error = value}};
+  };
 };
 
 class MaText final {

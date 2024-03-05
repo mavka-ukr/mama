@@ -66,7 +66,7 @@ namespace mavka::mama {
         }
       }
     }
-    return MA_MAKE_EMPTY();
+    return MaCell::Empty();
   }
 
   void MaDict::remove(MaCell key) {
@@ -112,14 +112,14 @@ namespace mavka::mama {
 
   // чародія_отримати
   MaCell MaDict_MagGetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto key = MA_ARGS_GET(args, 0, "ключ", MA_MAKE_EMPTY());
+    const auto key = args->Get(0, "ключ");
     RETURN(o->d.diia_native->me->d.dict->get(key));
   }
 
   // чародія_покласти
   MaCell MaDict_MagSetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto key = MA_ARGS_GET(args, 0, "ключ", MA_MAKE_EMPTY());
-    const auto value = MA_ARGS_GET(args, 1, "значення", MA_MAKE_EMPTY());
+    const auto key = args->Get(0, "ключ");
+    const auto value = args->Get(1, "значення");
     o->d.diia_native->me->d.dict->set(key, value);
     RETURN_EMPTY();
   }
@@ -129,11 +129,11 @@ namespace mavka::mama {
     const auto dict_object =
         MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
     dict_object->SetProperty(
-        MAG_GET_ELEMENT, MA_MAKE_OBJECT(MaDiiaNative::Create(
+        MAG_GET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
                              M, MAG_GET_ELEMENT,
                              MaDict_MagGetElementNativeDiiaFn, dict_object)));
     dict_object->SetProperty(
-        MAG_SET_ELEMENT, MA_MAKE_OBJECT(MaDiiaNative::Create(
+        MAG_SET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
                              M, MAG_SET_ELEMENT,
                              MaDict_MagSetElementNativeDiiaFn, dict_object)));
     return dict_object;
@@ -142,7 +142,7 @@ namespace mavka::mama {
   void MaDict::Init(MaMa* M) {
     const auto dict_structure_object = MaStructure::Create(M, "словник");
     M->global_scope->SetSubject("словник",
-                                MA_MAKE_OBJECT(dict_structure_object));
+                                MaCell::Object(dict_structure_object));
     M->dict_structure_object = dict_structure_object;
   }
 } // namespace mavka::mama

@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   const auto M = mama::MaMa::Create();
 
   const auto take_result = M->Take("./старт.м");
-  if (IS_ERROR(take_result)) {
+  if (take_result.IsError()) {
     std::cerr << mama::cell_to_string(take_result.v.error->value) << std::endl;
     M->Destroy();
     return 1;

@@ -3,10 +3,10 @@
 namespace mavka::mama {
   MaCell MaStructure_GetHandler(MaMa* M, MaObject* o, const std::string& name) {
     if (name == "назва") {
-      return MA_MAKE_OBJECT(MaText::Create(M, o->d.structure->name));
+      return MaCell::Object(MaText::Create(M, o->d.structure->name));
     }
     if (!o->HasProperty(name)) {
-      RETURN_ERROR(new MaError(MA_MAKE_OBJECT(
+      RETURN_ERROR(new MaError(MaCell::Object(
           MaText::Create(M, "Властивість \"" + name +
                                 "\" не визначено для типу \"Структура\"."))));
     }
@@ -15,7 +15,7 @@ namespace mavka::mama {
 
   // дізнатись
   MaCell MaStructure_DiscoverNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
-    const auto cell = MA_ARGS_GET(args, 0, "значення", MA_MAKE_EMPTY());
+    const auto cell = args->Get(0, "значення");
     if (IS_EMPTY(cell)) {
       RETURN_EMPTY();
     }
@@ -41,11 +41,10 @@ namespace mavka::mama {
       const auto object = MaObject::Instance(M, MA_OBJECT, o, nullptr);
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
-        const auto arg_value =
-            MA_ARGS_GET(args, i, param.name, param.default_value);
+        const auto arg_value = args->Get(i, param.name, param.default_value);
         object->SetProperty(param.name, arg_value);
       }
-      return MA_MAKE_OBJECT(object);
+      return MaCell::Object(object);
     };
     return structure_object;
   }
@@ -54,13 +53,13 @@ namespace mavka::mama {
     const auto structure_structure_object = MaStructure::Create(M, "Структура");
     M->structure_structure_object = structure_structure_object;
     M->global_scope->SetSubject("Структура",
-                                MA_MAKE_OBJECT(structure_structure_object));
+                                MaCell::Object(structure_structure_object));
     structure_structure_object->structure = structure_structure_object;
   }
 
   void MaStructure::Init2(MaMa* M) {
     M->structure_structure_object->SetProperty(
-        "дізнатись", MA_MAKE_OBJECT(MaDiiaNative::Create(
+        "дізнатись", MaCell::Object(MaDiiaNative::Create(
                          M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
                          M->structure_structure_object)));
   }

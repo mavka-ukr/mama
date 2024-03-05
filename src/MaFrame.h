@@ -7,16 +7,14 @@ struct MaArgs {
   MaArgsType type;
   std::unordered_map<std::string, MaCell> named;
   std::vector<MaCell> positioned;
-};
 
-#define MA_ARGS_SET(a, name, value) (a).v.args->named.insert({(name), (value)});
-#define MA_ARGS_PUSH(a, value) (a).v.args->positioned.push_back((value));
-#define MA_ARGS_GET(args, index, name, default_value)                       \
-  ((args)->type == MA_ARGS_TYPE_NAMED                                       \
-       ? ((args)->named.contains((name)) ? (args)->named[(name)]            \
-                                         : (default_value))                 \
-       : ((args)->positioned.size() > (index) ? (args)->positioned[(index)] \
-                                              : (default_value)))
+  void Set(const std::string& name, MaCell value);
+  void Push(MaCell value);
+  MaCell Get(size_t index,
+             const std::string& name,
+             const MaCell& default_value);
+  MaCell Get(size_t index, const std::string& name);
+};
 
 struct MaFrame {
   MaScope* scope = nullptr;

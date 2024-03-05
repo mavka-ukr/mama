@@ -30,14 +30,14 @@ namespace mavka::mama {
       }
       parent = parent->parent;
     }
-    return MA_MAKE_EMPTY();
+    return MaCell::Empty();
   }
 
   MaCell MaScope::GetLocalSubject(const std::string& name) {
     if (this->HasLocalSubject(name)) {
       return this->subjects.at(name);
     }
-    return MA_MAKE_EMPTY();
+    return MaCell::Empty();
   }
 
   void MaScope::SetSubject(const std::string& name, MaCell value) {
