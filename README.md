@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
   const auto M = MaMa::Create();
   M->TakeFn = TakeFn;
 
-  const auto take_result = TakePath("./старт.м", {});
+  const auto take_result = TakePath(M, "./старт.м", {});
   if (take_result.IsError()) {
     std::cerr << cell_to_string(take_result.v.error->value) << std::endl;
     M->Destroy();
