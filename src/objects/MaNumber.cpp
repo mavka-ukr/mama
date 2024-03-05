@@ -3,7 +3,8 @@
 namespace mavka::mama {
   MaCell MaNumber_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                 MaObject* o,
-                                                MaArgs* args) {
+                                                MaArgs* args,
+                                                const MaLocation& location) {
     const auto value_cell = args->Get(0, "значення");
     if (IS_EMPTY(value_cell)) {
       RETURN_NUMBER(0);
@@ -19,11 +20,13 @@ namespace mavka::mama {
     }
     if (IS_OBJECT(value_cell)) {
       if (value_cell.v.object->HasProperty(MAG_NUMBER)) {
-        return value_cell.v.object->GetProperty(MAG_NUMBER).Call(M, {}, {});
+        return value_cell.v.object->GetProperty(MAG_NUMBER)
+            .Call(M, {}, location);
       }
     }
     RETURN_ERROR(new MaError(
-        MaCell::Object(MaText::Create(M, "Неможливо перетворити на число."))));
+        MaCell::Object(MaText::Create(M, "Неможливо перетворити на число.")),
+        location));
   }
 
   void InitNumber(MaMa* M) {

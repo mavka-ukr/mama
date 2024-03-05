@@ -213,7 +213,10 @@ class MaStructure final {
   static MaObject* Create(MaMa* M, const std::string& name);
 };
 
-typedef MaCell DiiaNativeFn(MaMa* M, MaObject* o, MaArgs* args);
+typedef MaCell DiiaNativeFn(MaMa* M,
+                            MaObject* o,
+                            MaArgs* args,
+                            MaLocation location);
 
 class MaDiiaNative final {
  public:

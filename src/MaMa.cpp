@@ -116,8 +116,8 @@ namespace mavka::mama {
             PUSH(scope->GetSubject(I.data.load->name));
             break;
           }
-          DO_RETURN_STRING_ERROR("Субʼєкт \"" + I.data.load->name +
-                                 "\" не визначено.")
+          DO_RETURN_STRING_ERROR(
+              "Субʼєкт \"" + I.data.load->name + "\" не визначено.", I.location)
         }
         case VJump: {
           i = I.data.jump;
@@ -232,7 +232,7 @@ namespace mavka::mama {
         }
         case VThrow: {
           POP_VALUE(cell);
-          RETURN_ERROR(new MaError(cell));
+          RETURN_ERROR(new MaError(cell, I.location));
         }
         case VList: {
           PUSH_OBJECT(MaList::Create(M));
@@ -279,8 +279,9 @@ namespace mavka::mama {
               break;
             }
           }
-          DO_RETURN_STRING_ERROR("Неможливо створити метод для типу " +
-                                 structure_cell.GetName())
+          DO_RETURN_STRING_ERROR(
+              "Неможливо створити метод для типу " + structure_cell.GetName(),
+              I.location)
         }
         case VModule: {
           const auto module_object = MaModule::Create(M, I.data.module->name);
@@ -362,8 +363,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_GREATER) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER);
@@ -375,7 +377,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER, left,
+                                                      I.location);
           }
           break;
         }
@@ -392,8 +395,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_GREATER_EQUAL) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER_EQUAL);
@@ -405,7 +409,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER_EQUAL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER_EQUAL, left,
+                                                      I.location);
           }
           break;
         }
@@ -422,8 +427,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_LESSER) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER);
@@ -435,7 +441,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER, left,
+                                                      I.location);
           }
           break;
         }
@@ -452,8 +459,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_LESSER_EQUAL) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER_EQUAL);
@@ -465,7 +473,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER_EQUAL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER_EQUAL, left,
+                                                      I.location);
           }
           break;
         }
@@ -482,7 +491,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_CONTAINS, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_CONTAINS, left,
+                                                      I.location);
           }
           break;
         }
@@ -556,7 +566,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_NEGATIVE, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_NEGATIVE, value,
+                                                      I.location);
           }
           break;
         }
@@ -573,7 +584,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POSITIVE, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POSITIVE, value,
+                                                      I.location);
           }
           break;
         }
@@ -591,7 +603,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_NOT, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_NOT, value,
+                                                      I.location);
           }
           break;
         }
@@ -604,8 +617,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_ADD) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_ADD);
@@ -616,7 +630,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_ADD, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_ADD, left,
+                                                      I.location);
           }
           break;
         }
@@ -629,8 +644,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_SUB) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_SUB);
@@ -641,7 +657,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_SUB, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_SUB, left,
+                                                      I.location);
           }
           break;
         }
@@ -654,8 +671,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_MUL) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MUL);
@@ -666,7 +684,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MUL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MUL, left,
+                                                      I.location);
           }
           break;
         }
@@ -679,8 +698,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_DIV) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIV);
@@ -691,7 +711,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIV, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIV, left,
+                                                      I.location);
           }
           break;
         }
@@ -704,8 +725,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_MOD) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MOD);
@@ -716,7 +738,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MOD, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MOD, left,
+                                                      I.location);
           }
           break;
         }
@@ -729,8 +752,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_DIVDIV) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIVDIV);
@@ -741,7 +765,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIVDIV, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIVDIV, left,
+                                                      I.location);
           }
           break;
         }
@@ -754,8 +779,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_POW) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_POW);
@@ -766,7 +792,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POW, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POW, left,
+                                                      I.location);
           }
           break;
         }
@@ -781,8 +808,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_XOR) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_XOR);
@@ -793,7 +821,8 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_XOR, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_XOR, left,
+                                                      I.location);
           }
           break;
         }
@@ -808,8 +837,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_OR) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_OR);
@@ -821,7 +851,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_OR, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_OR, left,
+                                                      I.location);
           }
           break;
         }
@@ -836,8 +867,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_AND) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_AND);
@@ -849,7 +881,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_AND, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_AND, left,
+                                                      I.location);
           }
           break;
         }
@@ -864,8 +897,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_SHIFT_LEFT) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_LEFT);
@@ -877,7 +911,8 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_LEFT, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_LEFT, left,
+                                                      I.location);
           }
           break;
         }
@@ -892,8 +927,9 @@ namespace mavka::mama {
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_SHIFT_RIGHT) +
-                  "\" для типу \"число\" "
-                  "очікує параметром значення типу \"число\".")
+                      "\" для типу \"число\" "
+                      "очікує параметром значення типу \"число\".",
+                  I.location)
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_RIGHT);
@@ -905,14 +941,15 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_RIGHT, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_RIGHT, left,
+                                                      I.location);
           }
           break;
         }
         case VTake: {
           const auto result =
-              M->Take(I.data.take->repository, I.data.take->relative,
-                      I.data.take->path_parts);
+              M->TakeFn(M, I.data.take->repository, I.data.take->relative,
+                        I.data.take->path_parts, I.location);
           if (IS_ERROR(result)) {
             return result;
           }
@@ -937,70 +974,40 @@ namespace mavka::mama {
     return frame->stack.top();
   }
 
-  MaCell MaMa::Take(const std::string& repository,
-                    bool relative,
-                    const std::vector<std::string>& path_parts) {
-    const auto M = this;
-    const auto path =
-        M->cwd + "/" + internal::tools::implode(path_parts, "/") + ".м";
-    if (!std::filesystem::exists(path)) {
-      DO_RETURN_STRING_ERROR("Не вдалося прочитати файл \"" + path + "\".");
-    }
-    return this->Take(path);
-  }
-
-  MaCell MaMa::Take(const std::string& path) {
-    const auto canonical_path = std::filesystem::canonical(path).string();
+  MaCell MaMa::DoTake(const std::string& path,
+                      const std::string& name,
+                      const std::string& code,
+                      const MaLocation& location) {
     const auto M = this;
 
-    const auto fs_path = std::filesystem::path(canonical_path);
-    if (!fs_path.has_filename()) {
-      DO_RETURN_STRING_ERROR("Не вдалося прочитати файл \"" + canonical_path +
-                             "\".");
-    }
-
-    const auto name = fs_path.stem().string();
-
-    if (M->loaded_file_modules.contains(canonical_path)) {
-      return MaCell::Object(M->loaded_file_modules[canonical_path]);
-    }
-
-    auto file = std::ifstream(canonical_path);
-    if (!file.is_open()) {
-      DO_RETURN_STRING_ERROR("Не вдалося прочитати файл \"" + canonical_path +
-                             "\".");
-    }
-
-    const auto source = std::string(std::istreambuf_iterator(file),
-                                    std::istreambuf_iterator<char>());
-
-    const auto parser_result = parser::parse(source, canonical_path);
+    const auto parser_result = parser::parse(code, path);
     if (!parser_result.errors.empty()) {
       const auto error = parser_result.errors[0];
       DO_RETURN_STRING_ERROR(error.path + ":" + std::to_string(error.line) +
-                             ":" + std::to_string(error.column) + ": " +
-                             error.message);
+                                 ":" + std::to_string(error.column) + ": " +
+                                 error.message,
+                             location);
     }
 
     const auto module_code = new MaCode();
-    module_code->path = canonical_path;
+    module_code->path = path;
 
-    const auto module_object = MaModule::Create(M, name);
+    const auto module_object = MaModule::Create(this, name);
     module_object->d.module->code = module_code;
     module_object->d.module->is_file_module = true;
-    if (M->main_module == nullptr) {
-      M->main_module = module_object;
+    if (this->main_module == nullptr) {
+      this->main_module = module_object;
     }
-    M->loaded_file_modules.insert_or_assign(canonical_path, module_object);
+    this->loaded_file_modules.insert_or_assign(path, module_object);
 
     const auto body_compilation_result =
-        compile_body(M, module_code, parser_result.module_node->body);
+        compile_body(this, module_code, parser_result.module_node->body);
     if (body_compilation_result.error) {
       DO_RETURN_STRING_ERROR(
-          canonical_path + ":" +
-          std::to_string(body_compilation_result.error->line) + ":" +
-          std::to_string(body_compilation_result.error->column) + ": " +
-          body_compilation_result.error->message);
+          path + ":" + std::to_string(body_compilation_result.error->line) +
+              ":" + std::to_string(body_compilation_result.error->column) +
+              ": " + body_compilation_result.error->message,
+          location);
     }
 
     READ_TOP_FRAME();

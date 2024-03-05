@@ -18,7 +18,7 @@ namespace mavka::mama {
         return result;
       }
     }
-    DO_RETURN_CANNOT_CALL_CELL_ERROR(cell);
+    DO_RETURN_CANNOT_CALL_CELL_ERROR(cell, location);
   };
 
   MaCell MaCell::Call(MaMa* M,

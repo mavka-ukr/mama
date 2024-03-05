@@ -5,16 +5,14 @@ namespace mavka::mama {
     if (name == "назва") {
       return MaCell::Object(MaText::Create(M, o->d.structure->name));
     }
-    if (!o->HasProperty(name)) {
-      RETURN_ERROR(new MaError(MaCell::Object(
-          MaText::Create(M, "Властивість \"" + name +
-                                "\" не визначено для типу \"Структура\"."))));
-    }
-    return o->GetProperty(name);
+    return o->GetPropertyOrEmpty(name);
   }
 
   // дізнатись
-  MaCell MaStructure_DiscoverNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaStructure_DiscoverNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (IS_EMPTY(cell)) {
       RETURN_EMPTY();

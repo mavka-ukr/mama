@@ -59,7 +59,10 @@ namespace mavka::mama {
   }
 
   // розбити
-  MaCell MaText_SplitNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_SplitNativeDiiaFn(MaMa* M,
+                                  MaObject* o,
+                                  MaArgs* args,
+                                  const MaLocation& location) {
     const auto cell = args->Get(0, "роздільник");
     if (cell.IsObject() && cell.IsObjectText()) {
       const auto delim = cell.v.object->d.string->data;
@@ -95,7 +98,10 @@ namespace mavka::mama {
   }
 
   // замінити
-  MaCell MaText_ReplaceNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_ReplaceNativeDiiaFn(MaMa* M,
+                                    MaObject* o,
+                                    MaArgs* args,
+                                    const MaLocation& location) {
     const auto oldVal = args->Get(0, "старе");
     if (!(oldVal.IsObject() && oldVal.IsObjectText())) {
       RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
@@ -121,7 +127,10 @@ namespace mavka::mama {
   }
 
   // починається
-  MaCell MaText_StartsWithNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_StartsWithNativeDiiaFn(MaMa* M,
+                                       MaObject* o,
+                                       MaArgs* args,
+                                       const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
       if (o->d.diia_native->me->d.string->data.find(
@@ -136,7 +145,10 @@ namespace mavka::mama {
   }
 
   // закінчується
-  MaCell MaText_EndsWithNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_EndsWithNativeDiiaFn(MaMa* M,
+                                     MaObject* o,
+                                     MaArgs* args,
+                                     const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
       const auto text = cell.AsText();
@@ -156,13 +168,19 @@ namespace mavka::mama {
   }
 
   // обтяти
-  MaCell MaText_TrimNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_TrimNativeDiiaFn(MaMa* M,
+                                 MaObject* o,
+                                 MaArgs* args,
+                                 const MaLocation& location) {
     return MaCell::Object(MaText::Create(
         M, internal::tools::trim(o->d.diia_native->me->d.string->data)));
   }
 
   // чародія_додати
-  MaCell MaText_MagAddNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_MagAddNativeDiiaFn(MaMa* M,
+                                   MaObject* o,
+                                   MaArgs* args,
+                                   const MaLocation& location) {
     const auto arg_cell = args->Get(0, "значення");
     if (arg_cell.IsEmpty()) {
       return MaCell::Object(
@@ -194,7 +212,10 @@ namespace mavka::mama {
   }
 
   // чародія_містить
-  MaCell MaText_MagContainsNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_MagContainsNativeDiiaFn(MaMa* M,
+                                        MaObject* o,
+                                        MaArgs* args,
+                                        const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
       if (o->d.diia_native->me->d.string->data.find(
@@ -209,7 +230,10 @@ namespace mavka::mama {
   }
 
   // чародія_отримати
-  MaCell MaText_MagGetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_MagGetElementNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto cell = args->Get(0, "позиція");
     if (cell.IsNumber()) {
       const auto i = cell.AsNumber();
@@ -222,14 +246,20 @@ namespace mavka::mama {
   }
 
   // чародія_перебір
-  MaCell MaText_MagIteratorNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_MagIteratorNativeDiiaFn(MaMa* M,
+                                        MaObject* o,
+                                        MaArgs* args,
+                                        const MaLocation& location) {
     RETURN_ERROR(new MaError(
         MaCell::Object(MaText::Create(M, "Дія \"" + std::string(MAG_ITERATOR) +
                                              "\" тимчасово недоступна."))));
   }
 
   // чародія_число
-  MaCell MaText_MagNumberNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaText_MagNumberNativeDiiaFn(MaMa* M,
+                                      MaObject* o,
+                                      MaArgs* args,
+                                      const MaLocation& location) {
     RETURN_NUMBER(std::stod(o->d.diia_native->me->d.string->data));
   }
 
@@ -288,7 +318,8 @@ namespace mavka::mama {
 
   MaCell MaText_Structure_MagCallNativeDiiaFn(MaMa* M,
                                               MaObject* o,
-                                              MaArgs* args) {
+                                              MaArgs* args,
+                                              const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsNumber()) {
       return MaCell::Object(
@@ -308,7 +339,8 @@ namespace mavka::mama {
       }
     }
     RETURN_ERROR(new MaError(
-        MaCell::Object(MaText::Create(M, "Неможливо перетворити на текст."))));
+        MaCell::Object(MaText::Create(M, "Неможливо перетворити на текст.")),
+        location));
   }
 
   void MaText::Init(MaMa* M) {

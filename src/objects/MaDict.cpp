@@ -36,13 +36,19 @@ namespace mavka::mama {
   }
 
   // чародія_отримати
-  MaCell MaDict_MagGetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaDict_MagGetElementNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     return o->d.diia_native->me->d.dict->Get(key);
   }
 
   // чародія_покласти
-  MaCell MaDict_MagSetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaDict_MagSetElementNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
     o->d.diia_native->me->d.dict->Set(key, value);

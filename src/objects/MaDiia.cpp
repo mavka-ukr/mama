@@ -51,8 +51,8 @@ namespace mavka::mama {
     const auto diia_native_object = MaObject::Instance(
         M, MA_OBJECT_DIIA_NATIVE, M->diia_structure_object, diia_native);
     diia_native_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
-                                  MaLocation location) {
-      return o->d.diia_native->fn(M, o, args);
+                                  const MaLocation& location) {
+      return o->d.diia_native->fn(M, o, args, location);
     };
     return diia_native_object;
   }

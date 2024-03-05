@@ -66,7 +66,10 @@ namespace mavka::mama {
   }
 
   // чародія_перебір
-  MaCell MaList_MagIteratorDiiaNativeFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaList_MagIteratorDiiaNativeFn(MaMa* M,
+                                        MaObject* o,
+                                        MaArgs* args,
+                                        const MaLocation& location) {
     const auto list_object = o->d.diia_native->me;
     const auto iterator_object = MaObject::Empty(M);
 
@@ -79,7 +82,8 @@ namespace mavka::mama {
       iterator_object->SetProperty("значення", list_object->d.list->data[0]);
       const auto next_diia_native_object = MaDiiaNative::Create(
           M, "далі",
-          [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
+          [](MaMa* M, MaObject* iterator_o, MaArgs* args,
+             const MaLocation& location) {
             const auto iterator_object = iterator_o->d.diia_native->me;
             iterator_object->SetProperty("завершено", MaCell::Yes());
             return MaCell::Empty();
@@ -92,7 +96,8 @@ namespace mavka::mama {
       iterator_object->SetProperty("_індекс", MaCell::Number(1));
       const auto next_diia_native_object = MaDiiaNative::Create(
           M, "далі",
-          [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
+          [](MaMa* M, MaObject* iterator_o, MaArgs* args,
+             const MaLocation& location) {
             const auto iterator_object = iterator_o->d.diia_native->me;
             const auto i = iterator_object->properties["_індекс"].v.number;
             const auto list =
@@ -113,7 +118,10 @@ namespace mavka::mama {
   }
 
   // чародія_отримати
-  MaCell MaList_MagGetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaList_MagGetElementNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     if (!IS_EMPTY(key)) {
       RETURN(o->d.diia_native->me->d.list->get(key.v.number));
@@ -122,7 +130,10 @@ namespace mavka::mama {
   }
 
   // чародія_покласти
-  MaCell MaList_MagSetElementNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaList_MagSetElementNativeDiiaFn(MaMa* M,
+                                          MaObject* o,
+                                          MaArgs* args,
+                                          const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
     o->d.diia_native->me->d.list->set(key.v.number, value);
@@ -130,14 +141,20 @@ namespace mavka::mama {
   }
 
   // додати
-  MaCell MaList_AppendNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaList_AppendNativeDiiaFn(MaMa* M,
+                                   MaObject* o,
+                                   MaArgs* args,
+                                   const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     o->d.diia_native->me->d.list->append(cell);
     return MaCell::Number(o->d.diia_native->me->d.list->size());
   }
 
   // чародія_містить
-  MaCell MaList_MagContainsNativeDiiaFn(MaMa* M, MaObject* o, MaArgs* args) {
+  MaCell MaList_MagContainsNativeDiiaFn(MaMa* M,
+                                        MaObject* o,
+                                        MaArgs* args,
+                                        const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (o->d.diia_native->me->d.list->contains(cell)) {
       RETURN_YES();

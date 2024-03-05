@@ -149,14 +149,16 @@
     (cell).v.object->properties[propname] = value;             \
   }
 
-#define DO_RETURN_STRING_ERROR(v) \
-  RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(M, (v)))));
-#define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell)          \
-  DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                \
-                         "\" не визначено для типу \"" + cell.GetName() + \
-                         "\".")
-#define DO_RETURN_CANNOT_CALL_CELL_ERROR(cell) \
-  DO_RETURN_STRING_ERROR("Неможливо викликати \"" + cell.GetName() + "\".")
+#define DO_RETURN_STRING_ERROR(v, location) \
+  RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(M, (v))), (location)));
+#define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell, location) \
+  DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                 \
+                             "\" не визначено для типу \"" +               \
+                             (cell).GetName() + "\".",                     \
+                         (location))
+#define DO_RETURN_CANNOT_CALL_CELL_ERROR(cell, location)                    \
+  DO_RETURN_STRING_ERROR("Неможливо викликати \"" + cell.GetName() + "\".", \
+                         (location))
 
 namespace mavka::mama {
   struct MaMa;
@@ -192,6 +194,23 @@ namespace mavka::mama {
 
   struct MaError {
     MaCell value;
+    MaLocation location;
+
+    static MaError* Create(const MaCell& value, const MaLocation& location) {
+      const auto error = new MaError();
+      error->value = value;
+      error->location = location;
+      return error;
+    }
+
+    static MaError* Create(MaMa* M,
+                           const std::string& value,
+                           const MaLocation& location) {
+      const auto error = new MaError();
+      error->value = MaCell::Object(MaText::Create(M, value));
+      error->location = location;
+      return error;
+    }
   };
 
   struct MaCode {
@@ -204,14 +223,10 @@ namespace mavka::mama {
   };
 
   struct MaMa {
-    std::string cwd;
-
     std::vector<MaCell> constants;
     MaScope* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
-
-    MaCell throw_cell;
 
     std::stack<MaFrame*> frame_stack;
 
@@ -225,14 +240,21 @@ namespace mavka::mama {
     MaObject* dict_structure_object;
     MaObject* module_structure_object;
 
+    std::function<MaCell(MaMa*,
+                         const std::string& repository,
+                         bool relative,
+                         const std::vector<std::string>& parts,
+                         const MaLocation& location)>
+        TakeFn;
+
     static MaMa* Create();
 
     MaCell Run(MaCode* code);
 
-    MaCell Take(const std::string& repository,
-                bool relative,
-                const std::vector<std::string>& path_parts);
-    MaCell Take(const std::string& path);
+    MaCell DoTake(const std::string& id,
+                  const std::string& name,
+                  const std::string& code,
+                  const MaLocation& location);
   };
 } // namespace mavka::mama
 
