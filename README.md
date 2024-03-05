@@ -17,7 +17,7 @@ project(mavka)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(mama/src)
+add_subdirectory(mama)
 
 add_executable(mavka mavka.cpp)
 target_link_libraries(mavka PRIVATE mama)
