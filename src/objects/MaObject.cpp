@@ -3,8 +3,7 @@
 namespace mavka::mama {
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
-    M->global_scope->SetSubject("обʼєкт",
-                                MaCell::Object(object_structure_object));
+    M->global_scope->SetSubject("обʼєкт", object_structure_object);
     M->object_structure_object = object_structure_object;
     M->structure_structure_object->structure = object_structure_object;
   }
@@ -53,8 +52,12 @@ namespace mavka::mama {
     return this->properties.contains(name);
   }
 
-  void MaObject::SetProperty(const std::string& name, MaCell value) {
+  void MaObject::SetProperty(const std::string& name, const MaCell& value) {
     this->properties.insert_or_assign(name, value);
+  }
+
+  void MaObject::SetProperty(const std::string& name, MaObject* value) {
+    this->properties.insert_or_assign(name, MaCell::Object(value));
   }
 
   MaCell MaObject::GetProperty(const std::string& name) {

@@ -28,12 +28,11 @@ namespace mavka::mama {
 
   void InitNumber(MaMa* M) {
     const auto number_structure_object = MaStructure::Create(M, "число");
-    M->global_scope->SetSubject("число",
-                                MaCell::Object(number_structure_object));
+    M->global_scope->SetSubject("число", number_structure_object);
     M->number_structure_object = number_structure_object;
     number_structure_object->SetProperty(
-        MAG_CALL, MaCell::Object(MaDiiaNative::Create(
-                      M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
-                      number_structure_object)));
+        MAG_CALL, MaDiiaNative::Create(M, MAG_CALL,
+                                       MaNumber_Structure_MagCallNativeDiiaFn,
+                                       number_structure_object));
   }
 } // namespace mavka::mama

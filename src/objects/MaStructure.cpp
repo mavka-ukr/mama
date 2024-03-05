@@ -52,15 +52,14 @@ namespace mavka::mama {
   void MaStructure::Init(MaMa* M) {
     const auto structure_structure_object = MaStructure::Create(M, "Структура");
     M->structure_structure_object = structure_structure_object;
-    M->global_scope->SetSubject("Структура",
-                                MaCell::Object(structure_structure_object));
+    M->global_scope->SetSubject("Структура", structure_structure_object);
     structure_structure_object->structure = structure_structure_object;
   }
 
   void MaStructure::Init2(MaMa* M) {
     M->structure_structure_object->SetProperty(
-        "дізнатись", MaCell::Object(MaDiiaNative::Create(
-                         M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
-                         M->structure_structure_object)));
+        "дізнатись",
+        MaDiiaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
+                             M->structure_structure_object));
   }
 } // namespace mavka::mama

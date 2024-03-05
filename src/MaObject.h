@@ -43,7 +43,8 @@ struct MaObject {
   void Release();
 
   bool HasProperty(const std::string& name);
-  void SetProperty(const std::string& name, MaCell value);
+  void SetProperty(const std::string& name, const MaCell& value);
+  void SetProperty(const std::string& name, MaObject* value);
   MaCell GetProperty(const std::string& name);
   MaCell GetPropertyOrEmpty(const std::string& name);
 };

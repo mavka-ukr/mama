@@ -40,8 +40,12 @@ namespace mavka::mama {
     return MaCell::Empty();
   }
 
-  void MaScope::SetSubject(const std::string& name, MaCell value) {
+  void MaScope::SetSubject(const std::string& name, const MaCell& value) {
     this->subjects.insert_or_assign(name, value);
+  }
+
+  void MaScope::SetSubject(const std::string& name, MaObject* object) {
+    this->subjects.insert_or_assign(name, MaCell::Object(object));
   }
 
   void MaScope::DeleteSubject(const std::string& name) {

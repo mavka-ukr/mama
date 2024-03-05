@@ -268,8 +268,7 @@ namespace mavka::mama {
           const auto module_frame =
               new MaFrame(module_scope, module_object, frame->module);
           FRAME_PUSH(module_frame);
-          frame->scope->SetSubject(I.data.module->name,
-                                   MaCell::Object(module_object));
+          frame->scope->SetSubject(I.data.module->name, module_object);
           break;
         }
         case VGive: {

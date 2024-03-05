@@ -129,20 +129,19 @@ namespace mavka::mama {
     const auto dict_object =
         MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
     dict_object->SetProperty(
-        MAG_GET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
-                             M, MAG_GET_ELEMENT,
-                             MaDict_MagGetElementNativeDiiaFn, dict_object)));
+        MAG_GET_ELEMENT,
+        MaDiiaNative::Create(M, MAG_GET_ELEMENT,
+                             MaDict_MagGetElementNativeDiiaFn, dict_object));
     dict_object->SetProperty(
-        MAG_SET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
-                             M, MAG_SET_ELEMENT,
-                             MaDict_MagSetElementNativeDiiaFn, dict_object)));
+        MAG_SET_ELEMENT,
+        MaDiiaNative::Create(M, MAG_SET_ELEMENT,
+                             MaDict_MagSetElementNativeDiiaFn, dict_object));
     return dict_object;
   }
 
   void MaDict::Init(MaMa* M) {
     const auto dict_structure_object = MaStructure::Create(M, "словник");
-    M->global_scope->SetSubject("словник",
-                                MaCell::Object(dict_structure_object));
+    M->global_scope->SetSubject("словник", dict_structure_object);
     M->dict_structure_object = dict_structure_object;
   }
 } // namespace mavka::mama

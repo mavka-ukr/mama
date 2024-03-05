@@ -70,28 +70,27 @@ namespace mavka::mama {
     const auto list_object = o->d.diia_native->me;
     const auto iterator_object = MaObject::Empty(M);
 
-    iterator_object->SetProperty("_список",
-                                 MaCell{MA_CELL_OBJECT, {.object = o}});
+    iterator_object->SetProperty("_список", o);
 
     if (list_object->d.list->size() == 0) {
       iterator_object->SetProperty("завершено", MaCell::Yes());
     } else if (list_object->d.list->size() == 1) {
       iterator_object->SetProperty("завершено", MaCell::No());
       iterator_object->SetProperty("значення", list_object->d.list->data[0]);
-      const auto next_diia_native_cell = MaCell::Object(MaDiiaNative::Create(
+      const auto next_diia_native_object = MaDiiaNative::Create(
           M, "далі",
           [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
             const auto iterator_object = iterator_o->d.diia_native->me;
             iterator_object->SetProperty("завершено", MaCell::Yes());
             return MaCell::Empty();
           },
-          iterator_object));
-      iterator_object->SetProperty("далі", next_diia_native_cell);
+          iterator_object);
+      iterator_object->SetProperty("далі", next_diia_native_object);
     } else {
       iterator_object->SetProperty("завершено", MaCell::No());
       iterator_object->SetProperty("значення", list_object->d.list->data[0]);
       iterator_object->SetProperty("_індекс", MaCell::Number(1));
-      const auto next_diia_native_cell = MaCell::Object(MaDiiaNative::Create(
+      const auto next_diia_native_object = MaDiiaNative::Create(
           M, "далі",
           [](MaMa* M, MaObject* iterator_o, MaArgs* args) {
             const auto iterator_object = iterator_o->d.diia_native->me;
@@ -107,8 +106,8 @@ namespace mavka::mama {
             }
             return MaCell::Empty();
           },
-          iterator_object));
-      iterator_object->SetProperty("далі", next_diia_native_cell);
+          iterator_object);
+      iterator_object->SetProperty("далі", next_diia_native_object);
     }
     return MaCell::Object(iterator_object);
   }
@@ -166,30 +165,29 @@ namespace mavka::mama {
     list_object->get = MaListGetHandler;
     list_object->SetProperty(
         MAG_ITERATOR,
-        MaCell::Object(MaDiiaNative::Create(
-            M, MAG_ITERATOR, MaList_MagIteratorDiiaNativeFn, list_object)));
+        MaDiiaNative::Create(M, MAG_ITERATOR, MaList_MagIteratorDiiaNativeFn,
+                             list_object));
     list_object->SetProperty(
-        MAG_GET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
-                             M, MAG_GET_ELEMENT,
-                             MaList_MagGetElementNativeDiiaFn, list_object)));
+        MAG_GET_ELEMENT,
+        MaDiiaNative::Create(M, MAG_GET_ELEMENT,
+                             MaList_MagGetElementNativeDiiaFn, list_object));
     list_object->SetProperty(
-        MAG_SET_ELEMENT, MaCell::Object(MaDiiaNative::Create(
-                             M, MAG_SET_ELEMENT,
-                             MaList_MagSetElementNativeDiiaFn, list_object)));
+        MAG_SET_ELEMENT,
+        MaDiiaNative::Create(M, MAG_SET_ELEMENT,
+                             MaList_MagSetElementNativeDiiaFn, list_object));
     list_object->SetProperty(
-        "додати", MaCell::Object(MaDiiaNative::Create(
-                      M, "додати", MaList_AppendNativeDiiaFn, list_object)));
+        "додати", MaDiiaNative::Create(M, "додати", MaList_AppendNativeDiiaFn,
+                                       list_object));
     list_object->SetProperty(
         MAG_CONTAINS,
-        MaCell::Object(MaDiiaNative::Create(
-            M, MAG_CONTAINS, MaList_MagContainsNativeDiiaFn, list_object)));
+        MaDiiaNative::Create(M, MAG_CONTAINS, MaList_MagContainsNativeDiiaFn,
+                             list_object));
     return list_object;
   }
 
   void MaList::Init(MaMa* M) {
     const auto list_structure_object = MaStructure::Create(M, "список");
-    M->global_scope->SetSubject("список",
-                                MaCell::Object(list_structure_object));
+    M->global_scope->SetSubject("список", list_structure_object);
     M->list_structure_object = list_structure_object;
   }
 } // namespace mavka::mama
