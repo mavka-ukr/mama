@@ -29,7 +29,7 @@ namespace mavka::mama {
   void print_instruction_with_index(MaCode* code,
                                     int index,
                                     MaInstruction instruction) {
-    std::cout << code << "[" << index << "]: " << instruction.to_string()
+    std::cout << code << "[" << index << "]: " << instruction.ToString()
               << std::endl;
   }
 

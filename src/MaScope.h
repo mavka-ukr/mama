@@ -10,7 +10,7 @@ class MaScope final {
   bool HasLocalSubject(const std::string& name);
   MaCell GetSubject(const std::string& name);
   MaCell GetLocalSubject(const std::string& name);
-  void SetSubject(const std::string& name, const MaCell& value);
+  void SetSubject(const std::string& name, MaCell value);
   void SetSubject(const std::string& name, MaObject* object);
   void DeleteSubject(const std::string& name);
 };

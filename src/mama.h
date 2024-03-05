@@ -246,6 +246,7 @@ namespace mavka::mama {
     static MaMa* Create();
 
     MaCell Run(MaCode* code);
+    MaCell Eval(const std::string& code, const MaLocation& location = {});
 
     MaCell DoTake(const std::string& id,
                   const std::string& name,

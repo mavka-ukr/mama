@@ -1,7 +1,7 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  std::string MaInstruction::to_string() {
+  std::string MaInstruction::ToString() {
     switch (this->v) {
       case VConstant:
         return "VConstant";
@@ -22,7 +22,7 @@ namespace mavka::mama {
       case VStore:
         return "VStore";
       case VLoad:
-        return "VLoad";
+        return "VLoad " + this->data.load->name;
       case VGet:
         return "VGet";
       case VSet:

@@ -11,8 +11,8 @@ namespace mavka::mama {
         cell = object->GetProperty(MAG_CALL);
         goto repeat;
       } else if (object->call) {
-        FRAME_PUSH(new MaFrame(nullptr, object, M->frame_stack.top()->module,
-                               location));
+        FRAME_PUSH(new MaFrame(M->frame_stack.top()->scope, object,
+                               M->frame_stack.top()->module, location));
         const auto result = object->call(M, object, args, location);
         FRAME_POP();
         return result;

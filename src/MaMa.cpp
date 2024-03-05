@@ -1,6 +1,20 @@
 #include "mama.h"
 
 namespace mavka::mama {
+  void InitEvalNative(MaMa* M) {
+    const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
+                              const MaLocation& location) {
+      const auto code = args->Get(0, "код");
+      if (code.IsObject() && code.IsObjectText()) {
+        return M->Eval(code.AsText()->data, location);
+      }
+      return MaCell::Error(
+          MaError::Create(M, "Очікується що код буде текстом.", location));
+    };
+    M->global_scope->SetSubject(
+        "виконати", MaNative::Create(M, "виконати", native_fn, nullptr));
+  }
+
   MaMa* MaMa::Create() {
     const auto M = new MaMa();
     M->global_scope = new MaScope(nullptr);
@@ -18,6 +32,7 @@ namespace mavka::mama {
     const auto main_frame =
         new MaFrame(M->global_scope, main_module_object, main_module_object);
     FRAME_PUSH(main_frame);
+    InitEvalNative(M);
     return M;
   }
 
@@ -29,7 +44,7 @@ namespace mavka::mama {
     for (;;) {
     start:
       if (i >= size) {
-        return frame->stack.top();
+        return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
       }
       auto I = code->instructions[i];
 
@@ -288,13 +303,19 @@ namespace mavka::mama {
           const auto module_scope = new MaScope(frame->scope);
           const auto module_frame =
               new MaFrame(module_scope, module_object, frame->module);
-          FRAME_PUSH(module_frame);
           frame->scope->SetSubject(I.data.module->name, module_object);
+          FRAME_PUSH(module_frame);
+          const auto result = M->Run(I.data.module->code);
+          FRAME_POP();
+          if (result.IsError()) {
+            return result;
+          }
           break;
         }
         case VGive: {
           POP_VALUE(value);
-          frame->object->properties.insert_or_assign(I.data.give->name, value);
+          frame->object->SetProperty(I.data.give->name, value);
+          break;
         }
         case VEq: {
           POP_VALUE(right);
@@ -963,15 +984,41 @@ namespace mavka::mama {
           break;
         }
         default: {
-          std::cout << "unsupported instruction " << I.to_string() << std::endl;
-          return frame->stack.top();
+          std::cout << "unsupported instruction " << I.ToString() << std::endl;
+          return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
         }
       }
 
       i++;
     }
 
-    return frame->stack.top();
+    return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
+  }
+
+  MaCell MaMa::Eval(const std::string& code, const MaLocation& location) {
+    const auto M = this;
+
+    const auto parser_result = parser::parse(code, "");
+    if (!parser_result.errors.empty()) {
+      const auto error = parser_result.errors[0];
+      DO_RETURN_STRING_ERROR(error.path + ":" + std::to_string(error.line) +
+                                 ":" + std::to_string(error.column) + ": " +
+                                 error.message,
+                             location);
+    }
+
+    const auto eval_code = new MaCode();
+    const auto body_compilation_result =
+        compile_body(this, eval_code, parser_result.module_node->body);
+    if (body_compilation_result.error) {
+      DO_RETURN_STRING_ERROR(body_compilation_result.error->message, location);
+    }
+
+    const auto result = M->Run(eval_code);
+    if (result.IsError()) {
+      return result;
+    }
+    return result;
   }
 
   MaCell MaMa::DoTake(const std::string& path,

@@ -185,7 +185,7 @@ struct MaInstruction {
   } data;
   MaLocation location;
 
-  std::string to_string();
+  std::string ToString();
 
   static MaInstruction pop();
   static MaInstruction constant(size_t index);
