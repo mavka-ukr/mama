@@ -96,7 +96,8 @@ namespace mavka::mama {
             PUSH(scope->GetSubject(I.data.load->name));
             break;
           }
-          DO_THROW_STRING("Субʼєкт \"" + I.data.load->name + "\" не визначено.")
+          DO_RETURN_STRING_ERROR("Субʼєкт \"" + I.data.load->name +
+                                 "\" не визначено.")
         }
         case VJump: {
           i = I.data.jump;
@@ -259,8 +260,8 @@ namespace mavka::mama {
               break;
             }
           }
-          DO_THROW_STRING("Неможливо створити метод для типу " +
-                          structure_cell.GetName())
+          DO_RETURN_STRING_ERROR("Неможливо створити метод для типу " +
+                                 structure_cell.GetName())
         }
         case VModule: {
           const auto module_object = MaModule::Create(M, I.data.module->name);
@@ -341,9 +342,10 @@ namespace mavka::mama {
                 PUSH_NO();
               }
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_GREATER) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_GREATER) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER);
@@ -355,7 +357,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_GREATER, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER, left);
           }
           break;
         }
@@ -370,9 +372,10 @@ namespace mavka::mama {
                 PUSH_NO();
               }
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_GREATER_EQUAL) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_GREATER_EQUAL) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_GREATER_EQUAL);
@@ -384,7 +387,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_GREATER_EQUAL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER_EQUAL, left);
           }
           break;
         }
@@ -399,9 +402,10 @@ namespace mavka::mama {
                 PUSH_NO();
               }
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_LESSER) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_LESSER) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER);
@@ -413,7 +417,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_LESSER, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER, left);
           }
           break;
         }
@@ -428,9 +432,10 @@ namespace mavka::mama {
                 PUSH_NO();
               }
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_LESSER_EQUAL) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_LESSER_EQUAL) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_LESSER_EQUAL);
@@ -442,7 +447,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_LESSER_EQUAL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER_EQUAL, left);
           }
           break;
         }
@@ -459,7 +464,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_CONTAINS, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_CONTAINS, left);
           }
           break;
         }
@@ -533,7 +538,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_NEGATIVE, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_NEGATIVE, value);
           }
           break;
         }
@@ -550,7 +555,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_POSITIVE, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POSITIVE, value);
           }
           break;
         }
@@ -568,7 +573,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_NOT, value);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_NOT, value);
           }
           break;
         }
@@ -579,9 +584,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(left.v.number + right.v.number);
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_ADD) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_ADD) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_ADD);
@@ -592,7 +598,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_ADD, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_ADD, left);
           }
           break;
         }
@@ -603,9 +609,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(left.v.number - right.v.number);
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_SUB) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_SUB) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_SUB);
@@ -616,7 +623,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_SUB, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_SUB, left);
           }
           break;
         }
@@ -627,9 +634,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(left.v.number * right.v.number);
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_MUL) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_MUL) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MUL);
@@ -640,7 +648,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_MUL, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MUL, left);
           }
           break;
         }
@@ -651,9 +659,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(left.v.number / right.v.number);
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_DIV) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_DIV) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIV);
@@ -664,7 +673,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_DIV, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIV, left);
           }
           break;
         }
@@ -675,9 +684,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(fmod(left.v.number, right.v.number));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_MOD) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_MOD) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_MOD);
@@ -688,7 +698,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_MOD, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MOD, left);
           }
           break;
         }
@@ -699,9 +709,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(floor(left.v.number / right.v.number));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_DIVDIV) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_DIVDIV) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_DIVDIV);
@@ -712,7 +723,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_DIVDIV, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIVDIV, left);
           }
           break;
         }
@@ -723,9 +734,10 @@ namespace mavka::mama {
             if (IS_NUMBER(right)) {
               PUSH_NUMBER(pow(left.v.number, right.v.number));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_POW) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_POW) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_POW);
@@ -736,7 +748,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_POW, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POW, left);
           }
           break;
         }
@@ -749,9 +761,10 @@ namespace mavka::mama {
                   static_cast<double>(static_cast<long>(left.v.number) ^
                                       static_cast<long>(right.v.number)));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_BW_XOR) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_BW_XOR) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_XOR);
@@ -762,7 +775,7 @@ namespace mavka::mama {
             PUSH(result);
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_XOR, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_XOR, left);
           }
           break;
         }
@@ -775,9 +788,10 @@ namespace mavka::mama {
                   static_cast<double>(static_cast<long>(left.v.number) |
                                       static_cast<long>(right.v.number)));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_BW_OR) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_BW_OR) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_OR);
@@ -789,7 +803,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_OR, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_OR, left);
           }
           break;
         }
@@ -802,9 +816,10 @@ namespace mavka::mama {
                   static_cast<double>(static_cast<long>(left.v.number) &
                                       static_cast<long>(right.v.number)));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_BW_AND) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_BW_AND) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_AND);
@@ -816,7 +831,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_AND, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_AND, left);
           }
           break;
         }
@@ -829,9 +844,10 @@ namespace mavka::mama {
                   static_cast<double>(static_cast<long>(left.v.number)
                                       << static_cast<long>(right.v.number)));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_BW_SHIFT_LEFT) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_BW_SHIFT_LEFT) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_LEFT);
@@ -843,7 +859,7 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_SHIFT_LEFT, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_LEFT, left);
           }
           break;
         }
@@ -856,9 +872,10 @@ namespace mavka::mama {
                   static_cast<double>(static_cast<long>(left.v.number) >>
                                       static_cast<long>(right.v.number)));
             } else {
-              DO_THROW_STRING("Дія \"" + std::string(MAG_BW_SHIFT_RIGHT) +
-                              "\" для типу \"число\" "
-                              "очікує параметром значення типу \"число\".")
+              DO_RETURN_STRING_ERROR(
+                  "Дія \"" + std::string(MAG_BW_SHIFT_RIGHT) +
+                  "\" для типу \"число\" "
+                  "очікує параметром значення типу \"число\".")
             }
           } else if (IS_OBJECT(left)) {
             OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_RIGHT);
@@ -870,15 +887,18 @@ namespace mavka::mama {
             ;
             break;
           } else {
-            DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(MAG_BW_SHIFT_RIGHT, left);
+            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_RIGHT, left);
           }
           break;
         }
         case VTake: {
-          const auto module_object =
-              ma_take(M, I.data.take->repository, I.data.take->relative,
+          const auto result =
+              M->Take(I.data.take->repository, I.data.take->relative,
                       I.data.take->path_parts);
-          PUSH(module_object);
+          if (IS_ERROR(result)) {
+            return result;
+          }
+          PUSH(result);
           break;
         }
         case VModuleLoad: {

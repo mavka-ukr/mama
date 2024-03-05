@@ -20,7 +20,7 @@ namespace mavka::mama {
         return result;
       }
     }
-    DO_THROW_CANNOT_CALL_CELL(cell);
+    DO_RETURN_CANNOT_CALL_CELL_ERROR(cell);
   }
 
   MaCell ma_call(MaMa* M,

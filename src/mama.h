@@ -158,13 +158,14 @@
     (cell).v.object->properties[propname] = value;             \
   }
 
-#define DO_THROW_STRING(v) \
+#define DO_RETURN_STRING_ERROR(v) \
   RETURN_ERROR(new MaError(MA_MAKE_OBJECT(MaText::Create(M, (v)))));
-#define DO_THROW_DIIA_NOT_DEFINED_FOR_TYPE(varname, cell) \
-  DO_THROW_STRING("Дію \"" + std::string(varname) +       \
-                  "\" не визначено для типу \"" + cell.GetName() + "\".")
-#define DO_THROW_CANNOT_CALL_CELL(cell) \
-  DO_THROW_STRING("Неможливо викликати \"" + cell.GetName() + "\".")
+#define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell)          \
+  DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                \
+                         "\" не визначено для типу \"" + cell.GetName() + \
+                         "\".")
+#define DO_RETURN_CANNOT_CALL_CELL_ERROR(cell) \
+  DO_RETURN_STRING_ERROR("Неможливо викликати \"" + cell.GetName() + "\".")
 
 namespace mavka::mama {
   struct MaMa;
@@ -234,6 +235,11 @@ namespace mavka::mama {
     MaObject* module_structure_object;
 
     static MaMa* Create();
+
+    MaCell Take(const std::string& repository,
+                bool relative,
+                const std::vector<std::string>& path_parts);
+    MaCell Take(const std::string& path);
   };
 
   MaCell ma_run(MaMa* M, MaCode* code);

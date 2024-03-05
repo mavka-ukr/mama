@@ -57,7 +57,6 @@ set(MAMA_SRC
         utils/helpers.cpp
         utils/helpers.h
         ma_call.cpp
-        ma_take.cpp
         MaFrame.h
         MaInstruction.cpp
         MaInstruction.h

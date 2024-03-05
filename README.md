@@ -33,7 +33,7 @@ using namespace mavka;
 int main(int argc, char** argv) {
   const auto M = mama::MaMa::Create();
 
-  const auto take_result = mama::ma_take(M, "./старт.м");
+  const auto take_result = M->Take("./старт.м");
   if (IS_ERROR(take_result)) {
     std::cerr << mama::cell_to_string(take_result.v.error->value) << std::endl;
     M->Destroy();
