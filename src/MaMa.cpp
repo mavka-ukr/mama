@@ -1,20 +1,6 @@
 #include "mama.h"
 
 namespace mavka::mama {
-  void InitEvalNative(MaMa* M) {
-    const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
-                              const MaLocation& location) {
-      const auto code = args->Get(0, "код");
-      if (code.IsObject() && code.IsObjectText()) {
-        return M->Eval(code.AsText()->data, location);
-      }
-      return MaCell::Error(
-          MaError::Create(M, "Очікується що код буде текстом.", location));
-    };
-    M->global_scope->SetSubject(
-        "виконати", MaNative::Create(M, "виконати", native_fn, nullptr));
-  }
-
   MaMa* MaMa::Create() {
     const auto M = new MaMa();
     M->global_scope = new MaScope(nullptr);
@@ -32,7 +18,6 @@ namespace mavka::mama {
     const auto main_frame =
         new MaFrame(M->global_scope, main_module_object, main_module_object);
     FRAME_PUSH(main_frame);
-    InitEvalNative(M);
     return M;
   }
 
