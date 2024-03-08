@@ -7,7 +7,7 @@ namespace mavka::mama {
     if (name == "назва") {
       return MaValue::Object(MaText::Create(M, o->d.structure->name));
     }
-    return o->GetProperty(M,name);
+    return o->GetPropertyDirect(M, name);
   }
 
   // дізнатись
@@ -31,22 +31,22 @@ namespace mavka::mama {
   MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
     const auto structure = new MaStructure();
     structure->name = name;
-    const auto structure_object = new MaObject();
-    structure_object->type = MA_OBJECT_STRUCTURE;
-    structure_object->d.structure = structure;
-    structure_object->structure = structure_object;
-    structure_object->get = MaStructure_GetHandler;
-    structure_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
-                                MaLocation location) {
+    const auto structure_o = new MaObject();
+    structure_o->type = MA_OBJECT_STRUCTURE;
+    structure_o->d.structure = structure;
+    structure_o->structure = structure_o;
+    structure_o->get = MaStructure_GetHandler;
+    structure_o->call = [](MaMa* M, MaObject* o, MaArgs* args,
+                           MaLocation location) {
       const auto object = MaObject::Instance(M, MA_OBJECT, o, nullptr);
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
         const auto arg_value = args->Get(i, param.name, param.default_value);
-        object->SetProperty(M,param.name, arg_value);
+        object->SetProperty(M, param.name, arg_value);
       }
       return MaValue::Object(object);
     };
-    return structure_object;
+    return structure_o;
   }
 
   void MaStructure::Init(MaMa* M) {
@@ -57,8 +57,8 @@ namespace mavka::mama {
   }
 
   void MaStructure::Init2(MaMa* M) {
-    M->structure_structure_object->SetProperty(M,
-        "дізнатись",
+    M->structure_structure_object->SetProperty(
+        M, "дізнатись",
         MaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
                          M->structure_structure_object));
   }

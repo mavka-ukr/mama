@@ -260,7 +260,7 @@ class MaStructure final {
 };
 
 typedef MaValue NativeFn(MaMa* M,
-                         MaObject* o,
+                         MaObject* native_o,
                          MaArgs* args,
                          MaLocation location);
 

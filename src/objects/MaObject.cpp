@@ -30,11 +30,7 @@ namespace mavka::mama {
   }
 
   void MaObject::Retain() {
-    if (this->ref_count == 0) {
-      this->ref_count = 1;
-    } else {
-      ++this->ref_count;
-    }
+    ++this->ref_count;
   };
 
   void MaObject::Release() {

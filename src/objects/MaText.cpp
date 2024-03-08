@@ -262,11 +262,11 @@ namespace mavka::mama {
     return MaValue::Number(std::stod(o->d.native->me->d.text->data));
   }
 
-  MaValue MaString_GetHandler(MaMa* M, MaObject* me, const std::string& name) {
+  MaValue MaText_GetHandler(MaMa* M, MaObject* o, const std::string& name) {
     if (name == "довжина") {
-      return MaValue::Number(me->AsText()->GetLength());
+      return MaValue::Number(o->AsText()->GetLength());
     }
-    return me->GetPropertyDirect(M,name);
+    return o->GetPropertyDirect(M, name);
   }
 
   MaObject* MaText::Create(MaMa* M, const std::string& value) {
@@ -274,43 +274,46 @@ namespace mavka::mama {
     string->data = value;
     const auto text_o = MaObject::Instance(M, MA_OBJECT_STRING,
                                            M->text_structure_object, string);
-    text_o->get = MaString_GetHandler;
-    text_o->SetProperty(M,
-        "розбити",
+    text_o->get = MaText_GetHandler;
+    text_o->SetProperty(
+        M, "розбити",
         MaNative::Create(M, "розбити", MaText_SplitNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        "замінити",
+    text_o->SetProperty(
+        M, "замінити",
         MaNative::Create(M, "замінити", MaText_ReplaceNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        "починається", MaNative::Create(M, "починається",
-                                        MaText_StartsWithNativeDiiaFn, text_o));
-    text_o->SetProperty(M,"закінчується",
+    text_o->SetProperty(
+        M, "починається",
+        MaNative::Create(M, "починається", MaText_StartsWithNativeDiiaFn,
+                         text_o));
+    text_o->SetProperty(M, "закінчується",
                         MaNative::Create(M, "закінчується",
                                          MaText_EndsWithNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        "обтяти",
+    text_o->SetProperty(
+        M, "обтяти",
         MaNative::Create(M, "обтяти", MaText_TrimNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        MAG_ADD,
+    text_o->SetProperty(
+        M, MAG_ADD,
         MaNative::Create(M, MAG_ADD, MaText_MagAddNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        MAG_CONTAINS, MaNative::Create(M, MAG_CONTAINS,
-                                       MaText_MagContainsNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        MAG_GET_ELEMENT,
+    text_o->SetProperty(
+        M, MAG_CONTAINS,
+        MaNative::Create(M, MAG_CONTAINS, MaText_MagContainsNativeDiiaFn,
+                         text_o));
+    text_o->SetProperty(
+        M, MAG_GET_ELEMENT,
         MaNative::Create(M, MAG_GET_ELEMENT, MaText_MagGetElementNativeDiiaFn,
                          text_o));
-    text_o->SetProperty(M,
-        MAG_ITERATOR, MaNative::Create(M, MAG_ITERATOR,
-                                       MaText_MagIteratorNativeDiiaFn, text_o));
-    text_o->SetProperty(M,
-        MAG_NUMBER,
+    text_o->SetProperty(
+        M, MAG_ITERATOR,
+        MaNative::Create(M, MAG_ITERATOR, MaText_MagIteratorNativeDiiaFn,
+                         text_o));
+    text_o->SetProperty(
+        M, MAG_NUMBER,
         MaNative::Create(M, MAG_NUMBER, MaText_MagNumberNativeDiiaFn, text_o));
     return text_o;
   }
 
   MaValue MaText_Structure_MagCallNativeDiiaFn(MaMa* M,
-                                               MaObject* o,
+                                               MaObject* native_o,
                                                MaArgs* args,
                                                const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
@@ -327,9 +330,8 @@ namespace mavka::mama {
     if (cell.IsObject()) {
       if (cell.IsObjectText()) {
         return cell;
-      } else if (cell.AsObject()->HasProperty(M, MAG_TEXT)) {
-        return cell.AsObject()->GetProperty(M, MAG_TEXT).Call(M, {}, {});
       }
+      return cell.AsObject()->GetProperty(M, MAG_TEXT).Call(M, {}, {});
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на текст.")),
@@ -340,8 +342,8 @@ namespace mavka::mama {
     const auto text_structure_object = MaStructure::Create(M, "текст");
     M->global_scope->SetSubject("текст", text_structure_object);
     M->text_structure_object = text_structure_object;
-    text_structure_object->SetProperty(M,
-        MAG_CALL,
+    text_structure_object->SetProperty(
+        M, MAG_CALL,
         MaNative::Create(M, MAG_CALL, MaText_Structure_MagCallNativeDiiaFn,
                          text_structure_object));
   }

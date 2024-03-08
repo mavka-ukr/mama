@@ -49,7 +49,7 @@ namespace mavka::mama {
     native->me = me;
     const auto native_object = MaObject::Instance(
         M, MA_OBJECT_NATIVE, M->diia_structure_object, native);
-    native_object->call = native->fn;
+    native_object->call = native_fn;
     return native_object;
   }
 

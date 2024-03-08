@@ -8,11 +8,11 @@ namespace mavka::mama {
   repeat:
     if (cell.IsObject()) {
       const auto object = cell.v.object;
-
       if (object->HasProperty(M, MAG_CALL)) {
         cell = object->GetProperty(M, MAG_CALL);
         goto repeat;
-      } else if (object->call) {
+      }
+      if (object->call) {
         FRAME_PUSH(new MaFrame(M->frame_stack.top()->scope, object,
                                M->frame_stack.top()->module, location));
         const auto result = object->call(M, object, args, location);

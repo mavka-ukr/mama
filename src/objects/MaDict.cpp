@@ -55,11 +55,11 @@ namespace mavka::mama {
     return MaValue::Empty();
   }
 
-  MaValue MaDictGetHandler(MaMa* M, MaObject* me, const std::string& name) {
+  MaValue MaDictGetHandler(MaMa* M, MaObject* o, const std::string& name) {
     if (name == "розмір") {
-      return MaValue::Integer(me->AsDict()->GetSize());
+      return MaValue::Integer(o->AsDict()->GetSize());
     }
-    return me->GetPropertyDirect(M, name);
+    return o->GetPropertyDirect(M, name);
   }
 
   MaObject* MaDict::Create(MaMa* M) {

@@ -137,11 +137,11 @@ namespace mavka::mama {
     }
   }
 
-  MaValue MaListGetHandler(MaMa* M, MaObject* me, const std::string& name) {
+  MaValue MaListGetHandler(MaMa* M, MaObject* o, const std::string& name) {
     if (name == "довжина") {
-      return MaValue::Integer(me->AsList()->GetSize());
+      return MaValue::Integer(o->AsList()->GetSize());
     }
-    return me->GetPropertyDirect(M, name);
+    return o->GetPropertyDirect(M, name);
   }
 
   MaObject* MaList::Create(MaMa* M) {
