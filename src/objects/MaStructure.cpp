@@ -14,16 +14,16 @@ namespace mavka::mama {
                                           MaArgs* args,
                                           const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
-    if (IS_EMPTY(cell)) {
-      RETURN_EMPTY();
+    if (cell.IsEmpty()) {
+      return MaCell::Empty();
     }
-    if (IS_NUMBER(cell)) {
-      RETURN_OBJECT(M->number_structure_object);
+    if (cell.IsNumber()) {
+      return MaCell::Object(M->number_structure_object);
     }
-    if (IS_YES(cell) || IS_NO(cell)) {
-      RETURN_OBJECT(M->logical_structure_object);
+    if (cell.IsYes() || cell.IsNo()) {
+      return MaCell::Object(M->logical_structure_object);
     }
-    RETURN_OBJECT(cell.v.object->structure);
+    return MaCell::Object(cell.AsObject()->structure);
   }
 
   MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
@@ -58,6 +58,6 @@ namespace mavka::mama {
     M->structure_structure_object->SetProperty(
         "дізнатись",
         MaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
-                             M->structure_structure_object));
+                         M->structure_structure_object));
   }
 } // namespace mavka::mama

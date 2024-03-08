@@ -11,20 +11,20 @@ namespace mavka::mama {
     diia->me = me;
     const auto diia_object =
         MaObject::Instance(M, MA_OBJECT_DIIA, M->diia_structure_object, diia);
-    diia_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
+    diia_object->call = [](MaMa* M, MaObject* diia_o, MaArgs* args,
                            MaLocation location) {
-      const auto diia_scope = new MaScope(o->d.diia->scope);
+      const auto diia_scope = new MaScope(diia_o->AsDiia()->scope);
       READ_TOP_FRAME();
       frame->scope = diia_scope;
-      if (o->d.diia->me) {
-        frame->scope->SetSubject("я", o->d.diia->me);
+      if (diia_o->AsDiia()->GetMe()) {
+        frame->scope->SetSubject("я", diia_o->AsDiia()->GetMe());
       }
-      for (int i = 0; i < o->d.diia->params.size(); ++i) {
-        const auto& param = o->d.diia->params[i];
+      for (int i = 0; i < diia_o->AsDiia()->GetParams().size(); ++i) {
+        const auto& param = diia_o->d.diia->params[i];
         const auto arg_value = args->Get(i, param.name, param.default_value);
         frame->scope->SetSubject(param.name, arg_value);
       }
-      const auto result = M->Run(o->d.diia->code);
+      const auto result = M->Run(diia_o->d.diia->code);
       // todo: gc
       return result;
     };
@@ -49,10 +49,7 @@ namespace mavka::mama {
     native->me = me;
     const auto native_object = MaObject::Instance(
         M, MA_OBJECT_NATIVE, M->diia_structure_object, native);
-    native_object->call = [](MaMa* M, MaObject* o, MaArgs* args,
-                             const MaLocation& location) {
-      return o->d.native->fn(M, o, args, location);
-    };
+    native_object->call = native->fn;
     return native_object;
   }
 

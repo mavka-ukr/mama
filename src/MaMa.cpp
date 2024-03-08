@@ -241,7 +241,7 @@ namespace mavka::mama {
         case VListAppend: {
           POP_VALUE(value);
           TOP_VALUE(list_cell);
-          list_cell.v.object->d.list->append(value);
+          list_cell.AsObject()->AsList()->Append(value);
           break;
         }
         case VDict: {

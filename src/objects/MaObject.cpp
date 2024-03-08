@@ -68,6 +68,17 @@ namespace mavka::mama {
     if (this->properties.contains(name)) {
       return this->properties[name];
     }
-    RETURN_EMPTY();
+    return MaCell::Empty();
+  }
+
+  MaCell MaObject::GetPropertyDirect(const std::string& name) {
+    return this->properties[name];
+  }
+
+  MaCell MaObject::GetPropertyDirectOrEmpty(const std::string& name) {
+    if (this->properties.contains(name)) {
+      return this->properties[name];
+    }
+    return MaCell::Empty();
   }
 } // namespace mavka::mama

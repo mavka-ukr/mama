@@ -82,6 +82,8 @@ struct MaObject {
   void SetProperty(const std::string& name, MaObject* value);
   MaCell GetProperty(const std::string& name);
   MaCell GetPropertyOrEmpty(const std::string& name);
+  MaCell GetPropertyDirect(const std::string& name);
+  MaCell GetPropertyDirectOrEmpty(const std::string& name);
 };
 
 struct MaCell {
@@ -128,6 +130,9 @@ struct MaCell {
     return this->type == MA_CELL_ERROR;
   };
   [[always_inline]] inline double AsNumber() const { return this->v.number; };
+  [[always_inline]] inline long AsInteger() const {
+    return static_cast<long>(this->v.number);
+  };
   [[always_inline]] inline MaObject* AsObject() const {
     return this->v.object;
   };
@@ -149,6 +154,9 @@ struct MaCell {
   [[always_inline]] inline static MaCell Number(double value) {
     return MaCell{MA_CELL_NUMBER, {.number = value}};
   };
+  [[always_inline]] inline static MaCell Integer(long value) {
+    return MaCell{MA_CELL_NUMBER, {.number = static_cast<double>(value)}};
+  };
   [[always_inline]] inline static MaCell Yes() { return MaCell{MA_CELL_YES}; };
   [[always_inline]] inline static MaCell No() { return MaCell{MA_CELL_NO}; };
   [[always_inline]] inline static MaCell Object(MaObject* value) {
@@ -169,7 +177,7 @@ class MaText final {
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& value);
 
-  size_t Length() const;
+  size_t GetLength() const;
   std::string Substr(size_t start, size_t length) const;
 };
 
@@ -180,11 +188,11 @@ class MaList final {
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M);
 
-  void append(MaCell cell);
-  void set(size_t index, MaCell cell);
-  MaCell get(size_t index) const;
-  size_t size() const;
-  bool contains(MaCell cell);
+  void Append(const MaCell& cell);
+  void SetAt(size_t index, const MaCell& cell);
+  MaCell GetAt(size_t index) const;
+  size_t GetSize() const;
+  bool Contains(const MaCell& cell);
 };
 
 class MaDict final {
@@ -197,7 +205,7 @@ class MaDict final {
   void Set(const MaCell& key, const MaCell& value);
   MaCell Get(const MaCell& key) const;
   void Remove(const MaCell& key);
-  size_t Size() const;
+  size_t GetSize() const;
 };
 
 class MaDiiaParam final {
@@ -215,9 +223,12 @@ class MaDiia final {
   MaObject* fm;
   std::vector<MaDiiaParam> params;
 
+  inline MaObject* GetMe() const { return this->me; }
+  inline std::vector<MaDiiaParam> GetParams() const { return this->params; }
+
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M,
-                          const std::string& o,
+                          const std::string& diia_o,
                           MaCode* code,
                           MaObject* me);
 
@@ -246,8 +257,10 @@ class MaNative final {
   std::function<NativeFn> fn;
   MaObject* me;
 
+  inline MaObject* GetMe() const { return this->me; }
+
   static MaObject* Create(MaMa* M,
-                          const std::string& name,
+                          const std::string& native_o,
                           const std::function<NativeFn>& native_fn,
                           MaObject* me);
 };

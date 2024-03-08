@@ -6,25 +6,26 @@ namespace mavka::mama {
                                                 MaArgs* args,
                                                 const MaLocation& location) {
     const auto value_cell = args->Get(0, "значення");
-    if (IS_EMPTY(value_cell)) {
-      RETURN_NUMBER(0);
+    if (value_cell.IsEmpty()) {
+      return MaCell::Number(0);
     }
-    if (IS_NUMBER(value_cell)) {
-      RETURN(value_cell);
+    if (value_cell.IsNumber()) {
+      return value_cell;
     }
-    if (IS_YES(value_cell)) {
-      RETURN_NUMBER(1);
+    if (value_cell.IsYes()) {
+      return MaCell::Number(1);
     }
-    if (IS_NO(value_cell)) {
-      RETURN_NUMBER(0);
+    if (value_cell.IsNo()) {
+      return MaCell::Number(0);
     }
-    if (IS_OBJECT(value_cell)) {
-      if (value_cell.v.object->HasProperty(MAG_NUMBER)) {
-        return value_cell.v.object->GetProperty(MAG_NUMBER)
+    if (value_cell.IsObject()) {
+      if (value_cell.AsObject()->HasProperty(MAG_NUMBER)) {
+        return value_cell.AsObject()
+            ->GetProperty(MAG_NUMBER)
             .Call(M, {}, location);
       }
     }
-    RETURN_ERROR(new MaError(
+    return MaCell::Error(new MaError(
         MaCell::Object(MaText::Create(M, "Неможливо перетворити на число.")),
         location));
   }
@@ -35,8 +36,7 @@ namespace mavka::mama {
     M->number_structure_object = number_structure_object;
     number_structure_object->SetProperty(
         MAG_CALL,
-        MaNative::Create(M, MAG_CALL,
-                                       MaNumber_Structure_MagCallNativeDiiaFn,
-                                       number_structure_object));
+        MaNative::Create(M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
+                         number_structure_object));
   }
 } // namespace mavka::mama

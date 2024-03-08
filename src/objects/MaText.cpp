@@ -50,7 +50,7 @@ namespace mavka::mama {
         .size();
   }
 
-  size_t MaText::Length() const {
+  size_t MaText::GetLength() const {
     return utf8_len(this->data);
   }
 
@@ -60,39 +60,37 @@ namespace mavka::mama {
 
   // розбити
   MaCell MaText_SplitNativeDiiaFn(MaMa* M,
-                                  MaObject* o,
+                                  MaObject* native_o,
                                   MaArgs* args,
                                   const MaLocation& location) {
     const auto cell = args->Get(0, "роздільник");
     if (cell.IsObject() && cell.IsObjectText()) {
-      const auto delim = cell.v.object->d.text->data;
+      const auto delim = cell.AsObject()->AsText()->data;
+
       if (delim.empty()) {
-        const auto list_object = MaList::Create(M);
-        for (const auto& c : utf8_chars(o->d.native->me->d.text->data)) {
-          list_object->d.list->data.push_back(
-              MaCell::Object(MaText::Create(M, c)));
+        const auto list_o = MaList::Create(M);
+        for (const auto& c :
+             utf8_chars(native_o->AsNative()->GetMe()->AsText()->data)) {
+          list_o->AsList()->Append(MaCell::Object(MaText::Create(M, c)));
         }
-        RETURN_OBJECT(list_object);
+        return MaCell::Object(list_o);
       }
-      std::vector<std::string> result;
+
+      const auto list_o = MaList::Create(M);
       std::string current;
-      for (const auto& c : utf8_chars(o->d.native->me->d.text->data)) {
+      for (const auto& c :
+           utf8_chars(native_o->AsNative()->GetMe()->AsText()->data)) {
         if (c == delim) {
-          result.push_back(current);
+          list_o->AsList()->Append(MaCell::Object(MaText::Create(M, current)));
           current.clear();
         } else {
           current += c;
         }
       }
-      result.push_back(current);
-      const auto list_object = MaList::Create(M);
-      for (const auto& s : result) {
-        list_object->d.list->data.push_back(
-            MaCell::Object(MaText::Create(M, s)));
-      }
-      RETURN_OBJECT(list_object);
+      list_o->AsList()->Append(MaCell::Object(MaText::Create(M, current)));
+      return MaCell::Object(list_o);
     } else {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"розбити\" потрібен текстовий аргумент."))));
     }
   }
@@ -104,18 +102,18 @@ namespace mavka::mama {
                                     const MaLocation& location) {
     const auto oldVal = args->Get(0, "старе");
     if (!(oldVal.IsObject() && oldVal.IsObjectText())) {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"замінити\" перший аргумент повинен бути текстом."))));
     }
     const auto newVal = args->Get(1, "нове");
     if (!(newVal.IsObject() && newVal.IsObjectText())) {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"замінити\" другий аргумент повинен бути текстом."))));
     }
     const auto first_string = oldVal.AsText()->data;
     const auto second_string = newVal.AsText()->data;
     std::string new_string;
-    for (std::size_t i = 0; i < o->d.native->me->d.text->Length(); i++) {
+    for (std::size_t i = 0; i < o->d.native->me->d.text->GetLength(); i++) {
       const auto substr = o->d.native->me->d.text->Substr(i, 1);
       if (substr == first_string) {
         new_string += second_string;
@@ -123,7 +121,7 @@ namespace mavka::mama {
         new_string += substr;
       }
     }
-    RETURN(MaCell::Object(MaText::Create(M, new_string)));
+    return MaCell::Object(MaText::Create(M, new_string));
   }
 
   // починається
@@ -133,13 +131,13 @@ namespace mavka::mama {
                                        const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
-      if (o->d.native->me->d.text->data.find(cell.v.object->d.text->data) ==
-          0) {
+      if (o->AsNative()->GetMe()->AsText()->data.find(
+              cell.AsObject()->AsText()->data) == 0) {
         return MaCell::Yes();
       }
       return MaCell::No();
     } else {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"починається\" потрібен текстовий аргумент."))));
     }
   }
@@ -152,17 +150,17 @@ namespace mavka::mama {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
       const auto text = cell.AsText();
-      if (o->d.native->me->d.text->Length() < text->Length()) {
+      if (o->AsNative()->GetMe()->AsText()->GetLength() < text->GetLength()) {
         return MaCell::No();
       }
-      if (o->d.native->me->d.text->Substr(
-              o->d.native->me->d.text->Length() - text->Length(),
-              text->Length()) == text->data) {
+      if (o->AsNative()->GetMe()->AsText()->Substr(
+              o->AsNative()->GetMe()->AsText()->GetLength() - text->GetLength(),
+              text->GetLength()) == text->data) {
         return MaCell::Yes();
       }
       return MaCell::No();
     } else {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"закінчується\" потрібен текстовий аргумент."))));
     }
   }
@@ -173,7 +171,7 @@ namespace mavka::mama {
                                  MaArgs* args,
                                  const MaLocation& location) {
     return MaCell::Object(MaText::Create(
-        M, internal::tools::trim(o->d.native->me->d.text->data)));
+        M, internal::tools::trim(o->AsNative()->GetMe()->AsText()->data)));
   }
 
   // чародія_додати
@@ -184,29 +182,29 @@ namespace mavka::mama {
     const auto arg_cell = args->Get(0, "значення");
     if (arg_cell.IsEmpty()) {
       return MaCell::Object(
-          MaText::Create(M, o->d.native->me->d.text->data + "пусто"));
+          MaText::Create(M, o->AsNative()->GetMe()->AsText()->data + "пусто"));
     }
     if (arg_cell.IsNumber()) {
       return MaCell::Object(
-          MaText::Create(M, o->d.native->me->d.text->data +
+          MaText::Create(M, o->AsNative()->GetMe()->AsText()->data +
                                 ma_number_to_string(arg_cell.v.number)));
     }
     if (arg_cell.IsYes()) {
       return MaCell::Object(
-          MaText::Create(M, o->d.native->me->d.text->data + "так"));
+          MaText::Create(M, o->AsNative()->GetMe()->AsText()->data + "так"));
     }
     if (arg_cell.IsNo()) {
       return MaCell::Object(
-          MaText::Create(M, o->d.native->me->d.text->data + "ні"));
+          MaText::Create(M, o->AsNative()->GetMe()->AsText()->data + "ні"));
     }
     if (arg_cell.IsObject()) {
       if (arg_cell.IsObjectText()) {
-        return MaCell::Object(MaText::Create(
-            M,
-            o->d.native->me->d.text->data + arg_cell.v.object->d.text->data));
+        return MaCell::Object(
+            MaText::Create(M, o->AsNative()->GetMe()->AsText()->data +
+                                  arg_cell.AsObject()->AsText()->data));
       }
     }
-    RETURN_ERROR(new MaError(MaCell::Object(
+    return MaCell::Error(new MaError(MaCell::Object(
         MaText::Create(M, "Неможливо додати до тексту обʼєкт типу \"" +
                               arg_cell.GetName() + "\"."))));
   }
@@ -218,13 +216,13 @@ namespace mavka::mama {
                                         const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsObject() && cell.IsObjectText()) {
-      if (o->d.native->me->d.text->data.find(cell.v.object->d.text->data) !=
-          std::string::npos) {
+      if (o->AsNative()->GetMe()->AsText()->data.find(
+              cell.AsObject()->AsText()->data) != std::string::npos) {
         return MaCell::Yes();
       }
       return MaCell::No();
     } else {
-      RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(
+      return MaCell::Error(new MaError(MaCell::Object(MaText::Create(
           M, "Для дії \"чародія_містить\" потрібен текстовий аргумент."))));
     }
   }
@@ -237,12 +235,12 @@ namespace mavka::mama {
     const auto cell = args->Get(0, "позиція");
     if (cell.IsNumber()) {
       const auto i = cell.AsNumber();
-      if (i < o->d.native->me->d.text->Length()) {
-        const auto substr = o->d.native->me->d.text->Substr(i, 1);
+      if (i < o->AsNative()->GetMe()->AsText()->GetLength()) {
+        const auto substr = o->AsNative()->GetMe()->AsText()->Substr(i, 1);
         return MaCell::Object(MaText::Create(M, substr));
       }
     }
-    RETURN_EMPTY();
+    return MaCell::Empty();
   }
 
   // чародія_перебір
@@ -250,7 +248,7 @@ namespace mavka::mama {
                                         MaObject* o,
                                         MaArgs* args,
                                         const MaLocation& location) {
-    RETURN_ERROR(new MaError(
+    return MaCell::Error(new MaError(
         MaCell::Object(MaText::Create(M, "Дія \"" + std::string(MAG_ITERATOR) +
                                              "\" тимчасово недоступна."))));
   }
@@ -260,59 +258,55 @@ namespace mavka::mama {
                                       MaObject* o,
                                       MaArgs* args,
                                       const MaLocation& location) {
-    RETURN_NUMBER(std::stod(o->d.native->me->d.text->data));
+    // треба вручну переписати для підтримки 0шАБВ і 0б01010110101
+    return MaCell::Number(std::stod(o->d.native->me->d.text->data));
   }
 
   MaCell MaString_GetHandler(MaMa* M, MaObject* me, const std::string& name) {
     if (name == "довжина") {
-      return MaCell::Number(me->AsText()->Length());
+      return MaCell::Number(me->AsText()->GetLength());
     }
-    return me->GetPropertyOrEmpty(name);
+    return me->GetPropertyDirectOrEmpty(name);
   }
 
   MaObject* MaText::Create(MaMa* M, const std::string& value) {
     const auto string = new MaText();
     string->data = value;
-    const auto string_object = MaObject::Instance(
-        M, MA_OBJECT_STRING, M->text_structure_object, string);
-    string_object->get = MaString_GetHandler;
-    string_object->SetProperty(
-        "розбити", MaNative::Create(M, "розбити", MaText_SplitNativeDiiaFn,
-                                    string_object));
-    string_object->SetProperty(
-        "замінити", MaNative::Create(M, "замінити", MaText_ReplaceNativeDiiaFn,
-                                     string_object));
-    string_object->SetProperty(
-        "починається",
-        MaNative::Create(M, "починається", MaText_StartsWithNativeDiiaFn,
-                         string_object));
-    string_object->SetProperty(
-        "закінчується",
-        MaNative::Create(M, "закінчується", MaText_EndsWithNativeDiiaFn,
-                         string_object));
-    string_object->SetProperty(
+    const auto text_o = MaObject::Instance(M, MA_OBJECT_STRING,
+                                           M->text_structure_object, string);
+    text_o->get = MaString_GetHandler;
+    text_o->SetProperty(
+        "розбити",
+        MaNative::Create(M, "розбити", MaText_SplitNativeDiiaFn, text_o));
+    text_o->SetProperty(
+        "замінити",
+        MaNative::Create(M, "замінити", MaText_ReplaceNativeDiiaFn, text_o));
+    text_o->SetProperty(
+        "починається", MaNative::Create(M, "починається",
+                                        MaText_StartsWithNativeDiiaFn, text_o));
+    text_o->SetProperty("закінчується",
+                        MaNative::Create(M, "закінчується",
+                                         MaText_EndsWithNativeDiiaFn, text_o));
+    text_o->SetProperty(
         "обтяти",
-        MaNative::Create(M, "обтяти", MaText_TrimNativeDiiaFn, string_object));
-    string_object->SetProperty(
+        MaNative::Create(M, "обтяти", MaText_TrimNativeDiiaFn, text_o));
+    text_o->SetProperty(
         MAG_ADD,
-        MaNative::Create(M, MAG_ADD, MaText_MagAddNativeDiiaFn, string_object));
-    string_object->SetProperty(
-        MAG_CONTAINS,
-        MaNative::Create(M, MAG_CONTAINS, MaText_MagContainsNativeDiiaFn,
-                         string_object));
-    string_object->SetProperty(
+        MaNative::Create(M, MAG_ADD, MaText_MagAddNativeDiiaFn, text_o));
+    text_o->SetProperty(
+        MAG_CONTAINS, MaNative::Create(M, MAG_CONTAINS,
+                                       MaText_MagContainsNativeDiiaFn, text_o));
+    text_o->SetProperty(
         MAG_GET_ELEMENT,
         MaNative::Create(M, MAG_GET_ELEMENT, MaText_MagGetElementNativeDiiaFn,
-                         string_object));
-    string_object->SetProperty(
-        MAG_ITERATOR,
-        MaNative::Create(M, MAG_ITERATOR, MaText_MagIteratorNativeDiiaFn,
-                         string_object));
-    string_object->SetProperty(
+                         text_o));
+    text_o->SetProperty(
+        MAG_ITERATOR, MaNative::Create(M, MAG_ITERATOR,
+                                       MaText_MagIteratorNativeDiiaFn, text_o));
+    text_o->SetProperty(
         MAG_NUMBER,
-        MaNative::Create(M, MAG_NUMBER, MaText_MagNumberNativeDiiaFn,
-                         string_object));
-    return string_object;
+        MaNative::Create(M, MAG_NUMBER, MaText_MagNumberNativeDiiaFn, text_o));
+    return text_o;
   }
 
   MaCell MaText_Structure_MagCallNativeDiiaFn(MaMa* M,
@@ -337,7 +331,7 @@ namespace mavka::mama {
         return cell.AsObject()->GetProperty(MAG_TEXT).Call(M, {}, {});
       }
     }
-    RETURN_ERROR(new MaError(
+    return MaCell::Error(new MaError(
         MaCell::Object(MaText::Create(M, "Неможливо перетворити на текст.")),
         location));
   }
