@@ -19,7 +19,7 @@ namespace mavka::mama {
     return this->subjects.contains(name);
   }
 
-  MaCell MaScope::GetSubject(const std::string& name) {
+  MaValue MaScope::GetSubject(const std::string& name) {
     if (this->subjects.contains(name)) {
       return this->subjects.at(name);
     }
@@ -30,22 +30,22 @@ namespace mavka::mama {
       }
       parent = parent->parent;
     }
-    return MaCell::Empty();
+    return MaValue::Empty();
   }
 
-  MaCell MaScope::GetLocalSubject(const std::string& name) {
+  MaValue MaScope::GetLocalSubject(const std::string& name) {
     if (this->HasLocalSubject(name)) {
       return this->subjects.at(name);
     }
-    return MaCell::Empty();
+    return MaValue::Empty();
   }
 
-  void MaScope::SetSubject(const std::string& name, MaCell value) {
+  void MaScope::SetSubject(const std::string& name, MaValue value) {
     this->subjects.insert_or_assign(name, value);
   }
 
   void MaScope::SetSubject(const std::string& name, MaObject* object) {
-    this->subjects.insert_or_assign(name, MaCell::Object(object));
+    this->subjects.insert_or_assign(name, MaValue::Object(object));
   }
 
   void MaScope::DeleteSubject(const std::string& name) {

@@ -1,7 +1,7 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  void MaDict::Set(const MaCell& key, const MaCell& value) {
+  void MaDict::Set(const MaValue& key, const MaValue& value) {
     for (auto& item : this->data) {
       if (key.IsSame(item.first)) {
         item.second = value;
@@ -11,16 +11,16 @@ namespace mavka::mama {
     this->data.emplace_back(key, value);
   }
 
-  MaCell MaDict::Get(const MaCell& key) const {
+  MaValue MaDict::Get(const MaValue& key) const {
     for (const auto& item : this->data) {
       if (key.IsSame(item.first)) {
         return item.second;
       }
     }
-    return MaCell::Empty();
+    return MaValue::Empty();
   }
 
-  void MaDict::Remove(const MaCell& key) {
+  void MaDict::Remove(const MaValue& key) {
     long index = 0;
     for (const auto& item : this->data) {
       if (key.IsSame(item.first)) {
@@ -36,30 +36,30 @@ namespace mavka::mama {
   }
 
   // чародія_отримати
-  MaCell MaDict_MagGetElementNativeDiiaFn(MaMa* M,
-                                          MaObject* native_o,
-                                          MaArgs* args,
-                                          const MaLocation& location) {
+  MaValue MaDict_MagGetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* native_o,
+                                           MaArgs* args,
+                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     return native_o->AsNative()->GetMe()->AsDict()->Get(key);
   }
 
   // чародія_покласти
-  MaCell MaDict_MagSetElementNativeDiiaFn(MaMa* M,
-                                          MaObject* native_o,
-                                          MaArgs* args,
-                                          const MaLocation& location) {
+  MaValue MaDict_MagSetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* native_o,
+                                           MaArgs* args,
+                                           const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
     native_o->AsNative()->GetMe()->AsDict()->Set(key, value);
-    return MaCell::Empty();
+    return MaValue::Empty();
   }
 
-  MaCell MaDictGetHandler(MaMa* M, MaObject* me, const std::string& name) {
+  MaValue MaDictGetHandler(MaMa* M, MaObject* me, const std::string& name) {
     if (name == "розмір") {
-      return MaCell::Integer(me->AsDict()->GetSize());
+      return MaValue::Integer(me->AsDict()->GetSize());
     }
-    return me->GetPropertyDirectOrEmpty(name);
+    return me->GetPropertyDirect(M, name);
   }
 
   MaObject* MaDict::Create(MaMa* M) {
@@ -68,11 +68,11 @@ namespace mavka::mama {
         MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
     dict_o->get = MaDictGetHandler;
     dict_o->SetProperty(
-        MAG_GET_ELEMENT,
+        M, MAG_GET_ELEMENT,
         MaNative::Create(M, MAG_GET_ELEMENT, MaDict_MagGetElementNativeDiiaFn,
                          dict_o));
     dict_o->SetProperty(
-        MAG_SET_ELEMENT,
+        M, MAG_SET_ELEMENT,
         MaNative::Create(M, MAG_SET_ELEMENT, MaDict_MagSetElementNativeDiiaFn,
                          dict_o));
     return dict_o;

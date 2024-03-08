@@ -21,7 +21,7 @@ namespace mavka::mama {
     return M;
   }
 
-  MaCell MaMa::Run(MaCode* code) {
+  MaValue MaMa::Run(MaCode* code) {
     const auto M = this;
     READ_TOP_FRAME();
     auto size = code->instructions.size();
@@ -29,7 +29,7 @@ namespace mavka::mama {
     for (;;) {
     start:
       if (i >= size) {
-        return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
+        return frame->stack.empty() ? MaValue::Empty() : frame->stack.top();
       }
       auto I = code->instructions[i];
 
@@ -61,7 +61,7 @@ namespace mavka::mama {
           break;
         }
         case VArgs: {
-          PUSH_ARGS(new MaArgs(I.data.args_type));
+          PUSH(MaValue::Args(new MaArgs(I.data.args_type)));
           break;
         }
         case VPushArg: {
@@ -129,7 +129,7 @@ namespace mavka::mama {
             i = I.data.jumpIfTrue;
             goto start;
           }
-          if (!IS_NO(cell)) {
+          if (!cell.IsNo()) {
             i = I.data.jumpIfTrue;
             goto start;
           }
@@ -137,15 +137,15 @@ namespace mavka::mama {
         }
         case VJumpIfFalse: {
           POP_VALUE(cell);
-          if (IS_EMPTY(cell)) {
+          if (cell.IsEmpty()) {
             i = I.data.jumpIfFalse;
             goto start;
-          } else if (IS_NUMBER(cell)) {
+          } else if (cell.IsNumber()) {
             if (cell.v.number == 0.0) {
               i = I.data.jumpIfFalse;
               goto start;
             }
-          } else if (IS_NO(cell)) {
+          } else if (cell.IsNo()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
@@ -153,12 +153,12 @@ namespace mavka::mama {
         }
         case VEJumpIfTrue: {
           TOP_VALUE(cell);
-          if (IS_NUMBER(cell)) {
+          if (cell.IsNumber()) {
             if (cell.v.number != 0.0) {
               i = I.data.jumpIfTrue;
               goto start;
             }
-          } else if (!IS_NO(cell)) {
+          } else if (!cell.IsNo()) {
             i = I.data.jumpIfTrue;
             goto start;
           }
@@ -166,15 +166,15 @@ namespace mavka::mama {
         }
         case VEJumpIfFalse: {
           TOP_VALUE(cell);
-          if (IS_EMPTY(cell)) {
+          if (cell.IsEmpty()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
-          if (IS_NUMBER(cell) && cell.v.number == 0.0) {
+          if (cell.IsNumber() && cell.v.number == 0.0) {
             i = I.data.jumpIfFalse;
             goto start;
           }
-          if (IS_NO(cell)) {
+          if (cell.IsNo()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
@@ -182,9 +182,8 @@ namespace mavka::mama {
         }
         case VGet: {
           POP_VALUE(cell);
-          if (IS_OBJECT(cell)) {
-            OBJECT_GET(cell, value, I.data.get->name);
-            PUSH(value);
+          if (cell.IsObject()) {
+            PUSH(cell.AsObject()->GetProperty(M,I.data.get->name));
             break;
           }
           PUSH_EMPTY();
@@ -193,11 +192,11 @@ namespace mavka::mama {
         case VSet: {
           POP_VALUE(cell);
           POP_VALUE(value);
-          if (IS_OBJECT(cell)) {
-            if (IS_OBJECT_STRING(cell)) {
+          if (cell.IsObject()) {
+            if (cell.IsObjectText()) {
               break;
             }
-            OBJECT_SET(cell, I.data.set->name, value);
+            cell.AsObject()->SetProperty(M,I.data.set->name, value);
             break;
           }
           break;
@@ -205,8 +204,8 @@ namespace mavka::mama {
         case VESetR: {
           POP_VALUE(value);
           TOP_VALUE(cell);
-          if (IS_OBJECT(cell)) {
-            cell.v.object->SetProperty(I.data.set->name, value);
+          if (cell.IsObject()) {
+            cell.AsObject()->SetProperty(M,I.data.set->name, value);
           }
           break;
         }
@@ -232,7 +231,7 @@ namespace mavka::mama {
         }
         case VThrow: {
           POP_VALUE(cell);
-          RETURN_ERROR(new MaError(cell, I.location));
+          return MaValue::Error(new MaError(cell, I.location));
         }
         case VList: {
           PUSH_OBJECT(MaList::Create(M));
@@ -252,7 +251,7 @@ namespace mavka::mama {
           POP_VALUE(value);
           TOP_VALUE(dict_cell);
           dict_cell.AsDict()->Set(
-              MaCell::Object(MaText::Create(M, I.data.dictSet->key)), value);
+              MaValue::Object(MaText::Create(M, I.data.dictSet->key)), value);
           break;
         }
         case VStruct: {
@@ -304,59 +303,15 @@ namespace mavka::mama {
             return me_cell;
           }
           if (me_cell.IsObject()) {
-            me_cell.AsObject()->SetProperty(I.data.give->name, value);
+            me_cell.AsObject()->SetProperty(M,I.data.give->name, value);
           }
           break;
         }
         case VEq: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_EMPTY(left)) {
-            if (IS_EMPTY(right)) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-          } else if (IS_YES(left)) {
-            if (IS_YES(right)) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-          } else if (IS_NO(left)) {
-            if (IS_NO(right)) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-          } else if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              if (left.v.number == right.v.number) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              PUSH_NO();
-            }
-          } else if (IS_OBJECT(left)) {
-            if (IS_OBJECT_STRING(left)) {
-              if (IS_OBJECT(right) && IS_OBJECT_STRING(right)) {
-                if (OBJECT_STRING_DATA(left) == OBJECT_STRING_DATA(right)) {
-                  PUSH_YES();
-                } else {
-                  PUSH_NO();
-                }
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              if (left.v.object == right.v.object) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            }
+          if (left.IsSame(right)) {
+            PUSH_YES();
           } else {
             PUSH_NO();
           }
@@ -365,9 +320,9 @@ namespace mavka::mama {
         case VGt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              if (left.v.number > right.v.number) {
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              if (left.AsNumber() > right.AsNumber()) {
                 PUSH_YES();
               } else {
                 PUSH_NO();
@@ -379,14 +334,13 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_GREATER);
+          } else if (left.IsObject()) {
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_GREATER);
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER, left,
@@ -412,13 +366,13 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_GREATER_EQUAL);
+            const auto diia_cell =
+                left.AsObject()->GetProperty(M,MAG_GREATER_EQUAL);
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER_EQUAL, left,
@@ -444,13 +398,12 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_LESSER);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_LESSER);
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER, left,
@@ -476,13 +429,13 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_LESSER_EQUAL);
+            const auto diia_cell =
+                left.AsObject()->GetProperty(M,MAG_LESSER_EQUAL);
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER_EQUAL, left,
@@ -494,7 +447,7 @@ namespace mavka::mama {
           POP_VALUE(right);
           POP_VALUE(left);
           if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_CONTAINS);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_CONTAINS);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -511,8 +464,8 @@ namespace mavka::mama {
         case VIs: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_EMPTY(left)) {
-            if (IS_EMPTY(right)) {
+          if (left.IsEmpty()) {
+            if (right.IsEmpty()) {
               PUSH_YES();
             } else {
               PUSH_NO();
@@ -527,7 +480,7 @@ namespace mavka::mama {
             }
             break;
           }
-          if (IS_YES(left) || IS_NO(left)) {
+          if (left.IsYes() || left.IsNo()) {
             if (right.v.object == M->logical_structure_object) {
               PUSH_YES();
             } else {
@@ -548,7 +501,7 @@ namespace mavka::mama {
         }
         case VNot: {
           POP_VALUE(value);
-          if (IS_EMPTY(value)) {
+          if (value.IsEmpty()) {
             PUSH_YES();
           } else if (IS_NUMBER(value)) {
             if (value.v.number == 0.0) {
@@ -556,9 +509,9 @@ namespace mavka::mama {
             } else {
               PUSH_NO();
             }
-          } else if (IS_YES(value)) {
+          } else if (value.IsYes()) {
             PUSH_NO();
-          } else if (IS_NO(value)) {
+          } else if (value.IsNo()) {
             PUSH_YES();
           } else {
             PUSH_NO();
@@ -570,7 +523,7 @@ namespace mavka::mama {
           if (IS_NUMBER(value)) {
             PUSH_NUMBER(-value.v.number);
           } else if (IS_OBJECT(value)) {
-            OBJECT_GET(value, diia_cell, MAG_NEGATIVE);
+            const auto diia_cell = value.AsObject()->GetProperty(M,MAG_NEGATIVE);
             const auto result = diia_cell.Call(M, {}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -588,7 +541,7 @@ namespace mavka::mama {
           if (IS_NUMBER(value)) {
             PUSH_NUMBER(value.v.number * -1);
           } else if (IS_OBJECT(value)) {
-            OBJECT_GET(value, diia_cell, MAG_POSITIVE);
+            const auto diia_cell = value.AsObject()->GetProperty(M,MAG_POSITIVE);
             const auto result = diia_cell.Call(M, {}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -607,7 +560,7 @@ namespace mavka::mama {
             PUSH_NUMBER(
                 static_cast<double>(~static_cast<long>(value.v.number)));
           } else if (IS_OBJECT(value)) {
-            OBJECT_GET(value, diia_cell, MAG_BW_NOT);
+            const auto diia_cell = value.AsObject()->GetProperty(M,MAG_BW_NOT);
             const auto result = diia_cell.Call(M, {}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -634,7 +587,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_ADD);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_ADD);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -661,7 +614,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_SUB);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_SUB);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -688,7 +641,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_MUL);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_MUL);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -715,7 +668,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_DIV);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_DIV);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -742,7 +695,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_MOD);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_MOD);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -769,7 +722,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_DIVDIV);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_DIVDIV);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -796,7 +749,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_POW);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_POW);
             const auto result = diia_cell.Call(M, {right}, I.location);
             if (IS_ERROR(result)) {
               return result;
@@ -825,7 +778,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_BW_XOR);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_BW_XOR);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -854,7 +807,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_BW_OR);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_BW_OR);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -884,7 +837,7 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_BW_AND);
+            const auto diia_cell = left.AsObject()->GetProperty(M,MAG_BW_AND);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -914,7 +867,8 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_LEFT);
+            const auto diia_cell =
+                left.AsObject()->GetProperty(M,MAG_BW_SHIFT_LEFT);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -944,7 +898,8 @@ namespace mavka::mama {
                   I.location)
             }
           } else if (IS_OBJECT(left)) {
-            OBJECT_GET(left, diia_cell, MAG_BW_SHIFT_RIGHT);
+            const auto diia_cell =
+                left.AsObject()->GetProperty(M,MAG_BW_SHIFT_RIGHT);
             const auto result = diia_cell.Call(M, {right}, {});
             if (IS_ERROR(result)) {
               return result;
@@ -970,23 +925,24 @@ namespace mavka::mama {
         }
         case VModuleLoad: {
           TOP_VALUE(module_cell);
-          OBJECT_GET(module_cell, value, I.data.moduleLoad->name);
+          const auto value =
+              module_cell.AsObject()->GetProperty(M,I.data.moduleLoad->name);
           frame->scope->SetSubject(I.data.moduleLoad->as, value);
           break;
         }
         default: {
           std::cout << "unsupported instruction " << I.ToString() << std::endl;
-          return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
+          return frame->stack.empty() ? MaValue::Empty() : frame->stack.top();
         }
       }
 
       i++;
     }
 
-    return frame->stack.empty() ? MaCell::Empty() : frame->stack.top();
+    return frame->stack.empty() ? MaValue::Empty() : frame->stack.top();
   }
 
-  MaCell MaMa::Eval(const std::string& code, const MaLocation& location) {
+  MaValue MaMa::Eval(const std::string& code, const MaLocation& location) {
     const auto M = this;
 
     const auto parser_result = parser::parse(code, "");
@@ -1012,21 +968,21 @@ namespace mavka::mama {
     return result;
   }
 
-  MaCell MaMa::DoTake(const std::string& path,
-                      const std::string& name,
-                      const std::string& code,
-                      const MaLocation& location) {
+  MaValue MaMa::DoTake(const std::string& path,
+                       const std::string& name,
+                       const std::string& code,
+                       const MaLocation& location) {
     const auto M = this;
     READ_TOP_FRAME();
     const auto module_scope = new MaScope(frame->scope);
     return DoTakeWithScope(path, name, code, location, module_scope);
   }
 
-  MaCell MaMa::DoTakeWithScope(const std::string& path,
-                               const std::string& name,
-                               const std::string& code,
-                               const MaLocation& location,
-                               MaScope* module_scope) {
+  MaValue MaMa::DoTakeWithScope(const std::string& path,
+                                const std::string& name,
+                                const std::string& code,
+                                const MaLocation& location,
+                                MaScope* module_scope) {
     const auto M = this;
 
     const auto parser_result = parser::parse(code, path);
@@ -1069,6 +1025,6 @@ namespace mavka::mama {
       return result;
     }
     FRAME_POP();
-    return MaCell::Object(module_object);
+    return MaValue::Object(module_object);
   }
 } // namespace mavka::mama

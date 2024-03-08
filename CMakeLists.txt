@@ -57,7 +57,7 @@ set(MAMA_SRC
         src/utils/helpers.cpp
         src/utils/helpers.h
         src/MaArgs.cpp
-        src/MaCell.cpp
+        src/MaValue.cpp
         src/MaFrame.h
         src/MaInstruction.cpp
         src/MaInstruction.h

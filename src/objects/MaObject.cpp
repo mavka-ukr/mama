@@ -19,7 +19,7 @@ namespace mavka::mama {
     for (const auto& method : structure_object->d.structure->methods) {
       const auto bound_diia_object = method->d.diia->Bind(M, object);
       object->properties.insert_or_assign(method->d.diia->name,
-                                          MaCell::Object(bound_diia_object));
+                                          MaValue::Object(bound_diia_object));
     }
     return object;
   }
@@ -48,37 +48,33 @@ namespace mavka::mama {
     }
   };
 
-  bool MaObject::HasProperty(const std::string& name) {
+  bool MaObject::HasProperty(MaMa* M, const std::string& name) {
     return this->properties.contains(name);
   }
 
-  void MaObject::SetProperty(const std::string& name, const MaCell& value) {
+  void MaObject::SetProperty(MaMa* M,
+                             const std::string& name,
+                             const MaValue& value) {
     this->properties.insert_or_assign(name, value);
   }
 
-  void MaObject::SetProperty(const std::string& name, MaObject* value) {
-    this->properties.insert_or_assign(name, MaCell::Object(value));
+  void MaObject::SetProperty(MaMa* M,
+                             const std::string& name,
+                             MaObject* value) {
+    this->properties.insert_or_assign(name, MaValue::Object(value));
   }
 
-  MaCell MaObject::GetProperty(const std::string& name) {
-    return this->properties[name];
+  MaValue MaObject::GetProperty(MaMa* M, const std::string& name) {
+    if (this->get) {
+      return this->get(M, this, name);
+    }
+    return this->GetPropertyDirect(M, name);
   }
 
-  MaCell MaObject::GetPropertyOrEmpty(const std::string& name) {
+  MaValue MaObject::GetPropertyDirect(MaMa* M, const std::string& name) {
     if (this->properties.contains(name)) {
       return this->properties[name];
     }
-    return MaCell::Empty();
-  }
-
-  MaCell MaObject::GetPropertyDirect(const std::string& name) {
-    return this->properties[name];
-  }
-
-  MaCell MaObject::GetPropertyDirectOrEmpty(const std::string& name) {
-    if (this->properties.contains(name)) {
-      return this->properties[name];
-    }
-    return MaCell::Empty();
+    return MaValue::Empty();
   }
 } // namespace mavka::mama

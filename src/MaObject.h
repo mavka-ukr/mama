@@ -8,7 +8,7 @@ class MaDiia;
 class MaStructure;
 class MaNative;
 class MaModule;
-struct MaCell;
+struct MaValue;
 
 struct MaObject {
   size_t ref_count;
@@ -24,12 +24,13 @@ struct MaObject {
     MaModule* module;
   } d;
   MaObject* structure;
-  tsl::ordered_map<std::string, MaCell> properties;
+  tsl::ordered_map<std::string, MaValue> properties;
   std::function<
-      void(MaMa* M, MaObject* o, const std::string& name, MaCell value)>
+      void(MaMa* M, MaObject* o, const std::string& name, MaValue value)>
       set;
-  std::function<MaCell(MaMa* M, MaObject* o, const std::string& name)> get;
-  std::function<MaCell(MaMa* M, MaObject* o, MaArgs* args, MaLocation location)>
+  std::function<MaValue(MaMa* M, MaObject* o, const std::string& name)> get;
+  std::function<
+      MaValue(MaMa* M, MaObject* o, MaArgs* args, MaLocation location)>
       call;
 
   [[always_inline]] inline bool IsText() const {
@@ -77,17 +78,25 @@ struct MaObject {
   void Retain();
   void Release();
 
-  bool HasProperty(const std::string& name);
-  void SetProperty(const std::string& name, const MaCell& value);
-  void SetProperty(const std::string& name, MaObject* value);
-  MaCell GetProperty(const std::string& name);
-  MaCell GetPropertyOrEmpty(const std::string& name);
-  MaCell GetPropertyDirect(const std::string& name);
-  MaCell GetPropertyDirectOrEmpty(const std::string& name);
+  bool HasProperty(MaMa* M, const std::string& name);
+  void SetProperty(MaMa* M, const std::string& name, const MaValue& value);
+  void SetProperty(MaMa* M, const std::string& name, MaObject* value);
+  MaValue GetProperty(MaMa* M, const std::string& name);
+  MaValue GetPropertyDirect(MaMa* M, const std::string& name);
 };
 
-struct MaCell {
-  unsigned char type;
+enum MaValueType : uint8_t {
+  MaValueTypeEmpty = 0,
+  MaValueTypeNumber = 1,
+  MaValueTypeYes = 2,
+  MaValueTypeNo = 3,
+  MaValueTypeObject = 4,
+  MaValueTypeArgs = 5,
+  MaValueTypeError = 6,
+};
+
+struct MaValue {
+  MaValueType type;
   union {
     MaObject* object;
     double number;
@@ -96,38 +105,38 @@ struct MaCell {
   } v;
 
   std::string GetName() const;
-  MaCell Call(MaMa* M, MaArgs* args, const MaLocation& location) const;
-  MaCell Call(MaMa* M,
-              const std::vector<MaCell>& args,
-              const MaLocation& location) const;
-  MaCell Call(MaMa* M,
-              const std::unordered_map<std::string, MaCell>& args,
-              const MaLocation& location) const;
-  bool IsSame(const MaCell& other) const;
+  MaValue Call(MaMa* M, MaArgs* args, const MaLocation& location) const;
+  MaValue Call(MaMa* M,
+               const std::vector<MaValue>& args,
+               const MaLocation& location) const;
+  MaValue Call(MaMa* M,
+               const std::unordered_map<std::string, MaValue>& args,
+               const MaLocation& location) const;
+  bool IsSame(const MaValue& other) const;
 
   [[always_inline]] inline bool IsEmpty() const {
-    return this->type == MA_CELL_EMPTY;
+    return this->type == MaValueTypeEmpty;
   };
   [[always_inline]] inline bool IsNumber() const {
-    return this->type == MA_CELL_NUMBER;
+    return this->type == MaValueTypeNumber;
   };
   [[always_inline]] inline bool IsYes() const {
-    return this->type == MA_CELL_YES;
+    return this->type == MaValueTypeYes;
   };
   [[always_inline]] inline bool IsNo() const {
-    return this->type == MA_CELL_NO;
+    return this->type == MaValueTypeNo;
   };
   [[always_inline]] inline bool IsObject() const {
-    return this->type == MA_CELL_OBJECT;
+    return this->type == MaValueTypeObject;
   };
   [[always_inline]] inline bool IsObjectText() const {
     return this->v.object->IsText();
   };
   [[always_inline]] inline bool IsArgs() const {
-    return this->type == MA_CELL_ARGS;
+    return this->type == MaValueTypeArgs;
   };
   [[always_inline]] inline bool IsError() const {
-    return this->type == MA_CELL_ERROR;
+    return this->type == MaValueTypeError;
   };
   [[always_inline]] inline double AsNumber() const { return this->v.number; };
   [[always_inline]] inline long AsInteger() const {
@@ -148,25 +157,29 @@ struct MaCell {
     return this->v.object->AsDict();
   };
 
-  [[always_inline]] inline static MaCell Empty() {
-    return MaCell{MA_CELL_EMPTY};
+  [[always_inline]] inline static MaValue Empty() {
+    return MaValue{MaValueTypeEmpty};
   };
-  [[always_inline]] inline static MaCell Number(double value) {
-    return MaCell{MA_CELL_NUMBER, {.number = value}};
+  [[always_inline]] inline static MaValue Number(double value) {
+    return MaValue{MaValueTypeNumber, {.number = value}};
   };
-  [[always_inline]] inline static MaCell Integer(long value) {
-    return MaCell{MA_CELL_NUMBER, {.number = static_cast<double>(value)}};
+  [[always_inline]] inline static MaValue Integer(long value) {
+    return MaValue{MaValueTypeNumber, {.number = static_cast<double>(value)}};
   };
-  [[always_inline]] inline static MaCell Yes() { return MaCell{MA_CELL_YES}; };
-  [[always_inline]] inline static MaCell No() { return MaCell{MA_CELL_NO}; };
-  [[always_inline]] inline static MaCell Object(MaObject* value) {
-    return MaCell{MA_CELL_OBJECT, {.object = value}};
+  [[always_inline]] inline static MaValue Yes() {
+    return MaValue{MaValueTypeYes};
   };
-  [[always_inline]] inline static MaCell Args(MaArgs* value) {
-    return MaCell{MA_CELL_ARGS, {.args = value}};
+  [[always_inline]] inline static MaValue No() {
+    return MaValue{MaValueTypeNo};
   };
-  [[always_inline]] inline static MaCell Error(MaError* value) {
-    return MaCell{MA_CELL_ERROR, {.error = value}};
+  [[always_inline]] inline static MaValue Object(MaObject* value) {
+    return MaValue{MaValueTypeObject, {.object = value}};
+  };
+  [[always_inline]] inline static MaValue Args(MaArgs* value) {
+    return MaValue{MaValueTypeArgs, {.args = value}};
+  };
+  [[always_inline]] inline static MaValue Error(MaError* value) {
+    return MaValue{MaValueTypeError, {.error = value}};
   };
 };
 
@@ -183,35 +196,35 @@ class MaText final {
 
 class MaList final {
  public:
-  std::vector<MaCell> data;
+  std::vector<MaValue> data;
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M);
 
-  void Append(const MaCell& cell);
-  void SetAt(size_t index, const MaCell& cell);
-  MaCell GetAt(size_t index) const;
+  void Append(const MaValue& cell);
+  void SetAt(size_t index, const MaValue& cell);
+  MaValue GetAt(size_t index) const;
   size_t GetSize() const;
-  bool Contains(const MaCell& cell);
+  bool Contains(const MaValue& cell);
 };
 
 class MaDict final {
  public:
-  std::vector<std::pair<MaCell, MaCell>> data;
+  std::vector<std::pair<MaValue, MaValue>> data;
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M);
 
-  void Set(const MaCell& key, const MaCell& value);
-  MaCell Get(const MaCell& key) const;
-  void Remove(const MaCell& key);
+  void Set(const MaValue& key, const MaValue& value);
+  MaValue Get(const MaValue& key) const;
+  void Remove(const MaValue& key);
   size_t GetSize() const;
 };
 
 class MaDiiaParam final {
  public:
   std::string name;
-  MaCell default_value;
+  MaValue default_value;
 };
 
 class MaDiia final {
@@ -246,10 +259,10 @@ class MaStructure final {
   static MaObject* Create(MaMa* M, const std::string& name);
 };
 
-typedef MaCell NativeFn(MaMa* M,
-                        MaObject* o,
-                        MaArgs* args,
-                        MaLocation location);
+typedef MaValue NativeFn(MaMa* M,
+                         MaObject* o,
+                         MaArgs* args,
+                         MaLocation location);
 
 class MaNative final {
  public:

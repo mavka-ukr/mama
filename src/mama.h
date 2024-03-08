@@ -64,14 +64,6 @@
 #define MAG_BYTES "чародія_байти"
 #define MAG_BYTES "чародія_байти"
 
-#define MA_CELL_EMPTY 0
-#define MA_CELL_NUMBER 1
-#define MA_CELL_YES 2
-#define MA_CELL_NO 3
-#define MA_CELL_OBJECT 4
-#define MA_CELL_ARGS 5
-#define MA_CELL_ERROR 6
-
 #define MA_OBJECT 0
 #define MA_OBJECT_DIIA 1
 #define MA_OBJECT_NATIVE 2
@@ -81,34 +73,17 @@
 #define MA_OBJECT_STRUCTURE 6
 #define MA_OBJECT_MODULE 7
 
-#define MA_MAKE_ARGS(value) (MaCell{MA_CELL_ARGS, {.args = (value)}})
-#define MA_MAKE_ERROR(value) (MaCell{MA_CELL_ERROR, {.error = (value)}})
-
-#define IS_EMPTY(cell) ((cell).type == MA_CELL_EMPTY)
-#define IS_NUMBER(cell) ((cell).type == MA_CELL_NUMBER)
-#define IS_YES(cell) ((cell).type == MA_CELL_YES)
-#define IS_NO(cell) ((cell).type == MA_CELL_NO)
-#define IS_OBJECT(cell) ((cell).type == MA_CELL_OBJECT)
-#define IS_OBJECT_STRING(cell) (cell).v.object->type == MA_OBJECT_STRING
+#define IS_NUMBER(cell) ((cell).type == MaValueTypeNumber)
+#define IS_OBJECT(cell) ((cell).type == MaValueTypeObject)
 #define IS_OBJECT_STRUCTURE(cell) (cell).v.object->type == MA_OBJECT_STRUCTURE
-#define IS_ARGS(cell) ((cell).type == MA_CELL_ARGS)
-#define IS_ERROR(cell) ((cell).type == MA_CELL_ERROR)
+#define IS_ERROR(cell) ((cell).type == MaValueTypeError)
 
 #define PUSH(cell) frame->stack.push(cell)
-#define PUSH_EMPTY() PUSH(MaCell::Empty())
-#define PUSH_NUMBER(v) PUSH(MaCell::Number((v)))
-#define PUSH_YES() PUSH(MaCell::Yes())
-#define PUSH_NO() PUSH(MaCell::No())
-#define PUSH_OBJECT(v) PUSH(MaCell::Object((v)))
-#define PUSH_ARGS(v) PUSH(MA_MAKE_ARGS((v)))
-
-#define RETURN(cell) return cell;
-#define RETURN_EMPTY() return MaCell::Empty();
-#define RETURN_NUMBER(v) return MaCell::Number((v));
-#define RETURN_YES() return MaCell::Yes();
-#define RETURN_NO() return MaCell::No();
-#define RETURN_OBJECT(v) return MaCell::Object((v));
-#define RETURN_ERROR(v) return MA_MAKE_ERROR((v));
+#define PUSH_EMPTY() PUSH(MaValue::Empty())
+#define PUSH_NUMBER(v) PUSH(MaValue::Number((v)))
+#define PUSH_YES() PUSH(MaValue::Yes())
+#define PUSH_NO() PUSH(MaValue::No())
+#define PUSH_OBJECT(v) PUSH(MaValue::Object((v)))
 
 #define TOP() frame->stack.top()
 #define TOP_VALUE(name) const auto name = TOP();
@@ -128,25 +103,20 @@
   FRAME_POP();
 
 #define OBJECT_GET(cell, varname, propname)                       \
-  MaCell varname{};                                               \
+  MaValue varname{};                                              \
   if ((cell).v.object->get) {                                     \
     varname = (cell).v.object->get(M, (cell).v.object, propname); \
   } else {                                                        \
     if ((cell).v.object->properties.contains(propname)) {         \
       varname = (cell).v.object->properties[propname];            \
     } else {                                                      \
-      varname = MaCell::Empty();                                  \
+      varname = MaValue::Empty();                                 \
     }                                                             \
-  }
-#define OBJECT_SET(cell, propname, value)                      \
-  if ((cell).v.object->set) {                                  \
-    (cell).v.object->set(M, (cell).v.object, propname, value); \
-  } else {                                                     \
-    (cell).v.object->properties[propname] = value;             \
   }
 
 #define DO_RETURN_STRING_ERROR(v, location) \
-  RETURN_ERROR(new MaError(MaCell::Object(MaText::Create(M, (v))), (location)));
+  return MaValue::Error(                    \
+      new MaError(MaValue::Object(MaText::Create(M, (v))), (location)));
 #define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell, location) \
   DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                 \
                              "\" не визначено для типу \"" +               \
@@ -171,7 +141,7 @@ namespace mavka::mama {
   class MaStructure;
   class MaNative;
   class MaModule;
-  struct MaCell;
+  struct MaValue;
   struct MaObject;
   struct MaCode;
   struct MaError;
@@ -189,10 +159,10 @@ namespace mavka::mama {
 #include "utils/helpers.h"
 
   struct MaError {
-    MaCell value;
+    MaValue value;
     MaLocation location;
 
-    static MaError* Create(const MaCell& value, const MaLocation& location) {
+    static MaError* Create(const MaValue& value, const MaLocation& location) {
       const auto error = new MaError();
       error->value = value;
       error->location = location;
@@ -203,7 +173,7 @@ namespace mavka::mama {
                            const std::string& value,
                            const MaLocation& location) {
       const auto error = new MaError();
-      error->value = MaCell::Object(MaText::Create(M, value));
+      error->value = MaValue::Object(MaText::Create(M, value));
       error->location = location;
       return error;
     }
@@ -219,7 +189,7 @@ namespace mavka::mama {
   };
 
   struct MaMa {
-    std::vector<MaCell> constants;
+    std::vector<MaValue> constants;
     MaScope* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
@@ -236,27 +206,27 @@ namespace mavka::mama {
     MaObject* dict_structure_object;
     MaObject* module_structure_object;
 
-    std::function<MaCell(MaMa*,
-                         const std::string& repository,
-                         bool relative,
-                         const std::vector<std::string>& parts,
-                         const MaLocation& location)>
+    std::function<MaValue(MaMa*,
+                          const std::string& repository,
+                          bool relative,
+                          const std::vector<std::string>& parts,
+                          const MaLocation& location)>
         TakeFn;
 
     static MaMa* Create();
 
-    MaCell Run(MaCode* code);
-    MaCell Eval(const std::string& code, const MaLocation& location = {});
+    MaValue Run(MaCode* code);
+    MaValue Eval(const std::string& code, const MaLocation& location = {});
 
-    MaCell DoTake(const std::string& id,
-                  const std::string& name,
-                  const std::string& code,
-                  const MaLocation& location);
-    MaCell DoTakeWithScope(const std::string& id,
-                           const std::string& name,
-                           const std::string& code,
-                           const MaLocation& location,
-                           MaScope* module_scope);
+    MaValue DoTake(const std::string& id,
+                   const std::string& name,
+                   const std::string& code,
+                   const MaLocation& location);
+    MaValue DoTakeWithScope(const std::string& id,
+                            const std::string& name,
+                            const std::string& code,
+                            const MaLocation& location,
+                            MaScope* module_scope);
   };
 } // namespace mavka::mama
 

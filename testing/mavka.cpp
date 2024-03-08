@@ -6,10 +6,10 @@
 
 using namespace mavka::mama;
 
-std::string cell_to_string(MaCell cell, int depth = 0);
+std::string cell_to_string(MaMa* M, MaValue cell, int depth = 0);
 
-std::string cell_to_string(MaCell cell, int depth) {
-  if (IS_EMPTY(cell)) {
+std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
+  if (cell.IsEmpty()) {
     return "пусто";
   }
   if (IS_NUMBER(cell)) {
@@ -21,18 +21,18 @@ std::string cell_to_string(MaCell cell, int depth) {
     }
     return ma_number_to_string(cell.v.number);
   }
-  if (IS_YES(cell)) {
+  if (cell.IsYes()) {
     return "так";
   }
-  if (IS_NO(cell)) {
+  if (cell.IsNo()) {
     return "ні";
   }
   if (IS_OBJECT(cell)) {
     if (cell.v.object->type == MA_OBJECT) {
       std::vector<std::string> items;
       for (const auto& param : cell.v.object->structure->d.structure->params) {
-        const auto value = cell.v.object->GetProperty(param.name);
-        items.push_back(param.name + "=" + cell_to_string(value, depth + 1));
+        const auto value = cell.v.object->GetProperty(M, param.name);
+        items.push_back(param.name + "=" + cell_to_string(M, value, depth + 1));
       }
       return cell.v.object->structure->d.structure->name + "(" +
              mavka::internal::tools::implode(items, ", ") + ")";
@@ -60,15 +60,15 @@ std::string cell_to_string(MaCell cell, int depth) {
     if (cell.v.object->type == MA_OBJECT_LIST) {
       std::vector<std::string> items;
       for (const auto& item : cell.v.object->d.list->data) {
-        items.push_back(cell_to_string(item, depth + 1));
+        items.push_back(cell_to_string(M, item, depth + 1));
       }
       return "[" + mavka::internal::tools::implode(items, ", ") + "]";
     }
     if (cell.v.object->type == MA_OBJECT_DICT) {
       std::vector<std::string> items;
       for (const auto& item : cell.v.object->d.dict->data) {
-        items.push_back(cell_to_string(item.first, depth + 1) + "=" +
-                        cell_to_string(item.second, depth + 1));
+        items.push_back(cell_to_string(M, item.first, depth + 1) + "=" +
+                        cell_to_string(M, item.second, depth + 1));
       }
       return "(" + mavka::internal::tools::implode(items, ", ") + ")";
     }
@@ -87,7 +87,7 @@ std::string cell_to_string(MaCell cell, int depth) {
              mavka::internal::tools::implode(items, ", ") + "]>";
     }
   }
-  if (IS_ARGS(cell)) {
+  if (cell.IsArgs()) {
     return "<аргументи>";
   }
   if (IS_ERROR(cell)) {
@@ -101,14 +101,14 @@ void init_print(MaMa* M) {
                             const MaLocation& location) {
     if (args->type == MA_ARGS_TYPE_POSITIONED) {
       for (const auto& arg : args->positioned) {
-        std::cout << cell_to_string(arg) << std::endl;
+        std::cout << cell_to_string(M, arg) << std::endl;
       }
     } else {
       for (const auto& [key, value] : args->named) {
-        std::cout << key << ": " << cell_to_string(value) << std::endl;
+        std::cout << key << ": " << cell_to_string(M, value) << std::endl;
       }
     }
-    return MaCell::Empty();
+    return MaValue::Empty();
   };
   M->global_scope->SetSubject("друк",
                               MaNative::Create(M, "друк", native_fn, nullptr));
@@ -124,35 +124,35 @@ void init_read(MaMa* M) {
     std::string value;
     getline(std::cin, value);
     if (std::cin.eof()) {
-      return MaCell::Empty();
+      return MaValue::Empty();
     }
-    return MaCell::Object(MaText::Create(M, value));
+    return MaValue::Object(MaText::Create(M, value));
   };
   M->global_scope->SetSubject(
       "читати", MaNative::Create(M, "читати", native_fn, nullptr));
 }
 
-MaCell TakePath(MaMa* M,
-                const std::string& raw_path,
-                const MaLocation& location) {
+MaValue TakePath(MaMa* M,
+                 const std::string& raw_path,
+                 const MaLocation& location) {
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Шлях \"" + canonical_path.string() + "\" не існує.", location));
   }
   if (!std::filesystem::is_regular_file(canonical_path)) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Шлях \"" + path + "\" не вказує на файл.", location));
   }
 
   if (M->loaded_file_modules.contains(path)) {
-    return MaCell::Object(M->loaded_file_modules[path]);
+    return MaValue::Object(M->loaded_file_modules[path]);
   }
 
   auto file = std::ifstream(path);
   if (!file.is_open()) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Не вдалося прочитати файл \"" + path + "\".", location));
   }
 
@@ -165,17 +165,17 @@ MaCell TakePath(MaMa* M,
   return M->DoTake(path, name, source, location);
 }
 
-MaCell TakeFn(MaMa* M,
-              const std::string& repository,
-              bool relative,
-              const std::vector<std::string>& parts,
-              const MaLocation& location) {
+MaValue TakeFn(MaMa* M,
+               const std::string& repository,
+               bool relative,
+               const std::vector<std::string>& parts,
+               const MaLocation& location) {
   if (!repository.empty()) {
-    return MaCell::Error(
+    return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття з репозиторію.", location));
   }
   if (relative) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Не підтримується взяття відносного шляху.", location));
   }
   const auto cwd = std::filesystem::current_path();
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
 
   const auto take_result = TakePath(M, args[1], {});
   if (take_result.IsError()) {
-    std::cerr << cell_to_string(take_result.v.error->value) << std::endl;
+    std::cerr << cell_to_string(M, take_result.v.error->value) << std::endl;
     return 1;
   }
 

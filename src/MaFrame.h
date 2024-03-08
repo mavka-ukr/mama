@@ -5,15 +5,15 @@ enum MaArgsType : size_t { MA_ARGS_TYPE_NAMED, MA_ARGS_TYPE_POSITIONED };
 
 struct MaArgs {
   MaArgsType type;
-  std::unordered_map<std::string, MaCell> named;
-  std::vector<MaCell> positioned;
+  std::unordered_map<std::string, MaValue> named;
+  std::vector<MaValue> positioned;
 
-  void Set(const std::string& name, MaCell value);
-  void Push(MaCell value);
-  MaCell Get(size_t index,
-             const std::string& name,
-             const MaCell& default_value);
-  MaCell Get(size_t index, const std::string& name);
+  void Set(const std::string& name, const MaValue& value);
+  void Push(const MaValue& value);
+  MaValue Get(size_t index,
+              const std::string& name,
+              const MaValue& default_value);
+  MaValue Get(size_t index, const std::string& name);
 };
 
 struct MaFrame {
@@ -21,7 +21,7 @@ struct MaFrame {
   MaObject* object = nullptr;
   MaObject* module = nullptr;
   MaLocation location;
-  std::stack<MaCell> stack;
+  std::stack<MaValue> stack;
 };
 
 #endif // MA_FRAME_H

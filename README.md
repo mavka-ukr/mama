@@ -44,27 +44,27 @@ mavka.cpp:
 
 using namespace mavka::mama;
 
-MaCell TakePath(MaMa* M,
+MaValue TakePath(MaMa* M,
                 const std::string& raw_path,
                 const MaLocation& location) {
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
-    return MaCell::Error(
+    return MaValue::Error(
         MaError::Create(M, "Шлях \"" + path + "\" не існує.", location));
   }
   if (!std::filesystem::is_regular_file(canonical_path)) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Шлях \"" + path + "\" не вказує на файл.", location));
   }
 
   if (M->loaded_file_modules.contains(path)) {
-    return MaCell::Object(M->loaded_file_modules[path]);
+    return MaValue::Object(M->loaded_file_modules[path]);
   }
 
   auto file = std::ifstream(path);
   if (!file.is_open()) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Не вдалося прочитати файл \"" + path + "\".", location));
   }
 
@@ -77,17 +77,17 @@ MaCell TakePath(MaMa* M,
   return M->DoTake(path, name, source, location);
 }
 
-MaCell TakeFn(MaMa* M,
+MaValue TakeFn(MaMa* M,
               const std::string& repository,
               bool relative,
               const std::vector<std::string>& parts,
               const MaLocation& location) {
   if (!repository.empty()) {
-    return MaCell::Error(
+    return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття з репозиторію.", location));
   }
   if (relative) {
-    return MaCell::Error(MaError::Create(
+    return MaValue::Error(MaError::Create(
         M, "Не підтримується взяття відносного шляху.", location));
   }
   const auto cwd = std::filesystem::current_path();

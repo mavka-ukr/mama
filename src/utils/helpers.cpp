@@ -1,25 +1,27 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  std::string MaCell::GetName() const {
-    if (type == MA_CELL_OBJECT) {
+  std::string MaValue::GetName() const {
+    if (this->IsObject()) {
       if (v.object->structure) {
         return v.object->structure->d.structure->name;
       }
     }
     switch (type) {
-      case MA_CELL_EMPTY:
+      case MaValueTypeEmpty:
         return "пусто";
-      case MA_CELL_NUMBER:
+      case MaValueTypeNumber:
         return "число";
-      case MA_CELL_YES:
+      case MaValueTypeYes:
         return "логічне";
-      case MA_CELL_NO:
+      case MaValueTypeNo:
         return "логічне";
-      case MA_CELL_OBJECT:
+      case MaValueTypeObject:
         return "обʼєкт";
-      case MA_CELL_ARGS:
+      case MaValueTypeArgs:
         return "аргументи";
+      case MaValueTypeError:
+        return "помилка";
       default:
         break;
     }

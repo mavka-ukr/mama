@@ -1,29 +1,31 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaCell MaStructure_GetHandler(MaMa* M, MaObject* o, const std::string& name) {
+  MaValue MaStructure_GetHandler(MaMa* M,
+                                 MaObject* o,
+                                 const std::string& name) {
     if (name == "назва") {
-      return MaCell::Object(MaText::Create(M, o->d.structure->name));
+      return MaValue::Object(MaText::Create(M, o->d.structure->name));
     }
-    return o->GetPropertyOrEmpty(name);
+    return o->GetProperty(M,name);
   }
 
   // дізнатись
-  MaCell MaStructure_DiscoverNativeDiiaFn(MaMa* M,
-                                          MaObject* o,
-                                          MaArgs* args,
-                                          const MaLocation& location) {
+  MaValue MaStructure_DiscoverNativeDiiaFn(MaMa* M,
+                                           MaObject* o,
+                                           MaArgs* args,
+                                           const MaLocation& location) {
     const auto cell = args->Get(0, "значення");
     if (cell.IsEmpty()) {
-      return MaCell::Empty();
+      return MaValue::Empty();
     }
     if (cell.IsNumber()) {
-      return MaCell::Object(M->number_structure_object);
+      return MaValue::Object(M->number_structure_object);
     }
     if (cell.IsYes() || cell.IsNo()) {
-      return MaCell::Object(M->logical_structure_object);
+      return MaValue::Object(M->logical_structure_object);
     }
-    return MaCell::Object(cell.AsObject()->structure);
+    return MaValue::Object(cell.AsObject()->structure);
   }
 
   MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
@@ -40,9 +42,9 @@ namespace mavka::mama {
       for (int i = 0; i < o->d.structure->params.size(); ++i) {
         const auto& param = o->d.structure->params[i];
         const auto arg_value = args->Get(i, param.name, param.default_value);
-        object->SetProperty(param.name, arg_value);
+        object->SetProperty(M,param.name, arg_value);
       }
-      return MaCell::Object(object);
+      return MaValue::Object(object);
     };
     return structure_object;
   }
@@ -55,7 +57,7 @@ namespace mavka::mama {
   }
 
   void MaStructure::Init2(MaMa* M) {
-    M->structure_structure_object->SetProperty(
+    M->structure_structure_object->SetProperty(M,
         "дізнатись",
         MaNative::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
                          M->structure_structure_object));
