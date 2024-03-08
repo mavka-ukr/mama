@@ -25,8 +25,12 @@ namespace mavka::mama {
         return "VLoad " + this->data.load->name;
       case VGet:
         return "VGet";
+      case VEGet:
+        return "VEGet";
       case VSet:
         return "VSet";
+      case VESetR:
+        return "VESetR";
       case VXor:
         return "VXor";
       case VBor:
@@ -117,12 +121,11 @@ namespace mavka::mama {
         return "VIs";
       case VTake:
         return "VTake";
-      case VModuleLoad:
-        return "VModuleLoad";
       case VPushArg:
         return "VPushArg";
       default:
         return std::to_string(v);
+        break;
     }
   }
   MaInstruction MaInstruction::pop() {
@@ -185,6 +188,9 @@ namespace mavka::mama {
   MaInstruction MaInstruction::get(const std::string& name) {
     return MaInstruction{VGet, {.get = new MaGetInstructionArgs(name)}};
   }
+  MaInstruction MaInstruction::eGet(const std::string& name) {
+    return MaInstruction{VEGet, {.get = new MaGetInstructionArgs(name)}};
+  }
   MaInstruction MaInstruction::set(const std::string& name) {
     return MaInstruction{VSet, {.set = new MaSetInstructionArgs(name)}};
   }
@@ -225,11 +231,6 @@ namespace mavka::mama {
   }
   MaInstruction MaInstruction::give(const std::string& name) {
     return MaInstruction{VGive, {.give = new MaGiveInstructionArgs(name)}};
-  }
-  MaInstruction MaInstruction::moduleLoad(const std::string& name,
-                                          const std::string& as) {
-    return MaInstruction{
-        VModuleLoad, {.moduleLoad = new MaModuleLoadInstructionArgs(name, as)}};
   }
   MaInstruction MaInstruction::take(
       const std::string& repository,

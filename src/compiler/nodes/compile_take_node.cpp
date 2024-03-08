@@ -18,7 +18,8 @@ namespace mavka::mama {
       }
     } else {
       for (const auto& element : take_node->elements) {
-        code->push(MaInstruction::moduleLoad(element.first, element.second));
+        code->push(MaInstruction::eGet(element.first));
+        code->push(MaInstruction::store(element.second));
       }
     }
     return success();

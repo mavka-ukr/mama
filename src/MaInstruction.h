@@ -28,6 +28,7 @@ typedef enum {
   VEJumpIfFalse,
 
   VGet,
+  VEGet,
   VSet,
   VESetR,
 
@@ -46,7 +47,6 @@ typedef enum {
 
   VModule,
   VGive,
-  VModuleLoad,
   VTake,
 
   VEq,
@@ -151,11 +151,6 @@ struct MaTakeInstructionArgs {
   std::vector<std::string> path_parts;
 };
 
-struct MaModuleLoadInstructionArgs {
-  std::string name;
-  std::string as;
-};
-
 struct MaInstruction {
   MaV v;
   union {
@@ -180,7 +175,6 @@ struct MaInstruction {
     MaStructParamInstructionArgs* structParam;
     MaModuleInstructionArgs* module;
     MaGiveInstructionArgs* give;
-    MaModuleLoadInstructionArgs* moduleLoad;
     MaTakeInstructionArgs* take;
   } data;
   MaLocation location;
@@ -206,6 +200,7 @@ struct MaInstruction {
   static MaInstruction jumpIfTrue(size_t index);
   static MaInstruction jumpIfFalse(size_t index);
   static MaInstruction get(const std::string& name);
+  static MaInstruction eGet(const std::string& name);
   static MaInstruction set(const std::string& name);
   static MaInstruction try_(MaTryInstructionArgs* args);
   static MaInstruction throw_(MaLocation location);
@@ -218,8 +213,6 @@ struct MaInstruction {
   static MaInstruction structMethod();
   static MaInstruction module(MaCode* code, const std::string& name);
   static MaInstruction give(const std::string& name);
-  static MaInstruction moduleLoad(const std::string& name,
-                                  const std::string& as);
   static MaInstruction take(const std::string& repository,
                             bool relative,
                             const std::vector<std::string>& path_parts);
