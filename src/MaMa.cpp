@@ -14,7 +14,7 @@ namespace mavka::mama {
     MaList::Init(M);
     MaDict::Init(M);
     MaStructure::Init2(M);
-    const auto main_module_object = MaModule::Create(M, "мавка");
+    const auto main_module_object = MaModule::Create(M, "корінь");
     const auto main_frame =
         new MaFrame(M->global_scope, main_module_object, main_module_object);
     FRAME_PUSH(main_frame);
@@ -299,7 +299,13 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          frame->object->SetProperty(I.data.give->name, value);
+          const auto me_cell = frame->scope->GetSubject("я");
+          if (me_cell.IsError()) {
+            return me_cell;
+          }
+          if (me_cell.IsObject()) {
+            me_cell.AsObject()->SetProperty(I.data.give->name, value);
+          }
           break;
         }
         case VEq: {
@@ -1011,6 +1017,17 @@ namespace mavka::mama {
                       const std::string& code,
                       const MaLocation& location) {
     const auto M = this;
+    READ_TOP_FRAME();
+    const auto module_scope = new MaScope(frame->scope);
+    return DoTakeWithScope(path, name, code, location, module_scope);
+  }
+
+  MaCell MaMa::DoTakeWithScope(const std::string& path,
+                               const std::string& name,
+                               const std::string& code,
+                               const MaLocation& location,
+                               MaScope* module_scope) {
+    const auto M = this;
 
     const auto parser_result = parser::parse(code, path);
     if (!parser_result.errors.empty()) {
@@ -1032,6 +1049,8 @@ namespace mavka::mama {
     }
     this->loaded_file_modules.insert_or_assign(path, module_object);
 
+    module_scope->SetSubject("я", module_object);
+
     const auto body_compilation_result =
         compile_body(this, module_code, parser_result.module_node->body);
     if (body_compilation_result.error) {
@@ -1042,8 +1061,6 @@ namespace mavka::mama {
           location);
     }
 
-    READ_TOP_FRAME();
-    const auto module_scope = new MaScope(frame->scope);
     const auto module_frame =
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
@@ -1054,5 +1071,4 @@ namespace mavka::mama {
     FRAME_POP();
     return MaCell::Object(module_object);
   }
-
 } // namespace mavka::mama

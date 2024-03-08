@@ -252,6 +252,11 @@ namespace mavka::mama {
                   const std::string& name,
                   const std::string& code,
                   const MaLocation& location);
+    MaCell DoTakeWithScope(const std::string& id,
+                           const std::string& name,
+                           const std::string& code,
+                           const MaLocation& location,
+                           MaScope* module_scope);
   };
 } // namespace mavka::mama
 
