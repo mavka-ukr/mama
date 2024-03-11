@@ -3,11 +3,11 @@
 namespace mavka::mama {
   std::string MaValue::GetName() const {
     if (this->IsObject()) {
-      if (v.object->structure) {
-        return v.object->structure->d.structure->name;
+      if (this->v.object->structure) {
+        return this->v.object->structure->d.structure->name;
       }
     }
-    switch (type) {
+    switch (this->type) {
       case MaValueTypeEmpty:
         return "пусто";
       case MaValueTypeNumber:
@@ -25,7 +25,7 @@ namespace mavka::mama {
       default:
         break;
     }
-    return std::to_string(type);
+    return std::to_string(this->type);
   }
 
   void print_instruction_with_index(MaCode* code,

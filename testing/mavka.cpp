@@ -12,7 +12,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
   if (cell.IsEmpty()) {
     return "пусто";
   }
-  if (IS_NUMBER(cell)) {
+  if (cell.IsNumber()) {
     if (std::isinf(cell.AsNumber())) {
       return "нескінченність";
     }
@@ -27,7 +27,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
   if (cell.IsNo()) {
     return "ні";
   }
-  if (IS_OBJECT(cell)) {
+  if (cell.IsObject()) {
     if (cell.v.object->type == MA_OBJECT) {
       std::vector<std::string> items;
       for (const auto& param : cell.v.object->structure->d.structure->params) {
@@ -90,7 +90,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
   if (cell.IsArgs()) {
     return "<аргументи>";
   }
-  if (IS_ERROR(cell)) {
+  if (cell.IsError()) {
     return "<помилка>";
   }
   return "<невідомо>";

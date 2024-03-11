@@ -4,12 +4,13 @@ namespace mavka::mama {
   MaValue MaValue::Call(MaMa* M,
                         MaArgs* args,
                         const MaLocation& location) const {
-    auto cell = *this;
+    auto maValue = *this;
   repeat:
-    if (cell.IsObject()) {
-      const auto object = cell.v.object;
+    if (maValue.IsObject()) {
+      const auto object = maValue.v.object;
       if (object->HasProperty(M, MAG_CALL)) {
-        cell = object->GetProperty(M, MAG_CALL);
+        maValue = object->GetProperty(M, MAG_CALL);
+        maValue.Retain();
         goto repeat;
       }
       if (object->call) {
@@ -20,7 +21,10 @@ namespace mavka::mama {
         return result;
       }
     }
-    DO_RETURN_CANNOT_CALL_CELL_ERROR(cell, location);
+    return MaValue::Error(MaError::Create(
+        M,
+        "Неможливо викликати обʼєкт структури \"" + maValue.GetName() + "\".",
+        location));
   };
 
   MaValue MaValue::Call(MaMa* M,

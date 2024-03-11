@@ -125,7 +125,7 @@ namespace mavka::mama {
         }
         case VJumpIfTrue: {
           POP_VALUE(cell);
-          if (IS_NUMBER(cell) && cell.v.number != 0.0) {
+          if (cell.IsNumber() && cell.AsNumber() != 0.0) {
             i = I.data.jumpIfTrue;
             goto start;
           }
@@ -227,7 +227,7 @@ namespace mavka::mama {
               FRAME_POP();
             }
             const auto result2 = M->Run(I.data.try_->catch_code);
-            if (IS_ERROR(result2)) {
+            if (result2.IsError()) {
               return result2;
             }
           }
@@ -280,8 +280,8 @@ namespace mavka::mama {
         case VStructMethod: {
           POP_VALUE(diia_cell);
           TOP_VALUE(structure_cell);
-          if (IS_OBJECT(structure_cell)) {
-            if (IS_OBJECT_STRUCTURE(structure_cell)) {
+          if (structure_cell.IsObject()) {
+            if (structure_cell.IsObjectStructure()) {
               structure_cell.v.object->d.structure->methods.push_back(
                   diia_cell.v.object);
               break;
@@ -307,18 +307,19 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          const auto me_cell = frame->scope->GetSubject("я");
-          if (me_cell.IsError()) {
-            return me_cell;
+          const auto meValue = frame->scope->GetSubject("я");
+          if (meValue.IsError()) {
+            return meValue;
           }
-          if (me_cell.IsObject()) {
-            me_cell.AsObject()->SetProperty(M, I.data.give->name, value);
+          if (meValue.IsObject()) {
+            meValue.AsObject()->SetProperty(M, I.data.give->name, value);
           }
           break;
         }
         case VEq: {
           POP_VALUE(right);
           POP_VALUE(left);
+          left.Retain();
           if (left.IsSame(right)) {
             PUSH_YES();
           } else {
@@ -329,6 +330,7 @@ namespace mavka::mama {
         case VGt: {
           POP_VALUE(right);
           POP_VALUE(left);
+          left.Retain();
           if (left.IsNumber()) {
             if (right.IsNumber()) {
               if (left.AsNumber() > right.AsNumber()) {
@@ -345,6 +347,7 @@ namespace mavka::mama {
             }
           } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_GREATER);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
             if (result.IsError()) {
               return result;
@@ -360,9 +363,11 @@ namespace mavka::mama {
         case VGe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              if (left.v.number >= right.v.number) {
+          left.Retain();
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              if (left.AsNumber() >= right.AsNumber()) {
                 PUSH_YES();
               } else {
                 PUSH_NO();
@@ -374,9 +379,10 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell =
                 left.AsObject()->GetProperty(M, MAG_GREATER_EQUAL);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
             if (result.IsError()) {
               return result;
@@ -392,9 +398,10 @@ namespace mavka::mama {
         case VLt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              if (left.v.number < right.v.number) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              if (left.AsNumber() < right.AsNumber()) {
                 PUSH_YES();
               } else {
                 PUSH_NO();
@@ -406,8 +413,9 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_LESSER);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
             if (result.IsError()) {
               return result;
@@ -423,9 +431,10 @@ namespace mavka::mama {
         case VLe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              if (left.v.number <= right.v.number) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              if (left.AsNumber() <= right.AsNumber()) {
                 PUSH_YES();
               } else {
                 PUSH_NO();
@@ -437,9 +446,10 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell =
                 left.AsObject()->GetProperty(M, MAG_LESSER_EQUAL);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
             if (result.IsError()) {
               return result;
@@ -455,11 +465,13 @@ namespace mavka::mama {
         case VContains: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_OBJECT(left)) {
+          left.Retain();
+          if (left.IsObject()) {
             const auto diia_cell =
                 left.AsObject()->GetProperty(M, MAG_CONTAINS);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -474,6 +486,7 @@ namespace mavka::mama {
         case VIs: {
           POP_VALUE(right);
           POP_VALUE(left);
+          left.Retain();
           if (left.IsEmpty()) {
             if (right.IsEmpty()) {
               PUSH_YES();
@@ -482,8 +495,8 @@ namespace mavka::mama {
             }
             break;
           }
-          if (IS_NUMBER(left)) {
-            if (right.v.object == M->number_structure_object) {
+          if (left.IsNumber()) {
+            if (right.AsObject() == M->number_structure_object) {
               PUSH_YES();
             } else {
               PUSH_NO();
@@ -498,7 +511,7 @@ namespace mavka::mama {
             }
             break;
           }
-          if (IS_OBJECT(right) && IS_OBJECT(left)) {
+          if (right.IsObject() && left.IsObject()) {
             if (right.v.object == left.v.object->structure) {
               PUSH_YES();
             } else {
@@ -513,7 +526,7 @@ namespace mavka::mama {
           POP_VALUE(value);
           if (value.IsEmpty()) {
             PUSH_YES();
-          } else if (IS_NUMBER(value)) {
+          } else if (value.IsNumber()) {
             if (value.v.number == 0.0) {
               PUSH_YES();
             } else {
@@ -530,13 +543,14 @@ namespace mavka::mama {
         }
         case VNegative: {
           POP_VALUE(value);
-          if (IS_NUMBER(value)) {
-            PUSH_NUMBER(-value.v.number);
-          } else if (IS_OBJECT(value)) {
+          if (value.IsNumber()) {
+            PUSH_NUMBER(-value.AsNumber());
+          } else if (value.IsObject()) {
             const auto diia_cell =
                 value.AsObject()->GetProperty(M, MAG_NEGATIVE);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -549,13 +563,14 @@ namespace mavka::mama {
         }
         case VPositive: {
           POP_VALUE(value);
-          if (IS_NUMBER(value)) {
+          if (value.IsNumber()) {
             PUSH_NUMBER(value.v.number * -1);
-          } else if (IS_OBJECT(value)) {
+          } else if (value.IsObject()) {
             const auto diia_cell =
                 value.AsObject()->GetProperty(M, MAG_POSITIVE);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -568,13 +583,14 @@ namespace mavka::mama {
         }
         case VBnot: {
           POP_VALUE(value);
-          if (IS_NUMBER(value)) {
+          if (value.IsNumber()) {
             PUSH_NUMBER(
                 static_cast<double>(~static_cast<long>(value.v.number)));
-          } else if (IS_OBJECT(value)) {
+          } else if (value.IsObject()) {
             const auto diia_cell = value.AsObject()->GetProperty(M, MAG_BW_NOT);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -588,9 +604,10 @@ namespace mavka::mama {
         case VAdd: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(left.v.number + right.v.number);
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(left.AsNumber() + right.AsNumber());
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_ADD) +
@@ -598,10 +615,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_ADD);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -615,9 +633,10 @@ namespace mavka::mama {
         case VSub: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(left.v.number - right.v.number);
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(left.AsNumber() - right.AsNumber());
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_SUB) +
@@ -625,10 +644,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_SUB);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -642,9 +662,10 @@ namespace mavka::mama {
         case VMul: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(left.v.number * right.v.number);
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(left.AsNumber() * right.AsNumber());
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_MUL) +
@@ -652,10 +673,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_MUL);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -669,9 +691,10 @@ namespace mavka::mama {
         case VDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(left.v.number / right.v.number);
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(left.AsNumber() / right.AsNumber());
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_DIV) +
@@ -679,10 +702,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_DIV);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -696,9 +720,10 @@ namespace mavka::mama {
         case VMod: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(fmod(left.v.number, right.v.number));
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(fmod(left.AsNumber(), right.AsNumber()));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_MOD) +
@@ -706,10 +731,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_MOD);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -723,9 +749,10 @@ namespace mavka::mama {
         case VDivDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(floor(left.v.number / right.v.number));
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(floor(left.AsNumber() / right.AsNumber()));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_DIVDIV) +
@@ -733,10 +760,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_DIVDIV);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -750,9 +778,10 @@ namespace mavka::mama {
         case VPow: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
-              PUSH_NUMBER(pow(left.v.number, right.v.number));
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
+              PUSH_NUMBER(pow(left.AsNumber(), right.AsNumber()));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_POW) +
@@ -760,10 +789,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_POW);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, I.location);
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -777,11 +807,12 @@ namespace mavka::mama {
         case VXor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
               PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.v.number) ^
-                                      static_cast<long>(right.v.number)));
+                  static_cast<double>(static_cast<long>(left.AsNumber()) ^
+                                      static_cast<long>(right.AsNumber())));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_XOR) +
@@ -789,10 +820,11 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_BW_XOR);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
@@ -806,11 +838,12 @@ namespace mavka::mama {
         case VBor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
               PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.v.number) |
-                                      static_cast<long>(right.v.number)));
+                  static_cast<double>(static_cast<long>(left.AsNumber()) |
+                                      static_cast<long>(right.AsNumber())));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_OR) +
@@ -818,14 +851,14 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_BW_OR);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_OR, left,
@@ -836,11 +869,12 @@ namespace mavka::mama {
         case VBand: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
               PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.v.number) &
-                                      static_cast<long>(right.v.number)));
+                  static_cast<double>(static_cast<long>(left.AsNumber()) &
+                                      static_cast<long>(right.AsNumber())));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_AND) +
@@ -848,14 +882,14 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell = left.AsObject()->GetProperty(M, MAG_BW_AND);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_AND, left,
@@ -866,11 +900,12 @@ namespace mavka::mama {
         case VShl: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
               PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.v.number)
-                                      << static_cast<long>(right.v.number)));
+                  static_cast<double>(static_cast<long>(left.AsNumber())
+                                      << static_cast<long>(right.AsNumber())));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_SHIFT_LEFT) +
@@ -878,15 +913,15 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell =
                 left.AsObject()->GetProperty(M, MAG_BW_SHIFT_LEFT);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_LEFT, left,
@@ -897,11 +932,12 @@ namespace mavka::mama {
         case VShr: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (IS_NUMBER(left)) {
-            if (IS_NUMBER(right)) {
+          left.Retain();
+          if (left.IsNumber()) {
+            if (right.IsNumber()) {
               PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.v.number) >>
-                                      static_cast<long>(right.v.number)));
+                  static_cast<double>(static_cast<long>(left.AsNumber()) >>
+                                      static_cast<long>(right.AsNumber())));
             } else {
               DO_RETURN_STRING_ERROR(
                   "Дія \"" + std::string(MAG_BW_SHIFT_RIGHT) +
@@ -909,15 +945,15 @@ namespace mavka::mama {
                       "очікує параметром значення типу \"число\".",
                   I.location)
             }
-          } else if (IS_OBJECT(left)) {
+          } else if (left.IsObject()) {
             const auto diia_cell =
                 left.AsObject()->GetProperty(M, MAG_BW_SHIFT_RIGHT);
+            diia_cell.Retain();
             const auto result = diia_cell.Call(M, {right}, {});
-            if (IS_ERROR(result)) {
+            if (result.IsError()) {
               return result;
             }
             PUSH(result);
-            ;
             break;
           } else {
             DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_RIGHT, left,
@@ -929,7 +965,7 @@ namespace mavka::mama {
           const auto result =
               M->TakeFn(M, I.data.take->repository, I.data.take->relative,
                         I.data.take->path_parts, I.location);
-          if (IS_ERROR(result)) {
+          if (result.IsError()) {
             return result;
           }
           PUSH(result);
@@ -1026,7 +1062,7 @@ namespace mavka::mama {
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
     const auto result = M->Run(module_code);
-    if (IS_ERROR(result)) {
+    if (result.IsError()) {
       return result;
     }
     FRAME_POP();

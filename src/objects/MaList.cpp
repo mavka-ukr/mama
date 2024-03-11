@@ -2,10 +2,12 @@
 
 namespace mavka::mama {
   void MaList::Append(const MaValue& cell) {
+    cell.Retain();
     this->data.push_back(cell);
   }
 
   void MaList::SetAt(size_t index, const MaValue& cell) {
+    cell.Retain();
     if (index >= 0) {
       if (index >= this->data.size()) {
         // todo: looks bad
@@ -69,9 +71,9 @@ namespace mavka::mama {
           [](MaMa* M, MaObject* native_o, MaArgs* args,
              const MaLocation& location) {
             const auto iterator_o = native_o->AsNative()->GetMe();
-            const auto i = iterator_o->GetProperty(M, "_індекс").AsInteger();
+            const auto i = iterator_o->GetPropertyStrong(M, "_індекс").AsInteger();
             const auto list =
-                iterator_o->GetProperty(M, "_список").AsObject()->AsList();
+                iterator_o->GetPropertyStrong(M, "_список").AsObject()->AsList();
             if (i < list->GetSize()) {
               iterator_o->SetProperty(M, "завершено", MaValue::No());
               iterator_o->SetProperty(M, "значення", list->GetAt(i));
@@ -141,7 +143,7 @@ namespace mavka::mama {
     if (name == "довжина") {
       return MaValue::Integer(o->AsList()->GetSize());
     }
-    return o->GetPropertyDirect(M, name);
+    return o->GetPropertyStrongDirect(M, name);
   }
 
   MaObject* MaList::Create(MaMa* M) {
@@ -170,9 +172,29 @@ namespace mavka::mama {
     return list_o;
   }
 
+  MaValue MaList_Structure_MagCallNativeDiiaFn(MaMa* M,
+                                               MaObject* native_o,
+                                               MaArgs* args,
+                                               const MaLocation& location) {
+    const auto cell = args->Get(0, "значення");
+    if (cell.IsObject()) {
+      if (cell.AsObject()->IsList()) {
+        return cell;
+      }
+      return cell.AsObject()->GetPropertyStrong(M, MAG_LIST).Call(M, {}, {});
+    }
+    return MaValue::Error(new MaError(
+        MaValue::Object(MaText::Create(M, "Неможливо перетворити на список.")),
+        location));
+  }
+
   void MaList::Init(MaMa* M) {
     const auto list_structure_object = MaStructure::Create(M, "список");
     M->global_scope->SetSubject("список", list_structure_object);
     M->list_structure_object = list_structure_object;
+    list_structure_object->SetProperty(
+        M, MAG_CALL,
+        MaNative::Create(M, MAG_CALL, MaList_Structure_MagCallNativeDiiaFn,
+                         list_structure_object));
   }
 } // namespace mavka::mama

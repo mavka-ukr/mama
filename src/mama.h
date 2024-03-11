@@ -62,7 +62,7 @@
 #define MAG_TEXT "чародія_текст"
 #define MAG_LOGICAL "чародія_логічне"
 #define MAG_BYTES "чародія_байти"
-#define MAG_BYTES "чародія_байти"
+#define MAG_LIST "чародія_список"
 
 #define MA_OBJECT 0
 #define MA_OBJECT_DIIA 1
@@ -72,11 +72,6 @@
 #define MA_OBJECT_DICT 5
 #define MA_OBJECT_STRUCTURE 6
 #define MA_OBJECT_MODULE 7
-
-#define IS_NUMBER(cell) ((cell).type == MaValueTypeNumber)
-#define IS_OBJECT(cell) ((cell).type == MaValueTypeObject)
-#define IS_OBJECT_STRUCTURE(cell) (cell).v.object->type == MA_OBJECT_STRUCTURE
-#define IS_ERROR(cell) ((cell).type == MaValueTypeError)
 
 #define PUSH(cell) frame->stack.push(cell)
 #define PUSH_EMPTY() PUSH(MaValue::Empty())
@@ -92,8 +87,6 @@
   const auto name = TOP(); \
   POP();
 
-#define OBJECT_STRING_DATA(cell) (cell).v.object->d.text->data
-
 #define READ_TOP_FRAME() const auto frame = M->frame_stack.top();
 #define FRAME_POP() M->frame_stack.pop();
 #define FRAME_TOP() M->frame_stack.top();
@@ -102,18 +95,6 @@
   const auto name = FRAME_TOP(); \
   FRAME_POP();
 
-#define OBJECT_GET(cell, varname, propname)                       \
-  MaValue varname{};                                              \
-  if ((cell).v.object->get) {                                     \
-    varname = (cell).v.object->get(M, (cell).v.object, propname); \
-  } else {                                                        \
-    if ((cell).v.object->properties.contains(propname)) {         \
-      varname = (cell).v.object->properties[propname];            \
-    } else {                                                      \
-      varname = MaValue::Empty();                                 \
-    }                                                             \
-  }
-
 #define DO_RETURN_STRING_ERROR(v, location) \
   return MaValue::Error(                    \
       new MaError(MaValue::Object(MaText::Create(M, (v))), (location)));
@@ -121,9 +102,6 @@
   DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                 \
                              "\" не визначено для типу \"" +               \
                              (cell).GetName() + "\".",                     \
-                         (location))
-#define DO_RETURN_CANNOT_CALL_CELL_ERROR(cell, location)                    \
-  DO_RETURN_STRING_ERROR("Неможливо викликати \"" + cell.GetName() + "\".", \
                          (location))
 
 namespace mavka::mama {

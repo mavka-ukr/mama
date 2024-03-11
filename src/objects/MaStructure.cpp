@@ -7,7 +7,7 @@ namespace mavka::mama {
     if (name == "назва") {
       return MaValue::Object(MaText::Create(M, o->d.structure->name));
     }
-    return o->GetPropertyDirect(M, name);
+    return o->GetPropertyStrongDirect(M, name);
   }
 
   // дізнатись

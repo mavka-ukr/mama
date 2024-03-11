@@ -11,7 +11,7 @@ class MaModule;
 struct MaValue;
 
 struct MaObject {
-  size_t ref_count;
+  int ref_count;
   unsigned char type;
   union {
     void* ptr;
@@ -83,6 +83,8 @@ struct MaObject {
   void SetProperty(MaMa* M, const std::string& name, MaObject* value);
   MaValue GetProperty(MaMa* M, const std::string& name);
   MaValue GetPropertyDirect(MaMa* M, const std::string& name);
+  MaValue GetPropertyStrong(MaMa* M, const std::string& name);
+  MaValue GetPropertyStrongDirect(MaMa* M, const std::string& name);
 };
 
 enum MaValueType : uint8_t {
@@ -114,6 +116,17 @@ struct MaValue {
                const MaLocation& location) const;
   bool IsSame(const MaValue& other) const;
 
+  [[always_inline]] inline void Release() const {
+    if (this->IsObject()) {
+      this->AsObject()->Release();
+    }
+  };
+  [[always_inline]] inline void Retain() const {
+    if (this->IsObject()) {
+      this->AsObject()->Retain();
+    }
+  };
+
   [[always_inline]] inline bool IsEmpty() const {
     return this->type == MaValueTypeEmpty;
   };
@@ -131,6 +144,9 @@ struct MaValue {
   };
   [[always_inline]] inline bool IsObjectText() const {
     return this->v.object->IsText();
+  };
+  [[always_inline]] inline bool IsObjectStructure() const {
+    return this->v.object->IsStructure();
   };
   [[always_inline]] inline bool IsArgs() const {
     return this->type == MaValueTypeArgs;

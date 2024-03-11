@@ -21,7 +21,7 @@ namespace mavka::mama {
     if (arg_value_v.IsObject()) {
       if (arg_value_v.AsObject()->HasProperty(M, MAG_NUMBER)) {
         return arg_value_v.AsObject()
-            ->GetProperty(M, MAG_NUMBER)
+            ->GetPropertyStrong(M, MAG_NUMBER)
             .Call(M, {}, location);
       }
     }

@@ -2,7 +2,7 @@
 
 namespace mavka::mama {
   void MaArgs::Set(const std::string& name, const MaValue& value) {
-    this->named.insert({name, value});
+    this->named.insert_or_assign(name, value);
   }
 
   void MaArgs::Push(const MaValue& value) {

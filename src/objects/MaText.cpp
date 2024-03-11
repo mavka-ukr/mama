@@ -266,7 +266,7 @@ namespace mavka::mama {
     if (name == "довжина") {
       return MaValue::Number(o->AsText()->GetLength());
     }
-    return o->GetPropertyDirect(M, name);
+    return o->GetPropertyStrongDirect(M, name);
   }
 
   MaObject* MaText::Create(MaMa* M, const std::string& value) {
@@ -331,7 +331,7 @@ namespace mavka::mama {
       if (cell.IsObjectText()) {
         return cell;
       }
-      return cell.AsObject()->GetProperty(M, MAG_TEXT).Call(M, {}, {});
+      return cell.AsObject()->GetPropertyStrong(M, MAG_TEXT).Call(M, {}, {});
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на текст.")),

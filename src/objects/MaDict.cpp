@@ -2,8 +2,11 @@
 
 namespace mavka::mama {
   void MaDict::Set(const MaValue& key, const MaValue& value) {
+    key.Retain();
+    value.Retain();
     for (auto& item : this->data) {
       if (key.IsSame(item.first)) {
+//        item.second.Release();
         item.second = value;
         return;
       }
@@ -24,6 +27,8 @@ namespace mavka::mama {
     long index = 0;
     for (const auto& item : this->data) {
       if (key.IsSame(item.first)) {
+//        key.Release();
+//        item.second.Release();
         this->data.erase(this->data.begin() + index);
         return;
       }
@@ -59,7 +64,7 @@ namespace mavka::mama {
     if (name == "розмір") {
       return MaValue::Integer(o->AsDict()->GetSize());
     }
-    return o->GetPropertyDirect(M, name);
+    return o->GetPropertyStrongDirect(M, name);
   }
 
   MaObject* MaDict::Create(MaMa* M) {
