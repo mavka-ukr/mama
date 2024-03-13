@@ -24,7 +24,8 @@ namespace mavka::mama {
         const auto arg_value = args->Get(i, param.name, param.default_value);
         frame->scope->SetSubject(param.name, arg_value);
       }
-      const auto result = M->Run(diia_o->d.diia->code);
+      std::stack<MaValue> stack;
+      const auto result = M->Run(diia_o->d.diia->code, stack);
       // todo: gc
       return result;
     };

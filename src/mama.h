@@ -194,7 +194,7 @@ namespace mavka::mama {
 
     static MaMa* Create();
 
-    MaValue Run(MaCode* code);
+    MaValue Run(MaCode* code, std::stack<MaValue>& stack);
     MaValue Eval(const std::string& code, const MaLocation& location = {});
 
     MaValue DoTake(const std::string& id,

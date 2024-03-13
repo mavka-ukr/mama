@@ -17,9 +17,8 @@ namespace mavka::mama {
     return M;
   }
 
-  MaValue MaMa::Run(MaCode* code) {
+  MaValue MaMa::Run(MaCode* code, std::stack<MaValue>& stack) {
     const auto M = this;
-    std::stack<MaValue> stack;
     READ_TOP_FRAME();
     auto size = code->instructions.size();
     size_t i = 0;
@@ -113,8 +112,9 @@ namespace mavka::mama {
             PUSH(scope->GetSubject(I.data.load->name));
             break;
           }
-          DO_RETURN_STRING_ERROR(
-              "Субʼєкт \"" + I.data.load->name + "\" не визначено.", I.location)
+          return MaValue::Error(MaError::Create(
+              M, "Субʼєкт \"" + I.data.load->name + "\" не визначено.",
+              I.location));
         }
         case VJump: {
           i = I.data.jump;
@@ -217,13 +217,13 @@ namespace mavka::mama {
         }
         case VTry: {
           const auto frames_size = this->frame_stack.size();
-          const auto result = this->Run(I.data.try_->try_code);
+          const auto result = this->Run(I.data.try_->try_code, stack);
           if (result.IsError()) {
             PUSH(result.AsError()->value);
             while (this->frame_stack.size() > frames_size) {
               FRAME_POP();
             }
-            const auto result2 = this->Run(I.data.try_->catch_code);
+            const auto result2 = this->Run(I.data.try_->catch_code, stack);
             if (result2.IsError()) {
               return result2;
             }
@@ -297,7 +297,7 @@ namespace mavka::mama {
               new MaFrame(module_scope, module_object, frame->module);
           frame->scope->SetSubject(I.data.module->name, module_object);
           FRAME_PUSH(module_frame);
-          const auto result = this->Run(I.data.module->code);
+          const auto result = this->Run(I.data.module->code, stack);
           FRAME_POP();
           if (result.IsError()) {
             return result;
@@ -1012,8 +1012,8 @@ namespace mavka::mama {
     if (body_compilation_result.error) {
       DO_RETURN_STRING_ERROR(body_compilation_result.error->message, location);
     }
-
-    const auto result = this->Run(eval_code);
+    std::stack<MaValue> stack;
+    const auto result = this->Run(eval_code, stack);
     if (result.IsError()) {
       return result;
     }
@@ -1024,7 +1024,6 @@ namespace mavka::mama {
                        const std::string& name,
                        const std::string& code,
                        const MaLocation& location) {
-    const auto M = this;
     const auto parent_scope = this->frame_stack.empty()
                                   ? this->global_scope
                                   : this->frame_stack.top()->scope;
@@ -1074,7 +1073,8 @@ namespace mavka::mama {
     const auto module_frame =
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
-    const auto result = this->Run(module_code);
+    std::stack<MaValue> stack;
+    const auto result = this->Run(module_code, stack);
     if (result.IsError()) {
       return result;
     }
