@@ -21,7 +21,6 @@ struct MaFrame {
   MaObject* object = nullptr;
   MaObject* module = nullptr;
   MaLocation location;
-  std::stack<MaValue> stack;
 };
 
 #endif // MA_FRAME_H

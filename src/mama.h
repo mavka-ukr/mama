@@ -21,6 +21,7 @@
 #include "utils/tools.h"
 
 #define MAMA_DEBUG 0
+#define MAMA_GC_DEBUG 0
 
 #if MAMA_DEBUG == 0
 #define DEBUG_LOG(value)
@@ -73,16 +74,16 @@
 #define MA_OBJECT_STRUCTURE 6
 #define MA_OBJECT_MODULE 7
 
-#define PUSH(cell) frame->stack.push(cell)
+#define PUSH(cell) stack.push(cell)
 #define PUSH_EMPTY() PUSH(MaValue::Empty())
 #define PUSH_NUMBER(v) PUSH(MaValue::Number((v)))
 #define PUSH_YES() PUSH(MaValue::Yes())
 #define PUSH_NO() PUSH(MaValue::No())
 #define PUSH_OBJECT(v) PUSH(MaValue::Object((v)))
 
-#define TOP() frame->stack.top()
+#define TOP() stack.top()
 #define TOP_VALUE(name) const auto name = TOP();
-#define POP() frame->stack.pop();
+#define POP() stack.pop();
 #define POP_VALUE(name)    \
   const auto name = TOP(); \
   POP();

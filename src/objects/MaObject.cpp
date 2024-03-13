@@ -12,6 +12,9 @@ namespace mavka::mama {
                                unsigned char type,
                                MaObject* structure_object,
                                void* d) {
+#if MAMA_GC_DEBUG
+    std::cout << "MaObject::Instance " << (void*)d << std::endl;
+#endif
     const auto object = new MaObject();
     object->type = type;
     object->d.ptr = d;
@@ -30,15 +33,24 @@ namespace mavka::mama {
   }
 
   void MaObject::Retain() {
+#if MAMA_GC_DEBUG
+    std::cout << "MaObject::Retain " << (void*)this->d.ptr << std::endl;
+#endif
     ++this->ref_count;
   };
 
   void MaObject::Release() {
+#if MAMA_GC_DEBUG
+    std::cout << "MaObject::Release " << (void*)this->d.ptr << std::endl;
+#endif
     if (this->ref_count == 0) {
       return;
     }
     --this->ref_count;
     if (this->ref_count == 0) {
+#if MAMA_GC_DEBUG
+      std::cout << "delete MaObject " << (void*)this->d.ptr << std::endl;
+#endif
       // todo: handle full delete
       for (auto& [_, value] : this->properties) {
         value.Release();
