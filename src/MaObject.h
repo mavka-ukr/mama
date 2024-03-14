@@ -8,6 +8,7 @@ class MaDiia;
 class MaStructure;
 class MaNative;
 class MaModule;
+class MaBytes;
 struct MaValue;
 
 struct MaObject {
@@ -22,6 +23,7 @@ struct MaObject {
     MaNative* native;
     MaStructure* structure;
     MaModule* module;
+    MaBytes* bytes;
   } d;
   MaObject* structure;
   tsl::ordered_map<std::string, MaValue> properties;
@@ -54,6 +56,9 @@ struct MaObject {
   [[always_inline]] inline bool IsModule() const {
     return this->type == MA_OBJECT_MODULE;
   };
+  [[always_inline]] inline bool IsBytes() const {
+    return this->type == MA_OBJECT_BYTES;
+  };
   [[always_inline]] inline MaText* AsText() const { return this->d.text; };
   [[always_inline]] inline MaList* AsList() const { return this->d.list; };
   [[always_inline]] inline MaDict* AsDict() const { return this->d.dict; };
@@ -67,6 +72,7 @@ struct MaObject {
   [[always_inline]] inline MaModule* AsModule() const {
     return this->d.module;
   };
+  [[always_inline]] inline MaBytes* AsBytes() const { return this->d.bytes; };
 
   static void Init(MaMa* M);
   static MaObject* Instance(MaMa* M,
@@ -262,6 +268,14 @@ class MaDiia final {
                           MaObject* me);
 
   MaObject* Bind(MaMa* M, MaObject* object);
+};
+
+class MaBytes final {
+ public:
+  std::vector<uint8_t> data;
+
+  static void Init(MaMa* M);
+  static MaObject* Create(MaMa* M, const std::vector<uint8_t>& data);
 };
 
 class MaStructure final {

@@ -42,6 +42,7 @@ set(MAMA_SRC
         src/compiler/nodes/compile_while_node.cpp
         src/compiler/nodes/diia.cpp
         src/compiler/compiler.cpp
+        src/objects/MaBytes.cpp
         src/objects/MaDict.cpp
         src/objects/MaDiia.cpp
         src/objects/MaList.cpp

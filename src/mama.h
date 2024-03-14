@@ -73,6 +73,7 @@
 #define MA_OBJECT_DICT 5
 #define MA_OBJECT_STRUCTURE 6
 #define MA_OBJECT_MODULE 7
+#define MA_OBJECT_BYTES 8
 
 #define PUSH(cell) stack.push(cell)
 #define PUSH_EMPTY() PUSH(MaValue::Empty())
@@ -184,6 +185,7 @@ namespace mavka::mama {
     MaObject* list_structure_object;
     MaObject* dict_structure_object;
     MaObject* module_structure_object;
+    MaObject* bytes_structure_object;
 
     std::function<MaValue(MaMa*,
                           const std::string& repository,

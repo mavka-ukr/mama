@@ -13,6 +13,7 @@ namespace mavka::mama {
     MaText::Init(M);
     MaList::Init(M);
     MaDict::Init(M);
+    MaBytes::Init(M);
     MaStructure::Init2(M);
     return M;
   }
