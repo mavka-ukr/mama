@@ -62,7 +62,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
     if (cell.v.object->isModule(M)) {
       const auto name = cell.v.object->d.module->name;
       std::vector<std::string> items;
-      for (const auto& [k, v] : cell.v.object->asModule()->properties) {
+      for (const auto& [k, v] : cell.v.object->properties) {
         if (k != "назва") {
           items.push_back(k);
         }
@@ -102,7 +102,7 @@ void init_print(MaMa* M) {
     }
     return MaValue::Empty();
   };
-  M->global_scope->SetSubject("друк",
+  M->global_scope->setSubject("друк",
                               MaDiia::Create(M, "друк", native_fn, nullptr));
 }
 
@@ -120,7 +120,7 @@ void init_read(MaMa* M) {
     }
     return MaValue::Object(MaText::Create(M, value));
   };
-  M->global_scope->SetSubject("читати",
+  M->global_scope->setSubject("читати",
                               MaDiia::Create(M, "читати", native_fn, nullptr));
 }
 
@@ -154,14 +154,14 @@ MaValue TakePath(MaMa* M,
   const auto source = std::string(std::istreambuf_iterator(file),
                                   std::istreambuf_iterator<char>());
 
-  return M->DoTake(path, name, source, location);
+  return M->doTake(path, name, source, location);
 }
 
-MaValue TakeFn(MaMa* M,
-               const std::string& repository,
-               bool relative,
-               const std::vector<std::string>& parts,
-               const MaLocation& location) {
+MaValue take_fn(MaMa* M,
+                const std::string& repository,
+                bool relative,
+                const std::vector<std::string>& parts,
+                const MaLocation& location) {
   if (!repository.empty()) {
     return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття з репозиторію.", location));
@@ -180,14 +180,21 @@ int main(int argc, char** argv) {
   const auto args = std::vector<std::string>(argv, argv + argc);
 
   const auto M = MaMa::Create();
-  M->TakeFn = TakeFn;
+  M->take_fn = take_fn;
 
   init_print(M);
   init_read(M);
 
   const auto take_result = TakePath(M, args[1], {});
   if (take_result.isError()) {
-    std::cerr << cell_to_string(M, take_result.v.error->value) << std::endl;
+    const auto stackTrace = M->getStackTrace();
+    if (!stackTrace.empty()) {
+      std::cout << stackTrace << std::endl;
+    }
+    std::cerr << take_result.asError()->module->asModule()->code->path << ":"
+              << take_result.asError()->location.line << ":"
+              << take_result.asError()->location.column << ": "
+              << cell_to_string(M, take_result.v.error->value) << std::endl;
     return 1;
   }
 

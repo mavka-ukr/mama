@@ -37,7 +37,7 @@ namespace mavka::mama {
 
   void MaDiia::Init(MaMa* M) {
     const auto diia_structure_object = MaStructure::Create(M, "Дія");
-    M->global_scope->SetSubject("Дія", diia_structure_object);
+    M->global_scope->setSubject("Дія", diia_structure_object);
     M->diia_structure_object = diia_structure_object;
   }
 } // namespace mavka::mama

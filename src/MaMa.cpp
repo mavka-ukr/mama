@@ -32,9 +32,9 @@ namespace mavka::mama {
     return M;
   }
 
-  MaValue MaMa::Run(MaCode* code, std::stack<MaValue>& stack) {
+  MaValue MaMa::run(MaCode* code, std::stack<MaValue>& stack) {
     const auto M = this;
-    READ_TOP_FRAME();
+    const auto frame = this->call_stack.top();
     auto size = code->instructions.size();
     size_t i = 0;
     for (;;) {
@@ -76,21 +76,21 @@ namespace mavka::mama {
           break;
         }
         case VPushArg: {
-          POP_VALUE(value_cell);
-          TOP_VALUE(args_cell);
-          args_cell.v.args->Push(value_cell);
+          POP_VALUE(value);
+          TOP_VALUE(argsValue);
+          argsValue.asArgs()->Push(value);
           break;
         }
         case VStoreArg: {
-          POP_VALUE(value_cell);
-          TOP_VALUE(args_cell);
-          args_cell.v.args->Set(I.data.store->name, value_cell);
+          POP_VALUE(value);
+          TOP_VALUE(argsValue);
+          argsValue.asArgs()->Set(I.data.store->name, value);
           break;
         }
         case VCall: {
-          POP_VALUE(args_value);
+          POP_VALUE(argsValue);
           POP_VALUE(value);
-          const auto result = value.call(this, args_value.v.args, I.location);
+          const auto result = value.call(this, argsValue.asArgs(), I.location);
           if (result.isError()) {
             return result;
           }
@@ -101,30 +101,29 @@ namespace mavka::mama {
           return stack.top();
         }
         case VDiia: {
-          const auto diia_object = MaDiia::Create(this, I.data.diia->name,
-                                                  I.data.diia->code, nullptr);
-          diia_object->d.diia->scope = frame->scope;
-          diia_object->d.diia->fm = frame->module;
-          PUSH_OBJECT(diia_object);
+          const auto diiaObject = MaDiia::Create(this, I.data.diia->name,
+                                                 I.data.diia->code, nullptr);
+          diiaObject->d.diia->scope = frame->scope;
+          diiaObject->d.diia->fm = frame->module;
+          PUSH_OBJECT(diiaObject);
           break;
         }
         case VDiiaParam: {
-          POP_VALUE(default_value_cell);
-          TOP_VALUE(diia_cell);
-          diia_cell.v.object->d.diia->params.push_back(
-              MaDiiaParam{.name = I.data.diiaParam->name,
-                          .default_value = default_value_cell});
+          POP_VALUE(defaultValue);
+          TOP_VALUE(diiaValue);
+          diiaValue.asObject()->asDiia()->pushParam(MaDiiaParam{
+              .name = I.data.diiaParam->name, .default_value = defaultValue});
           break;
         }
         case VStore: {
           POP_VALUE(value);
-          frame->scope->SetSubject(I.data.store->name, value);
+          frame->scope->setSubject(I.data.store->name, value);
           break;
         }
         case VLoad: {
           const auto scope = frame->scope;
-          if (scope->HasSubject(I.data.load->name)) {
-            PUSH(scope->GetSubject(I.data.load->name));
+          if (scope->hasSubject(I.data.load->name)) {
+            PUSH(scope->getSubject(I.data.load->name));
             break;
           }
           return MaValue::Error(MaError::Create(
@@ -136,109 +135,105 @@ namespace mavka::mama {
           goto start;
         }
         case VJumpIfTrue: {
-          POP_VALUE(cell);
-          if (cell.isNumber() && cell.asNumber() != 0.0) {
+          POP_VALUE(value);
+          if (value.isNumber() && value.asNumber() != 0.0) {
             i = I.data.jumpIfTrue;
             goto start;
           }
-          if (!cell.isNo()) {
+          if (!value.isNo()) {
             i = I.data.jumpIfTrue;
             goto start;
           }
           break;
         }
         case VJumpIfFalse: {
-          POP_VALUE(cell);
-          if (cell.isEmpty()) {
+          POP_VALUE(value);
+          if (value.isEmpty()) {
             i = I.data.jumpIfFalse;
             goto start;
-          } else if (cell.isNumber()) {
-            if (cell.v.number == 0.0) {
+          } else if (value.isNumber()) {
+            if (value.asNumber() == 0.0) {
               i = I.data.jumpIfFalse;
               goto start;
             }
-          } else if (cell.isNo()) {
+          } else if (value.isNo()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
           break;
         }
         case VEJumpIfTrue: {
-          TOP_VALUE(cell);
-          if (cell.isNumber()) {
-            if (cell.v.number != 0.0) {
+          TOP_VALUE(value);
+          if (value.isNumber()) {
+            if (value.asNumber() != 0.0) {
               i = I.data.jumpIfTrue;
               goto start;
             }
-          } else if (!cell.isNo()) {
+          } else if (!value.isNo()) {
             i = I.data.jumpIfTrue;
             goto start;
           }
           break;
         }
         case VEJumpIfFalse: {
-          TOP_VALUE(cell);
-          if (cell.isEmpty()) {
+          TOP_VALUE(value);
+          if (value.isEmpty()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
-          if (cell.isNumber() && cell.v.number == 0.0) {
+          if (value.isNumber() && value.asNumber() == 0.0) {
             i = I.data.jumpIfFalse;
             goto start;
           }
-          if (cell.isNo()) {
+          if (value.isNo()) {
             i = I.data.jumpIfFalse;
             goto start;
           }
           break;
         }
         case VGet: {
-          POP_VALUE(value_v);
-          if (value_v.isObject()) {
-            PUSH(value_v.asObject()->getProperty(this, I.data.get->name));
+          POP_VALUE(left);
+          if (left.isObject()) {
+            PUSH(left.asObject()->getProperty(this, I.data.get->name));
             break;
           }
           PUSH_EMPTY();
           break;
         }
         case VEGet: {
-          TOP_VALUE(value_v);
-          if (value_v.isObject()) {
-            PUSH(value_v.asObject()->getProperty(this, I.data.get->name));
+          TOP_VALUE(left);
+          if (left.isObject()) {
+            PUSH(left.asObject()->getProperty(this, I.data.get->name));
             break;
           }
           PUSH_EMPTY();
           break;
         }
         case VSet: {
-          POP_VALUE(cell);
+          POP_VALUE(left);
           POP_VALUE(value);
-          if (cell.isObject()) {
-            if (cell.asObject()->isText(M)) {
-              break;
-            }
-            cell.asObject()->setProperty(this, I.data.set->name, value);
-            break;
+          if (left.isObject()) {
+            left.asObject()->setProperty(this, I.data.set->name, value);
           }
           break;
         }
         case VESetR: {
           POP_VALUE(value);
-          TOP_VALUE(cell);
-          if (cell.isObject()) {
-            cell.asObject()->setProperty(this, I.data.set->name, value);
+          TOP_VALUE(left);
+          if (left.isObject()) {
+            left.asObject()->setProperty(this, I.data.set->name, value);
           }
           break;
         }
         case VTry: {
           const auto frames_size = this->call_stack.size();
-          const auto result = this->Run(I.data.try_->try_code, stack);
+          const auto result = this->run(I.data.try_->try_code, stack);
           if (result.isError()) {
             PUSH(result.asError()->value);
             while (this->call_stack.size() > frames_size) {
               FRAME_POP();
             }
-            const auto result2 = this->Run(I.data.try_->catch_code, stack);
+            const auto result2 = this->run(I.data.try_->catch_code, stack);
             if (result2.isError()) {
               return result2;
             }
@@ -251,8 +246,9 @@ namespace mavka::mama {
           break;
         }
         case VThrow: {
-          POP_VALUE(cell);
-          return MaValue::Error(new MaError(cell, I.location));
+          POP_VALUE(value);
+          return MaValue::Error(
+              MaError::Create(value, frame->module, I.location));
         }
         case VList: {
           PUSH_OBJECT(MaList::Create(this));
@@ -260,8 +256,8 @@ namespace mavka::mama {
         }
         case VListAppend: {
           POP_VALUE(value);
-          TOP_VALUE(list_cell);
-          list_cell.asObject()->asList()->append(M, value);
+          TOP_VALUE(listValue);
+          listValue.asObject()->asList()->append(M, value);
           break;
         }
         case VDict: {
@@ -270,49 +266,48 @@ namespace mavka::mama {
         }
         case VDictSet: {
           POP_VALUE(value);
-          TOP_VALUE(dict_cell);
-          dict_cell.asDict()->setAt(
+          TOP_VALUE(dictValue);
+          dictValue.asDict()->setAt(
               M, MaValue::Object(MaText::Create(this, I.data.dictSet->key)),
               value);
           break;
         }
         case VStruct: {
-          const auto structure_object =
+          const auto structureObject =
               MaStructure::Create(this, I.data.struct_->name);
-          PUSH_OBJECT(structure_object);
+          PUSH_OBJECT(structureObject);
           break;
         }
         case VStructParam: {
-          POP_VALUE(default_value_cell);
-          TOP_VALUE(structure_cell);
-          structure_cell.v.object->d.structure->params.push_back(
-              MaDiiaParam{.name = I.data.diiaParam->name,
-                          .default_value = default_value_cell});
+          POP_VALUE(defaultValue);
+          TOP_VALUE(structureValue);
+          structureValue.asObject()->asStructure()->pushParam(MaDiiaParam{
+              .name = I.data.diiaParam->name, .default_value = defaultValue});
           break;
         }
         case VStructMethod: {
-          POP_VALUE(diia_cell);
-          TOP_VALUE(structure_cell);
-          if (structure_cell.isObject()) {
-            if (structure_cell.asObject()->isStructure(M)) {
-              structure_cell.v.object->d.structure->methods.push_back(
-                  diia_cell.v.object);
+          POP_VALUE(diiaValue);
+          TOP_VALUE(structureValue);
+          if (structureValue.isObject()) {
+            if (structureValue.asObject()->isStructure(M)) {
+              structureValue.asObject()->asStructure()->pushMethod(
+                  diiaValue.asObject());
               break;
             }
           }
           DO_RETURN_STRING_ERROR(
-              "Неможливо створити метод для типу " + structure_cell.GetName(),
+              "Неможливо створити метод для типу " + structureValue.getName(),
               I.location)
         }
         case VModule: {
-          const auto module_object =
-              MaModule::Create(this, I.data.module->name);
-          const auto module_scope = new MaScope(frame->scope);
-          const auto module_frame =
-              new MaFrame(module_scope, module_object, frame->module);
-          frame->scope->SetSubject(I.data.module->name, module_object);
-          FRAME_PUSH(module_frame);
-          const auto result = this->Run(I.data.module->code, stack);
+          const auto moduleObject = MaModule::Create(this, I.data.module->name);
+          const auto moduleScope = new MaScope(frame->scope);
+          moduleScope->setSubject("я", moduleObject);
+          const auto moduleFrame =
+              new MaFrame(moduleScope, moduleObject, frame->module);
+          frame->scope->setSubject(I.data.module->name, moduleObject);
+          FRAME_PUSH(moduleFrame);
+          const auto result = this->run(I.data.module->code, stack);
           FRAME_POP();
           if (result.isError()) {
             return result;
@@ -321,7 +316,7 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          const auto meValue = frame->scope->GetSubject("я");
+          const auto meValue = frame->scope->getSubject("я");
           if (meValue.isError()) {
             return meValue;
           }
@@ -557,9 +552,9 @@ namespace mavka::mama {
           break;
         }
         case VTake: {
-          const auto result =
-              this->TakeFn(this, I.data.take->repository, I.data.take->relative,
-                           I.data.take->path_parts, I.location);
+          const auto result = this->take_fn(
+              this, I.data.take->repository, I.data.take->relative,
+              I.data.take->path_parts, I.location);
           if (result.isError()) {
             return result;
           }
@@ -578,7 +573,7 @@ namespace mavka::mama {
     return stack.empty() ? MaValue::Empty() : stack.top();
   }
 
-  MaValue MaMa::Eval(const std::string& code, const MaLocation& location) {
+  MaValue MaMa::eval(const std::string& code, const MaLocation& location) {
     const auto M = this;
 
     const auto parser_result = parser::parse(code, "");
@@ -597,14 +592,14 @@ namespace mavka::mama {
       DO_RETURN_STRING_ERROR(body_compilation_result.error->message, location);
     }
     std::stack<MaValue> stack;
-    const auto result = this->Run(eval_code, stack);
+    const auto result = this->run(eval_code, stack);
     if (result.isError()) {
       return result;
     }
     return result;
   }
 
-  MaValue MaMa::DoTake(const std::string& path,
+  MaValue MaMa::doTake(const std::string& path,
                        const std::string& name,
                        const std::string& code,
                        const MaLocation& location) {
@@ -612,10 +607,10 @@ namespace mavka::mama {
                                   ? this->global_scope
                                   : this->call_stack.top()->scope;
     const auto module_scope = new MaScope(parent_scope);
-    return DoTakeWithScope(path, name, code, location, module_scope);
+    return this->doTakeWithScope(path, name, code, location, module_scope);
   }
 
-  MaValue MaMa::DoTakeWithScope(const std::string& path,
+  MaValue MaMa::doTakeWithScope(const std::string& path,
                                 const std::string& name,
                                 const std::string& code,
                                 const MaLocation& location,
@@ -642,7 +637,7 @@ namespace mavka::mama {
     }
     this->loaded_file_modules.insert_or_assign(path, module_object);
 
-    module_scope->SetSubject("я", module_object);
+    module_scope->setSubject("я", module_object);
 
     const auto body_compilation_result =
         compile_body(this, module_code, parser_result.module_node->body);
@@ -658,11 +653,28 @@ namespace mavka::mama {
         new MaFrame(module_scope, module_object, module_object);
     FRAME_PUSH(module_frame);
     std::stack<MaValue> stack;
-    const auto result = this->Run(module_code, stack);
+    const auto result = this->run(module_code, stack);
     if (result.isError()) {
       return result;
     }
     FRAME_POP();
     return MaValue::Object(module_object);
+  }
+
+  std::string MaMa::getStackTrace() {
+    std::vector<std::string> stack_trace{"Слід:"};
+    std::stack<MaFrame*> call_stack_copy = this->call_stack;
+    while (!call_stack_copy.empty()) {
+      const auto frame = call_stack_copy.top();
+      call_stack_copy.pop();
+      if (frame->object->isDiia(this)) {
+        const auto modulePath = frame->module->asModule()->code->path;
+        const auto line = std::to_string(frame->location.line);
+        const auto column = std::to_string(frame->location.column);
+        stack_trace.push_back("  " + frame->object->asDiia()->name + " " +
+                              modulePath + ":" + line + ":" + column);
+      }
+    }
+    return internal::tools::implode(stack_trace, "\n");
   }
 } // namespace mavka::mama

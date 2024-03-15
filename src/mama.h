@@ -74,11 +74,11 @@
 
 #define DO_RETURN_STRING_ERROR(v, location) \
   return MaValue::Error(                    \
-      new MaError(MaValue::Object(MaText::Create(M, (v))), (location)));
+      MaError::Create(MaValue::Object(MaText::Create(M, (v))), M->call_stack.top()->module, (location)));
 #define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell, location) \
   DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                 \
                              "\" не визначено для типу \"" +               \
-                             (cell).GetName() + "\".",                     \
+                             (cell).getName() + "\".",                     \
                          (location))
 
 namespace mavka::mama {
@@ -111,27 +111,6 @@ namespace mavka::mama {
 #include "MaScope.h"
 #include "compiler/compiler.h"
 #include "utils/helpers.h"
-
-  struct MaError {
-    MaValue value;
-    MaLocation location;
-
-    static MaError* Create(const MaValue& value, const MaLocation& location) {
-      const auto error = new MaError();
-      error->value = value;
-      error->location = location;
-      return error;
-    }
-
-    static MaError* Create(MaMa* M,
-                           const std::string& value,
-                           const MaLocation& location) {
-      const auto error = new MaError();
-      error->value = MaValue::Object(MaText::Create(M, value));
-      error->location = location;
-      return error;
-    }
-  };
 
   struct MaCode {
     std::vector<MaInstruction> instructions;
@@ -166,22 +145,50 @@ namespace mavka::mama {
                           bool relative,
                           const std::vector<std::string>& parts,
                           const MaLocation& location)>
-        TakeFn;
+        take_fn;
 
-    static MaMa* Create();
+    MaValue run(MaCode* code, std::stack<MaValue>& stack);
+    MaValue eval(const std::string& code, const MaLocation& location = {});
 
-    MaValue Run(MaCode* code, std::stack<MaValue>& stack);
-    MaValue Eval(const std::string& code, const MaLocation& location = {});
-
-    MaValue DoTake(const std::string& id,
+    MaValue doTake(const std::string& id,
                    const std::string& name,
                    const std::string& code,
                    const MaLocation& location);
-    MaValue DoTakeWithScope(const std::string& id,
+    MaValue doTakeWithScope(const std::string& id,
                             const std::string& name,
                             const std::string& code,
                             const MaLocation& location,
                             MaScope* module_scope);
+
+    std::string getStackTrace();
+
+    static MaMa* Create();
+  };
+
+  struct MaError {
+    MaObject* module;
+    MaValue value;
+    MaLocation location;
+
+    static MaError* Create(const MaValue& value,
+                           MaObject* module,
+                           const MaLocation& location) {
+      const auto error = new MaError();
+      error->module = module;
+      error->value = value;
+      error->location = location;
+      return error;
+    }
+
+    static MaError* Create(MaMa* M,
+                           const std::string& value,
+                           const MaLocation& location) {
+      const auto error = new MaError();
+      error->module = M->call_stack.top()->module;
+      error->value = MaValue::Object(MaText::Create(M, value));
+      error->location = location;
+      return error;
+    }
   };
 } // namespace mavka::mama
 

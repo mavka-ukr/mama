@@ -23,14 +23,14 @@ namespace mavka::mama {
           ->getProperty(M, MAG_NUMBER)
           .call(M, {}, location);
     }
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на число.")),
-        location));
+        M->call_stack.top()->module, location));
   }
 
   void InitNumber(MaMa* M) {
     const auto number_structure_object = MaStructure::Create(M, "число");
-    M->global_scope->SetSubject("число", number_structure_object);
+    M->global_scope->setSubject("число", number_structure_object);
     M->number_structure_object = number_structure_object;
     number_structure_object->setProperty(
         M, MAG_CALL,

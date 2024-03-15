@@ -9,8 +9,9 @@ namespace mavka::mama {
     if (result.error) {
       return result;
     }
-    code->push(MaInstruction::throw_(
-        {.line = ast_value->start_line, .column = ast_value->start_column}));
+    const auto location = MaLocation{.line = ast_value->start_line,
+                                     .column = ast_value->start_column};
+    code->push(MaInstruction::throw_(location));
     return success();
   }
 } // namespace mavka::mama

@@ -18,16 +18,16 @@ namespace mavka::mama {
       if (value.asObject()->isBytes(M)) {
         return value;
       }
-      return value.asObject()->getProperty(M, MAG_BYTES).call(M, {}, {});
+      return value.asObject()->callMagWithoutValue(M, location, MAG_BYTES);
     }
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на байти.")),
-        location));
+        M->call_stack.top()->module, location));
   }
 
   void MaBytes::Init(MaMa* M) {
     const auto bytes_structure_object = MaStructure::Create(M, "байти");
-    M->global_scope->SetSubject("байти", bytes_structure_object);
+    M->global_scope->setSubject("байти", bytes_structure_object);
     M->bytes_structure_object = bytes_structure_object;
     bytes_structure_object->setProperty(
         M, MAG_CALL,

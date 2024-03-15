@@ -125,9 +125,9 @@ namespace mavka::mama {
   MaValue MaObject::call(mavka::mama::MaMa* M,
                          mavka::mama::MaArgs* args,
                          const mavka::mama::MaLocation& location) {
-    const auto mag_call = this->getProperty(M, MAG_CALL);
-    if (!mag_call.isEmpty()) {
-      return mag_call.call(M, args, location);
+    const auto magicDiia = this->getProperty(M, MAG_CALL);
+    if (!magicDiia.isEmpty()) {
+      return magicDiia.call(M, args, location);
     }
     const auto frame = new MaFrame(M->call_stack.top()->scope, this,
                                    M->call_stack.top()->module, location);
@@ -136,23 +136,27 @@ namespace mavka::mama {
       const auto diia = this->asDiia();
       if (diia->fn) {
         const auto result = diia->fn(M, this, args, location);
-        FRAME_POP();
+        if (!result.isError()) {
+          FRAME_POP();
+        }
         return result;
       } else {
         const auto diia_scope = new MaScope(diia->scope);
         frame->scope = diia_scope;
         if (diia->getMe()) {
-          frame->scope->SetSubject("я", diia->getMe());
+          frame->scope->setSubject("я", diia->getMe());
         }
         for (int i = 0; i < diia->getParams().size(); ++i) {
           const auto& param = this->d.diia->params[i];
           const auto arg_value = args->Get(i, param.name, param.default_value);
-          frame->scope->SetSubject(param.name, arg_value);
+          frame->scope->setSubject(param.name, arg_value);
         }
         std::stack<MaValue> stack;
-        const auto result = M->Run(this->d.diia->code, stack);
+        const auto result = M->run(this->d.diia->code, stack);
         // todo: gc
-        FRAME_POP();
+        if (!result.isError()) {
+          FRAME_POP();
+        }
         return result;
       }
     }
@@ -168,8 +172,9 @@ namespace mavka::mama {
       return MaValue::Object(object);
     }
     FRAME_POP();
-    return MaValue::Error(new MaError(
-        MaValue::Object(MaText::Create(M, "Неможливо викликати.")), location));
+    return MaValue::Error(MaError::Create(
+        MaValue::Object(MaText::Create(M, "Неможливо викликати.")),
+        M->call_stack.top()->module, location));
   }
 
   MaValue MaObject::callMagWithValue(MaMa* M,
@@ -186,12 +191,12 @@ namespace mavka::mama {
     }
     const auto result = magicDiia.call(M, {value}, location);
     if (value.isObject()) {
-      value.asObject()->release();
+      //      value.asObject()->release();
     }
     if (magicDiia.isObject()) {
-      magicDiia.asObject()->release();
+      //      magicDiia.asObject()->release();
     }
-    this->release();
+    //    this->release();
     return result;
   }
 
@@ -205,9 +210,9 @@ namespace mavka::mama {
     }
     const auto result = magicDiia.call(M, {}, {});
     if (magicDiia.isObject()) {
-      magicDiia.asObject()->release();
+      //      magicDiia.asObject()->release();
     }
-    this->release();
+    //    this->release();
     return result;
   }
 
@@ -327,7 +332,7 @@ namespace mavka::mama {
 
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
-    M->global_scope->SetSubject("обʼєкт", object_structure_object);
+    M->global_scope->setSubject("обʼєкт", object_structure_object);
     M->object_structure_object = object_structure_object;
   }
 

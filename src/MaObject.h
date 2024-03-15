@@ -109,7 +109,7 @@ struct MaValue {
     MaError* error;
   } v;
 
-  std::string GetName() const;
+  std::string getName() const;
 
   MaValue call(MaMa* M, MaArgs* args, const MaLocation& location) const;
   MaValue call(MaMa* M,
@@ -173,12 +173,6 @@ struct MaValue {
                 const MaValue& value,
                 const MaLocation& location) const;
 
-  inline void retain() const {
-    if (this->isObject()) {
-      this->asObject()->retain();
-    }
-  };
-
   inline bool isEmpty() const { return this->type == MaValueTypeEmpty; };
   inline bool isNumber() const { return this->type == MaValueTypeNumber; };
   inline bool isYes() const { return this->type == MaValueTypeYes; };
@@ -238,7 +232,7 @@ class MaList final {
   static MaObject* Create(MaMa* M);
 
   void append(MaMa* M, const MaValue& cell);
-  void setAt(MaMa* M, size_t index, const MaValue& cell);
+  void setAt(MaMa* M, size_t index, const MaValue& value);
   MaValue getAt(MaMa* M, size_t index) const;
   bool contains(MaMa* M, const MaValue& cell);
 };
@@ -280,6 +274,9 @@ class MaDiia final {
 
   inline MaObject* getMe() const { return this->me; }
   inline std::vector<MaDiiaParam> getParams() const { return this->params; }
+  inline void pushParam(const MaDiiaParam& param) {
+    this->params.push_back(param);
+  }
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M,
@@ -309,6 +306,11 @@ class MaStructure final {
   std::vector<MaObject*> methods;
 
   std::string getName() const;
+  inline std::vector<MaDiiaParam> getParams() const { return this->params; }
+  inline void pushParam(const MaDiiaParam& param) {
+    this->params.push_back(param);
+  }
+  inline void pushMethod(MaObject* method) { this->methods.push_back(method); }
 
   static void Init(MaMa* M);
   static void Init2(MaMa* M);
@@ -320,9 +322,6 @@ class MaModule final {
   std::string name;
   MaCode* code;
   bool is_file_module;
-  std::unordered_map<std::string, MaValue> properties;
-
-  MaValue getProperty(MaMa* M, MaObject* object, const std::string& name);
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& name);

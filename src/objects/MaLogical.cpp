@@ -18,14 +18,14 @@ namespace mavka::mama {
     if (value.isObject()) {
       return MaValue::Yes();
     }
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на логічне.")),
-        location));
+        M->call_stack.top()->module, location));
   }
 
   void InitLogical(MaMa* M) {
     const auto logical_structure_object = MaStructure::Create(M, "логічне");
-    M->global_scope->SetSubject("логічне", logical_structure_object);
+    M->global_scope->setSubject("логічне", logical_structure_object);
     M->logical_structure_object = logical_structure_object;
     logical_structure_object->setProperty(
         M, MAG_CALL,

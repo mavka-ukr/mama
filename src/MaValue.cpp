@@ -8,7 +8,7 @@ namespace mavka::mama {
       return this->asObject()->call(M, args, location);
     }
     return MaValue::Error(MaError::Create(
-        M, "Неможливо викликати обʼєкт структури \"" + this->GetName() + "\".",
+        M, "Неможливо викликати обʼєкт структури \"" + this->getName() + "\".",
         location));
   };
 

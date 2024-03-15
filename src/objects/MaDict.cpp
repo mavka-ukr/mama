@@ -2,11 +2,17 @@
 
 namespace mavka::mama {
   void MaDict::setAt(MaMa* M, const MaValue& key, const MaValue& value) {
-    key.retain();
-    value.retain();
+    if (key.isObject()) {
+      key.asObject()->retain();
+    }
+    if (value.isObject()) {
+      value.asObject()->retain();
+    }
     for (auto& item : this->data) {
       if (key.isEqual(M, item.first)) {
-        //        item.second.release();
+        if (item.second.isObject()) {
+//          item.second.asObject()->release();
+        }
         item.second = value;
         return;
       }
@@ -63,7 +69,7 @@ namespace mavka::mama {
 
   void MaDict::Init(MaMa* M) {
     const auto dict_structure_object = MaStructure::Create(M, "словник");
-    M->global_scope->SetSubject("словник", dict_structure_object);
+    M->global_scope->setSubject("словник", dict_structure_object);
     M->dict_structure_object = dict_structure_object;
   }
 } // namespace mavka::mama

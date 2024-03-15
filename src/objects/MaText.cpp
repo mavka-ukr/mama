@@ -88,8 +88,10 @@ namespace mavka::mama {
       list_o->asList()->append(M, MaValue::Object(MaText::Create(M, current)));
       return MaValue::Object(list_o);
     } else {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"розбити\" потрібен текстовий аргумент."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"розбити\" потрібен текстовий аргумент.")),
+          M->call_stack.top()->module, location));
     }
   }
 
@@ -100,13 +102,17 @@ namespace mavka::mama {
                                      const MaLocation& location) {
     const auto oldVal = args->Get(0, "старе");
     if (!(oldVal.isObject() && oldVal.asObject()->isText(M))) {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"замінити\" перший аргумент повинен бути текстом."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"замінити\" перший аргумент повинен бути текстом.")),
+          M->call_stack.top()->module, location));
     }
     const auto newVal = args->Get(1, "нове");
     if (!(newVal.isObject() && newVal.asObject()->isText(M))) {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"замінити\" другий аргумент повинен бути текстом."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"замінити\" другий аргумент повинен бути текстом.")),
+          M->call_stack.top()->module, location));
     }
     const auto first_string = oldVal.asText()->data;
     const auto second_string = newVal.asText()->data;
@@ -135,8 +141,10 @@ namespace mavka::mama {
       }
       return MaValue::No();
     } else {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"починається\" потрібен текстовий аргумент."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"починається\" потрібен текстовий аргумент.")),
+          M->call_stack.top()->module, location));
     }
   }
 
@@ -158,8 +166,10 @@ namespace mavka::mama {
       }
       return MaValue::No();
     } else {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"закінчується\" потрібен текстовий аргумент."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"закінчується\" потрібен текстовий аргумент.")),
+          M->call_stack.top()->module, location));
     }
   }
 
@@ -202,9 +212,11 @@ namespace mavka::mama {
                                   arg_cell.asObject()->asText()->data));
       }
     }
-    return MaValue::Error(new MaError(MaValue::Object(
-        MaText::Create(M, "Неможливо додати до тексту обʼєкт типу \"" +
-                              arg_cell.GetName() + "\"."))));
+    return MaValue::Error(
+        MaError::Create(MaValue::Object(MaText::Create(
+                            M, "Неможливо додати до тексту обʼєкт типу \"" +
+                                   arg_cell.getName() + "\".")),
+                        M->call_stack.top()->module, location));
   }
 
   // чародія_містить
@@ -220,8 +232,10 @@ namespace mavka::mama {
       }
       return MaValue::No();
     } else {
-      return MaValue::Error(new MaError(MaValue::Object(MaText::Create(
-          M, "Для дії \"чародія_містить\" потрібен текстовий аргумент."))));
+      return MaValue::Error(MaError::Create(
+          MaValue::Object(MaText::Create(
+              M, "Для дії \"чародія_містить\" потрібен текстовий аргумент.")),
+          M->call_stack.top()->module, location));
     }
   }
 
@@ -246,9 +260,10 @@ namespace mavka::mama {
                                          MaObject* o,
                                          MaArgs* args,
                                          const MaLocation& location) {
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Дія \"" + std::string(MAG_ITERATOR) +
-                                              "\" тимчасово недоступна."))));
+                                              "\" тимчасово недоступна.")),
+        M->call_stack.top()->module, location));
   }
 
   // чародія_число
@@ -319,14 +334,14 @@ namespace mavka::mama {
       }
       return cell.asObject()->getProperty(M, MAG_TEXT).call(M, {}, {});
     }
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на текст.")),
-        location));
+        M->call_stack.top()->module, location));
   }
 
   void MaText::Init(MaMa* M) {
     const auto text_structure_object = MaStructure::Create(M, "текст");
-    M->global_scope->SetSubject("текст", text_structure_object);
+    M->global_scope->setSubject("текст", text_structure_object);
     M->text_structure_object = text_structure_object;
     text_structure_object->setProperty(
         M, MAG_CALL,

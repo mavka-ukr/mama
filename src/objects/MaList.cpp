@@ -2,18 +2,22 @@
 
 namespace mavka::mama {
   void MaList::append(MaMa* M, const MaValue& cell) {
-    cell.retain();
+    if (cell.isObject()) {
+      cell.asObject()->retain();
+    }
     this->data.push_back(cell);
   }
 
-  void MaList::setAt(MaMa* M, size_t index, const MaValue& cell) {
-    cell.retain();
+  void MaList::setAt(MaMa* M, size_t index, const MaValue& value) {
+    if (value.isObject()) {
+      value.asObject()->retain();
+    }
     if (index >= 0) {
       if (index >= this->getLength()) {
         // todo: looks bad
         this->data.resize(index + 1);
       }
-      this->data[index] = cell;
+      this->data[index] = value;
     }
   }
 
@@ -169,9 +173,9 @@ namespace mavka::mama {
       }
       return cell.asObject()->getProperty(M, MAG_LIST).call(M, {}, {});
     }
-    return MaValue::Error(new MaError(
+    return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на список.")),
-        location));
+        M->call_stack.top()->module, location));
   }
 
   size_t MaList::getLength() const {
@@ -180,7 +184,7 @@ namespace mavka::mama {
 
   void MaList::Init(MaMa* M) {
     const auto list_structure_object = MaStructure::Create(M, "список");
-    M->global_scope->SetSubject("список", list_structure_object);
+    M->global_scope->setSubject("список", list_structure_object);
     M->list_structure_object = list_structure_object;
     list_structure_object->setProperty(
         M, MAG_CALL,

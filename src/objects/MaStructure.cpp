@@ -38,7 +38,7 @@ namespace mavka::mama {
   void MaStructure::Init(MaMa* M) {
     const auto structure_structure_object = MaStructure::Create(M, "Структура");
     M->structure_structure_object = structure_structure_object;
-    M->global_scope->SetSubject("Структура", structure_structure_object);
+    M->global_scope->setSubject("Структура", structure_structure_object);
   }
 
   void MaStructure::Init2(MaMa* M) {

@@ -198,8 +198,8 @@ namespace mavka::mama {
     return MaInstruction{VTry, {.try_ = args}};
   }
   MaInstruction MaInstruction::throw_(MaLocation location) {
-    return MaInstruction{VThrow,
-                         {.throw_ = new MaThrowInstructionArgs(location)}};
+    return MaInstruction{
+        VThrow, {.throw_ = new MaThrowInstructionArgs()}, location};
   }
   MaInstruction MaInstruction::list() {
     return MaInstruction{VList};

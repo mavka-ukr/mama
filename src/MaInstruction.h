@@ -120,9 +120,7 @@ struct MaTryDoneInstructionArgs {
   size_t index;
 };
 
-struct MaThrowInstructionArgs {
-  MaLocation location;
-};
+struct MaThrowInstructionArgs {};
 
 struct MaStructInstructionArgs {
   std::string name;
