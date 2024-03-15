@@ -2,9 +2,9 @@
 
 namespace mavka::mama {
   std::string MaValue::GetName() const {
-    if (this->IsObject()) {
-      if (this->v.object->structure) {
-        return this->v.object->structure->d.structure->name;
+    if (this->isObject()) {
+      if (this->v.object->getStructure()) {
+        return this->v.object->getStructure()->d.structure->name;
       }
     }
     switch (this->type) {

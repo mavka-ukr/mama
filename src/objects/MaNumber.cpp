@@ -6,24 +6,22 @@ namespace mavka::mama {
                                                  MaArgs* args,
                                                  const MaLocation& location) {
     const auto arg_value_v = args->Get(0, "значення");
-    if (arg_value_v.IsEmpty()) {
+    if (arg_value_v.isEmpty()) {
       return MaValue::Number(0);
     }
-    if (arg_value_v.IsNumber()) {
+    if (arg_value_v.isNumber()) {
       return arg_value_v;
     }
-    if (arg_value_v.IsYes()) {
+    if (arg_value_v.isYes()) {
       return MaValue::Number(1);
     }
-    if (arg_value_v.IsNo()) {
+    if (arg_value_v.isNo()) {
       return MaValue::Number(0);
     }
-    if (arg_value_v.IsObject()) {
-      if (arg_value_v.AsObject()->HasProperty(M, MAG_NUMBER)) {
-        return arg_value_v.AsObject()
-            ->GetPropertyStrong(M, MAG_NUMBER)
-            .Call(M, {}, location);
-      }
+    if (arg_value_v.isObject()) {
+      return arg_value_v.asObject()
+          ->getProperty(M, MAG_NUMBER)
+          .Call(M, {}, location);
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на число.")),
@@ -34,9 +32,9 @@ namespace mavka::mama {
     const auto number_structure_object = MaStructure::Create(M, "число");
     M->global_scope->SetSubject("число", number_structure_object);
     M->number_structure_object = number_structure_object;
-    number_structure_object->SetProperty(M,
-        MAG_CALL,
-        MaNative::Create(M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
-                         number_structure_object));
+    number_structure_object->setProperty(
+        M, MAG_CALL,
+        MaDiia::Create(M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
+                       number_structure_object));
   }
 } // namespace mavka::mama

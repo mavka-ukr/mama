@@ -61,38 +61,13 @@
 #define MAG_ITERATOR "чародія_перебір"
 #define MAG_NUMBER "чародія_число"
 #define MAG_TEXT "чародія_текст"
-#define MAG_LOGICAL "чародія_логічне"
 #define MAG_BYTES "чародія_байти"
 #define MAG_LIST "чародія_список"
 
-#define MA_OBJECT 0
-#define MA_OBJECT_DIIA 1
-#define MA_OBJECT_NATIVE 2
-#define MA_OBJECT_STRING 3
-#define MA_OBJECT_LIST 4
-#define MA_OBJECT_DICT 5
-#define MA_OBJECT_STRUCTURE 6
-#define MA_OBJECT_MODULE 7
-#define MA_OBJECT_BYTES 8
-
-#define PUSH(cell) stack.push(cell)
-#define PUSH_EMPTY() PUSH(MaValue::Empty())
-#define PUSH_NUMBER(v) PUSH(MaValue::Number((v)))
-#define PUSH_YES() PUSH(MaValue::Yes())
-#define PUSH_NO() PUSH(MaValue::No())
-#define PUSH_OBJECT(v) PUSH(MaValue::Object((v)))
-
-#define TOP() stack.top()
-#define TOP_VALUE(name) const auto name = TOP();
-#define POP() stack.pop();
-#define POP_VALUE(name)    \
-  const auto name = TOP(); \
-  POP();
-
-#define READ_TOP_FRAME() const auto frame = M->frame_stack.top();
-#define FRAME_POP() M->frame_stack.pop();
-#define FRAME_TOP() M->frame_stack.top();
-#define FRAME_PUSH(frame) M->frame_stack.push(frame);
+#define READ_TOP_FRAME() const auto frame = M->call_stack.top();
+#define FRAME_POP() M->call_stack.pop();
+#define FRAME_TOP() M->call_stack.top();
+#define FRAME_PUSH(frame) M->call_stack.push(frame);
 #define POP_FRAME(name)          \
   const auto name = FRAME_TOP(); \
   FRAME_POP();
@@ -119,7 +94,6 @@ namespace mavka::mama {
   class MaDict;
   class MaDiia;
   class MaStructure;
-  class MaNative;
   class MaModule;
   struct MaValue;
   struct MaObject;
@@ -174,7 +148,7 @@ namespace mavka::mama {
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
 
-    std::stack<MaFrame*> frame_stack;
+    std::stack<MaFrame*> call_stack;
 
     MaObject* object_structure_object;
     MaObject* structure_structure_object;

@@ -41,10 +41,12 @@ namespace mavka::mama {
   }
 
   void MaScope::SetSubject(const std::string& name, MaValue value) {
-    value.Retain();
+    value.retain();
     auto subject = this->subjects.find(name);
     if (subject != this->subjects.end()) {
-      subject->second.Release();
+      if (subject->second.isObject()) {
+        subject->second.asObject()->release();
+      }
       subject->second = value;
       return;
     } else {
@@ -53,10 +55,12 @@ namespace mavka::mama {
   }
 
   void MaScope::SetSubject(const std::string& name, MaObject* object) {
-    object->Retain();
+    object->retain();
     auto subject = this->subjects.find(name);
     if (subject != this->subjects.end()) {
-      subject->second.Release();
+      if (subject->second.isObject()) {
+        subject->second.asObject()->release();
+      }
       subject->second = MaValue::Object(object);
       return;
     } else {
@@ -67,7 +71,9 @@ namespace mavka::mama {
   void MaScope::DeleteSubject(const std::string& name) {
     auto subject = this->subjects.find(name);
     if (subject != this->subjects.end()) {
-      subject->second.Release();
+      if (subject->second.isObject()) {
+        subject->second.asObject()->release();
+      }
     }
     this->subjects.erase(name);
   }

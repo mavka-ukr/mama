@@ -4,26 +4,11 @@ namespace mavka::mama {
   MaValue MaValue::Call(MaMa* M,
                         MaArgs* args,
                         const MaLocation& location) const {
-    auto maValue = *this;
-  repeat:
-    if (maValue.IsObject()) {
-      const auto object = maValue.v.object;
-      if (object->HasProperty(M, MAG_CALL)) {
-        maValue = object->GetProperty(M, MAG_CALL);
-        maValue.Retain();
-        goto repeat;
-      }
-      if (object->call) {
-        FRAME_PUSH(new MaFrame(M->frame_stack.top()->scope, object,
-                               M->frame_stack.top()->module, location));
-        const auto result = object->call(M, object, args, location);
-        FRAME_POP();
-        return result;
-      }
+    if (this->isObject()) {
+      return this->asObject()->call(M, args, location);
     }
     return MaValue::Error(MaError::Create(
-        M,
-        "Неможливо викликати обʼєкт структури \"" + maValue.GetName() + "\".",
+        M, "Неможливо викликати обʼєкт структури \"" + this->GetName() + "\".",
         location));
   };
 
@@ -40,39 +25,39 @@ namespace mavka::mama {
     return this->Call(M, new MaArgs(MA_ARGS_TYPE_NAMED, args, {}), location);
   }
 
-  bool MaValue::IsSame(const MaValue& other) const {
-    if (other.IsEmpty()) {
-      if (this->IsEmpty()) {
+  bool MaValue::isEqual(MaMa* M, const MaValue& other) const {
+    if (other.isEmpty()) {
+      if (this->isEmpty()) {
         return true;
       }
       return false;
     }
-    if (other.IsNumber()) {
-      if (this->IsNumber()) {
-        return this->AsNumber() == other.AsNumber();
+    if (other.isNumber()) {
+      if (this->isNumber()) {
+        return this->asNumber() == other.asNumber();
       }
       return false;
     }
-    if (other.IsYes()) {
-      if (this->IsYes()) {
+    if (other.isYes()) {
+      if (this->isYes()) {
         return true;
       }
       return false;
     }
-    if (other.IsNo()) {
-      if (this->IsNo()) {
+    if (other.isNo()) {
+      if (this->isNo()) {
         return true;
       }
       return false;
     }
-    if (other.IsObject()) {
-      if (this->IsObject()) {
-        const auto thisObject = this->AsObject();
-        const auto otherObject = other.AsObject();
+    if (other.isObject()) {
+      if (this->isObject()) {
+        const auto thisObject = this->asObject();
+        const auto otherObject = other.asObject();
         if (thisObject == otherObject) {
           return true;
         }
-        if (thisObject->IsText() && otherObject->IsText()) {
+        if (thisObject->isText(M) && otherObject->isText(M)) {
           return thisObject->d.text->data == otherObject->d.text->data;
         }
       }

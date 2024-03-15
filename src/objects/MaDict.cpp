@@ -1,12 +1,12 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  void MaDict::Set(const MaValue& key, const MaValue& value) {
-    key.Retain();
-    value.Retain();
+  void MaDict::setAt(MaMa* M, const MaValue& key, const MaValue& value) {
+    key.retain();
+    value.retain();
     for (auto& item : this->data) {
-      if (key.IsSame(item.first)) {
-//        item.second.Release();
+      if (key.isEqual(M, item.first)) {
+        //        item.second.release();
         item.second = value;
         return;
       }
@@ -14,29 +14,16 @@ namespace mavka::mama {
     this->data.emplace_back(key, value);
   }
 
-  MaValue MaDict::Get(const MaValue& key) const {
+  MaValue MaDict::getAt(MaMa* M, const MaValue& key) const {
     for (const auto& item : this->data) {
-      if (key.IsSame(item.first)) {
+      if (key.isEqual(M, item.first)) {
         return item.second;
       }
     }
     return MaValue::Empty();
   }
 
-  void MaDict::Remove(const MaValue& key) {
-    long index = 0;
-    for (const auto& item : this->data) {
-      if (key.IsSame(item.first)) {
-//        key.Release();
-//        item.second.Release();
-        this->data.erase(this->data.begin() + index);
-        return;
-      }
-      ++index;
-    }
-  }
-
-  size_t MaDict::GetSize() const {
+  size_t MaDict::getSize() const {
     return this->data.size();
   }
 
@@ -46,7 +33,7 @@ namespace mavka::mama {
                                            MaArgs* args,
                                            const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
-    return native_o->AsNative()->GetMe()->AsDict()->Get(key);
+    return native_o->asDiia()->getMe()->asDict()->getAt(M, key);
   }
 
   // чародія_покласти
@@ -56,30 +43,21 @@ namespace mavka::mama {
                                            const MaLocation& location) {
     const auto key = args->Get(0, "ключ");
     const auto value = args->Get(1, "значення");
-    native_o->AsNative()->GetMe()->AsDict()->Set(key, value);
+    native_o->asDiia()->getMe()->asDict()->setAt(M, key, value);
     return MaValue::Empty();
-  }
-
-  MaValue MaDictGetHandler(MaMa* M, MaObject* o, const std::string& name) {
-    if (name == "розмір") {
-      return MaValue::Integer(o->AsDict()->GetSize());
-    }
-    return o->GetPropertyStrongDirect(M, name);
   }
 
   MaObject* MaDict::Create(MaMa* M) {
     const auto dict = new MaDict();
-    const auto dict_o =
-        MaObject::Instance(M, MA_OBJECT_DICT, M->dict_structure_object, dict);
-    dict_o->get = MaDictGetHandler;
-    dict_o->SetProperty(
+    const auto dict_o = MaObject::Instance(M, M->dict_structure_object, dict);
+    dict_o->setProperty(
         M, MAG_GET_ELEMENT,
-        MaNative::Create(M, MAG_GET_ELEMENT, MaDict_MagGetElementNativeDiiaFn,
-                         dict_o));
-    dict_o->SetProperty(
+        MaDiia::Create(M, MAG_GET_ELEMENT, MaDict_MagGetElementNativeDiiaFn,
+                       dict_o));
+    dict_o->setProperty(
         M, MAG_SET_ELEMENT,
-        MaNative::Create(M, MAG_SET_ELEMENT, MaDict_MagSetElementNativeDiiaFn,
-                         dict_o));
+        MaDiia::Create(M, MAG_SET_ELEMENT, MaDict_MagSetElementNativeDiiaFn,
+                       dict_o));
     return dict_o;
   }
 
