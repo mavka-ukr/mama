@@ -167,7 +167,7 @@ namespace mavka::mama {
       if (cell.asObject()->isList(M)) {
         return cell;
       }
-      return cell.asObject()->getProperty(M, MAG_LIST).Call(M, {}, {});
+      return cell.asObject()->getProperty(M, MAG_LIST).call(M, {}, {});
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на список.")),

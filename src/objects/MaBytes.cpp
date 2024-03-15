@@ -18,7 +18,7 @@ namespace mavka::mama {
       if (value.asObject()->isBytes(M)) {
         return value;
       }
-      return value.asObject()->getProperty(M, MAG_BYTES).Call(M, {}, {});
+      return value.asObject()->getProperty(M, MAG_BYTES).call(M, {}, {});
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на байти.")),

@@ -46,6 +46,37 @@ struct MaObject {
 
   MaObject* getStructure() const;
   bool is(MaMa* M, MaObject* object) const;
+  MaValue callMagWithValue(MaMa* M,
+                           const MaValue& value,
+                           const MaLocation& location,
+                           const std::string& name);
+  MaValue callMagWithoutValue(MaMa* M,
+                              const MaLocation& location,
+                              const std::string& name);
+  MaValue isGreater(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue isGreaterOrEqual(MaMa* M,
+                           const MaValue& value,
+                           const MaLocation& location);
+  MaValue isLesser(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue isLesserOrEqual(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location);
+  MaValue contains(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doNegative(MaMa* M, const MaLocation& location);
+  MaValue doPositive(MaMa* M, const MaLocation& location);
+  MaValue doBNot(MaMa* M, const MaLocation& location);
+  MaValue doAdd(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doSub(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doMul(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doDiv(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doMod(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doDivDiv(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doPow(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doXor(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doBor(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doBand(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doShl(MaMa* M, const MaValue& value, const MaLocation& location);
+  MaValue doShr(MaMa* M, const MaValue& value, const MaLocation& location);
 
   void setProperty(MaMa* M, const std::string& name, const MaValue& value);
   void setProperty(MaMa* M, const std::string& name, MaObject* value);
@@ -68,6 +99,7 @@ enum MaValueType : uint8_t {
   MaValueTypeError,
 };
 
+// You must never store MaValue in the heap! It's a value type.
 struct MaValue {
   MaValueType type;
   union {
@@ -78,14 +110,68 @@ struct MaValue {
   } v;
 
   std::string GetName() const;
-  MaValue Call(MaMa* M, MaArgs* args, const MaLocation& location) const;
-  MaValue Call(MaMa* M,
+
+  MaValue call(MaMa* M, MaArgs* args, const MaLocation& location) const;
+  MaValue call(MaMa* M,
                const std::vector<MaValue>& args,
                const MaLocation& location) const;
-  MaValue Call(MaMa* M,
-               const std::unordered_map<std::string, MaValue>& args,
-               const MaLocation& location) const;
   bool isEqual(MaMa* M, const MaValue& other) const;
+  MaValue is(MaMa* M, const MaValue& value, const MaLocation& location) const;
+  MaValue isGreater(MaMa* M,
+                    const MaValue& value,
+                    const MaLocation& location) const;
+  MaValue isGreaterOrEqual(MaMa* M,
+                           const MaValue& value,
+                           const MaLocation& location) const;
+  MaValue isLesser(MaMa* M,
+                   const MaValue& value,
+                   const MaLocation& location) const;
+  MaValue isLesserOrEqual(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) const;
+  MaValue contains(MaMa* M,
+                   const MaValue& value,
+                   const MaLocation& location) const;
+  MaValue doNot(MaMa* M, const MaLocation& location) const;
+  MaValue doNegative(MaMa* M, const MaLocation& location) const;
+  MaValue doPositive(MaMa* M, const MaLocation& location) const;
+  MaValue doBNot(MaMa* M, const MaLocation& location) const;
+  MaValue doAdd(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doSub(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doMul(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doDiv(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doMod(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doDivDiv(MaMa* M,
+                   const MaValue& value,
+                   const MaLocation& location) const;
+  MaValue doPow(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doXor(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doBor(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doBand(MaMa* M,
+                 const MaValue& value,
+                 const MaLocation& location) const;
+  MaValue doShl(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
+  MaValue doShr(MaMa* M,
+                const MaValue& value,
+                const MaLocation& location) const;
 
   inline void retain() const {
     if (this->isObject()) {

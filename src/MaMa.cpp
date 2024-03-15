@@ -90,7 +90,7 @@ namespace mavka::mama {
         case VCall: {
           POP_VALUE(args_value);
           POP_VALUE(value);
-          const auto result = value.Call(this, args_value.v.args, I.location);
+          const auto result = value.call(this, args_value.v.args, I.location);
           if (result.isError()) {
             return result;
           }
@@ -343,651 +343,217 @@ namespace mavka::mama {
         case VGt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              if (left.asNumber() > right.asNumber()) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_GREATER) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            left.asObject()->retain();
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_GREATER);
-            if (diia_cell.isObject()) {
-              diia_cell.asObject()->retain();
-              if (right.isObject()) {
-                right.retain();
-              }
-              const auto result = diia_cell.Call(this, {right}, {});
-              diia_cell.asObject()->release();
-              left.asObject()->release();
-              if (right.isObject()) {
-                right.asObject()->release();
-              }
-              if (result.isError()) {
-                return result;
-              }
-              PUSH(result);
-              break;
-            }
+          const auto result = left.isGreater(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
-          DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER, left,
-                                                    I.location);
+          PUSH(result);
           break;
         }
         case VGe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              if (left.asNumber() >= right.asNumber()) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_GREATER_EQUAL) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            left.retain();
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_GREATER_EQUAL);
-            diia_cell.retain();
-            right.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_GREATER_EQUAL, left,
-                                                      I.location);
+          const auto result = left.isGreaterOrEqual(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VLt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              if (left.asNumber() < right.asNumber()) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_LESSER) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_LESSER);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER, left,
-                                                      I.location);
+          const auto result = left.isLesser(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VLe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              if (left.asNumber() <= right.asNumber()) {
-                PUSH_YES();
-              } else {
-                PUSH_NO();
-              }
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_LESSER_EQUAL) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_LESSER_EQUAL);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_LESSER_EQUAL, left,
-                                                      I.location);
+          const auto result = left.isLesserOrEqual(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VContains: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_CONTAINS);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            ;
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_CONTAINS, left,
-                                                      I.location);
+          const auto result = left.contains(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VIs: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isEmpty()) {
-            if (right.isEmpty()) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-            break;
+          const auto result = left.is(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
-          if (left.isNumber()) {
-            if (right.asObject() == this->number_structure_object) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-            break;
-          }
-          if (left.isYes() || left.isNo()) {
-            if (right.v.object == this->logical_structure_object) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-            break;
-          }
-          if (right.isObject() && left.isObject()) {
-            if (right.asObject()->is(this, left.asObject())) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-            break;
-          }
-          PUSH_NO();
+          PUSH(result);
           break;
         }
         case VNot: {
           POP_VALUE(value);
-          if (value.isEmpty()) {
-            PUSH_YES();
-          } else if (value.isNumber()) {
-            if (value.v.number == 0.0) {
-              PUSH_YES();
-            } else {
-              PUSH_NO();
-            }
-          } else if (value.isYes()) {
-            PUSH_NO();
-          } else if (value.isNo()) {
-            PUSH_YES();
-          } else {
-            PUSH_NO();
+          const auto result = value.doNot(this, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VNegative: {
           POP_VALUE(value);
-          if (value.isNumber()) {
-            PUSH_NUMBER(-value.asNumber());
-          } else if (value.isObject()) {
-            const auto diia_cell =
-                value.asObject()->getProperty(this, MAG_NEGATIVE);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_NEGATIVE, value,
-                                                      I.location);
+          const auto result = value.doNegative(this, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VPositive: {
           POP_VALUE(value);
-          if (value.isNumber()) {
-            PUSH_NUMBER(value.v.number * -1);
-          } else if (value.isObject()) {
-            const auto diia_cell =
-                value.asObject()->getProperty(this, MAG_POSITIVE);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POSITIVE, value,
-                                                      I.location);
+          const auto result = value.doPositive(this, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VBnot: {
           POP_VALUE(value);
-          if (value.isNumber()) {
-            PUSH_NUMBER(
-                static_cast<double>(~static_cast<long>(value.v.number)));
-          } else if (value.isObject()) {
-            const auto diia_cell =
-                value.asObject()->getProperty(this, MAG_BW_NOT);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_NOT, value,
-                                                      I.location);
+          const auto result = value.doBNot(this, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VAdd: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(left.asNumber() + right.asNumber());
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_ADD) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_ADD);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_ADD, left,
-                                                      I.location);
+          const auto result = left.doAdd(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VSub: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(left.asNumber() - right.asNumber());
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_SUB) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_SUB);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_SUB, left,
-                                                      I.location);
+          const auto result = left.doSub(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VMul: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(left.asNumber() * right.asNumber());
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_MUL) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_MUL);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MUL, left,
-                                                      I.location);
+          const auto result = left.doMul(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(left.asNumber() / right.asNumber());
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_DIV) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_DIV);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIV, left,
-                                                      I.location);
+          const auto result = left.doDiv(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VMod: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(fmod(left.asNumber(), right.asNumber()));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_MOD) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_MOD);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_MOD, left,
-                                                      I.location);
+          const auto result = left.doMod(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VDivDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(floor(left.asNumber() / right.asNumber()));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_DIVDIV) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_DIVDIV);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_DIVDIV, left,
-                                                      I.location);
+          const auto result = left.doDivDiv(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VPow: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(pow(left.asNumber(), right.asNumber()));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_POW) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell = left.asObject()->getProperty(this, MAG_POW);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, I.location);
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_POW, left,
-                                                      I.location);
+          const auto result = left.doPow(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VXor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.asNumber()) ^
-                                      static_cast<long>(right.asNumber())));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_BW_XOR) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_BW_XOR);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_XOR, left,
-                                                      I.location);
+          const auto result = left.doXor(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VBor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.asNumber()) |
-                                      static_cast<long>(right.asNumber())));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_BW_OR) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_BW_OR);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_OR, left,
-                                                      I.location);
+          const auto result = left.doBor(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VBand: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.asNumber()) &
-                                      static_cast<long>(right.asNumber())));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_BW_AND) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_BW_AND);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_AND, left,
-                                                      I.location);
+          const auto result = left.doBand(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VShl: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.asNumber())
-                                      << static_cast<long>(right.asNumber())));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_BW_SHIFT_LEFT) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_BW_SHIFT_LEFT);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_LEFT, left,
-                                                      I.location);
+          const auto result = left.doShl(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VShr: {
           POP_VALUE(right);
           POP_VALUE(left);
-          left.retain();
-          if (left.isNumber()) {
-            if (right.isNumber()) {
-              PUSH_NUMBER(
-                  static_cast<double>(static_cast<long>(left.asNumber()) >>
-                                      static_cast<long>(right.asNumber())));
-            } else {
-              DO_RETURN_STRING_ERROR(
-                  "Дія \"" + std::string(MAG_BW_SHIFT_RIGHT) +
-                      "\" для типу \"число\" "
-                      "очікує параметром значення типу \"число\".",
-                  I.location)
-            }
-          } else if (left.isObject()) {
-            const auto diia_cell =
-                left.asObject()->getProperty(this, MAG_BW_SHIFT_RIGHT);
-            diia_cell.retain();
-            const auto result = diia_cell.Call(this, {right}, {});
-            if (result.isError()) {
-              return result;
-            }
-            PUSH(result);
-            break;
-          } else {
-            DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(MAG_BW_SHIFT_RIGHT, left,
-                                                      I.location);
+          const auto result = left.doShr(this, right, I.location);
+          if (result.isError()) {
+            return result;
           }
+          PUSH(result);
           break;
         }
         case VTake: {

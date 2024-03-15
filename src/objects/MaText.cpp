@@ -317,7 +317,7 @@ namespace mavka::mama {
       if (cell.asObject()->isText(M)) {
         return cell;
       }
-      return cell.asObject()->getProperty(M, MAG_TEXT).Call(M, {}, {});
+      return cell.asObject()->getProperty(M, MAG_TEXT).call(M, {}, {});
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на текст.")),

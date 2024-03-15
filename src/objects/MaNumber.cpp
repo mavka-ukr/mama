@@ -21,7 +21,7 @@ namespace mavka::mama {
     if (arg_value_v.isObject()) {
       return arg_value_v.asObject()
           ->getProperty(M, MAG_NUMBER)
-          .Call(M, {}, location);
+          .call(M, {}, location);
     }
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на число.")),

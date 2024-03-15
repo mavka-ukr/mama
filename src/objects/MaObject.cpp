@@ -127,7 +127,7 @@ namespace mavka::mama {
                          const mavka::mama::MaLocation& location) {
     const auto mag_call = this->getProperty(M, MAG_CALL);
     if (!mag_call.isEmpty()) {
-      return mag_call.Call(M, args, location);
+      return mag_call.call(M, args, location);
     }
     const auto frame = new MaFrame(M->call_stack.top()->scope, this,
                                    M->call_stack.top()->module, location);
@@ -170,6 +170,159 @@ namespace mavka::mama {
     FRAME_POP();
     return MaValue::Error(new MaError(
         MaValue::Object(MaText::Create(M, "Неможливо викликати.")), location));
+  }
+
+  MaValue MaObject::callMagWithValue(MaMa* M,
+                                     const MaValue& value,
+                                     const MaLocation& location,
+                                     const std::string& name) {
+    this->retain();
+    const auto magicDiia = this->getProperty(M, name);
+    if (magicDiia.isObject()) {
+      magicDiia.asObject()->retain();
+    }
+    if (value.isObject()) {
+      value.asObject()->retain();
+    }
+    const auto result = magicDiia.call(M, {value}, location);
+    if (value.isObject()) {
+      value.asObject()->release();
+    }
+    if (magicDiia.isObject()) {
+      magicDiia.asObject()->release();
+    }
+    this->release();
+    return result;
+  }
+
+  MaValue MaObject::callMagWithoutValue(MaMa* M,
+                                        const MaLocation& location,
+                                        const std::string& name) {
+    this->retain();
+    const auto magicDiia = this->getProperty(M, name);
+    if (magicDiia.isObject()) {
+      magicDiia.asObject()->retain();
+    }
+    const auto result = magicDiia.call(M, {}, {});
+    if (magicDiia.isObject()) {
+      magicDiia.asObject()->release();
+    }
+    this->release();
+    return result;
+  }
+
+  MaValue MaObject::isGreater(MaMa* M,
+                              const MaValue& value,
+                              const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_GREATER);
+  }
+
+  MaValue MaObject::isGreaterOrEqual(MaMa* M,
+                                     const MaValue& value,
+                                     const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_GREATER_EQUAL);
+  }
+
+  MaValue MaObject::isLesser(MaMa* M,
+                             const MaValue& value,
+                             const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_LESSER);
+  }
+
+  MaValue MaObject::isLesserOrEqual(MaMa* M,
+                                    const MaValue& value,
+                                    const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_LESSER_EQUAL);
+  }
+
+  MaValue MaObject::contains(MaMa* M,
+                             const MaValue& value,
+                             const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_CONTAINS);
+  }
+
+  MaValue MaObject::doNegative(MaMa* M, const MaLocation& location) {
+    return this->callMagWithoutValue(M, location, MAG_NEGATIVE);
+  }
+
+  MaValue MaObject::doPositive(MaMa* M, const MaLocation& location) {
+    return this->callMagWithoutValue(M, location, MAG_POSITIVE);
+  }
+
+  MaValue MaObject::doBNot(MaMa* M, const MaLocation& location) {
+    return this->callMagWithoutValue(M, location, MAG_BW_NOT);
+  }
+
+  MaValue MaObject::doAdd(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_ADD);
+  }
+
+  MaValue MaObject::doSub(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_SUB);
+  }
+
+  MaValue MaObject::doMul(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_MUL);
+  }
+
+  MaValue MaObject::doDiv(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_DIV);
+  }
+
+  MaValue MaObject::doMod(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_MOD);
+  }
+
+  MaValue MaObject::doDivDiv(MaMa* M,
+                             const MaValue& value,
+                             const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_DIVDIV);
+  }
+
+  MaValue MaObject::doPow(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_POW);
+  }
+
+  MaValue MaObject::doXor(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_BW_XOR);
+  }
+
+  MaValue MaObject::doBor(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_BW_OR);
+  }
+
+  MaValue MaObject::doBand(MaMa* M,
+                           const MaValue& value,
+                           const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_BW_AND);
+  }
+
+  MaValue MaObject::doShl(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_BW_SHIFT_LEFT);
+  }
+
+  MaValue MaObject::doShr(MaMa* M,
+                          const MaValue& value,
+                          const MaLocation& location) {
+    return this->callMagWithValue(M, value, location, MAG_BW_SHIFT_RIGHT);
   }
 
   void MaObject::Init(MaMa* M) {
