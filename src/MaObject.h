@@ -84,6 +84,8 @@ struct MaObject {
 
   MaValue call(MaMa* M, MaArgs* args, const MaLocation& location);
 
+  std::string getPrettyString(MaMa* M);
+
   static void Init(MaMa* M);
   static MaObject* Instance(MaMa* M, MaObject* structure_object, void* d);
   static MaObject* Empty(MaMa* M);
@@ -322,6 +324,8 @@ class MaModule final {
   std::string name;
   MaCode* code;
   bool is_file_module;
+
+  inline std::string getName() const { return this->name; };
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& name);

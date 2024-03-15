@@ -8,12 +8,12 @@ struct MaArgs {
   std::unordered_map<std::string, MaValue> named;
   std::vector<MaValue> positioned;
 
-  void Set(const std::string& name, const MaValue& value);
-  void Push(const MaValue& value);
-  MaValue Get(size_t index,
+  void set(const std::string& name, const MaValue& value);
+  void push(const MaValue& value);
+  MaValue get(size_t index,
               const std::string& name,
               const MaValue& default_value);
-  MaValue Get(size_t index, const std::string& name);
+  MaValue get(size_t index, const std::string& name);
 };
 
 struct MaFrame {

@@ -6,7 +6,7 @@ namespace mavka::mama {
                                            MaObject* o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isEmpty()) {
       return MaValue::Empty();
     }
@@ -25,10 +25,14 @@ namespace mavka::mama {
   MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
     const auto structure = new MaStructure();
     structure->name = name;
-    const auto structure_o = new MaObject();
-    structure_o->type = M->structure_structure_object;
-    structure_o->d.structure = structure;
-    return structure_o;
+    const auto structureObject = new MaObject();
+    structureObject->type = M->structure_structure_object;
+    structureObject->d.structure = structure;
+#if MAMA_GC_DEBUG
+    std::cout << "[GC] created " << structureObject->getPrettyString(M) << " "
+              << (void*)structureObject << std::endl;
+#endif
+    return structureObject;
   }
 
   std::string MaStructure::getName() const {

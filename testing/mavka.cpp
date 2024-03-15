@@ -109,7 +109,7 @@ void init_print(MaMa* M) {
 void init_read(MaMa* M) {
   const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
                             const MaLocation& location) {
-    const auto prefix = args->Get(0, "префікс");
+    const auto prefix = args->get(0, "префікс");
     if (prefix.isObject() && prefix.asObject()->isText(M)) {
       std::cout << prefix.asText()->data;
     }

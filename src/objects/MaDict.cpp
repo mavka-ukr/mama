@@ -38,7 +38,7 @@ namespace mavka::mama {
                                            MaObject* native_o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto key = args->Get(0, "ключ");
+    const auto key = args->get(0, "ключ");
     return native_o->asDiia()->getMe()->asDict()->getAt(M, key);
   }
 
@@ -47,8 +47,8 @@ namespace mavka::mama {
                                            MaObject* native_o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto key = args->Get(0, "ключ");
-    const auto value = args->Get(1, "значення");
+    const auto key = args->get(0, "ключ");
+    const auto value = args->get(1, "значення");
     native_o->asDiia()->getMe()->asDict()->setAt(M, key, value);
     return MaValue::Empty();
   }

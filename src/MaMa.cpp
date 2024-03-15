@@ -78,13 +78,13 @@ namespace mavka::mama {
         case VPushArg: {
           POP_VALUE(value);
           TOP_VALUE(argsValue);
-          argsValue.asArgs()->Push(value);
+          argsValue.asArgs()->push(value);
           break;
         }
         case VStoreArg: {
           POP_VALUE(value);
           TOP_VALUE(argsValue);
-          argsValue.asArgs()->Set(I.data.store->name, value);
+          argsValue.asArgs()->set(I.data.store->name, value);
           break;
         }
         case VCall: {

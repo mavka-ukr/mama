@@ -94,7 +94,7 @@ namespace mavka::mama {
                                            MaObject* native_o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto key = args->Get(0, "ключ");
+    const auto key = args->get(0, "ключ");
     if (key.isNumber()) {
       return native_o->asDiia()->getMe()->asList()->getAt(M, key.asInteger());
     }
@@ -106,12 +106,12 @@ namespace mavka::mama {
                                            MaObject* native_o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto key = args->Get(0, "ключ");
+    const auto key = args->get(0, "ключ");
     if (!key.isNumber()) {
       // maybe return error
       return MaValue::Empty();
     }
-    const auto value = args->Get(1, "значення");
+    const auto value = args->get(1, "значення");
     native_o->asDiia()->getMe()->asList()->setAt(M, key.asInteger(), value);
     return MaValue::Empty();
   }
@@ -121,7 +121,7 @@ namespace mavka::mama {
                                     MaObject* native_o,
                                     MaArgs* args,
                                     const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     native_o->asDiia()->getMe()->asList()->append(M, cell);
     return MaValue::Integer(native_o->asDiia()->getMe()->asList()->getLength());
   }
@@ -131,7 +131,7 @@ namespace mavka::mama {
                                          MaObject* native_o,
                                          MaArgs* args,
                                          const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (native_o->asDiia()->getMe()->asList()->contains(M, cell)) {
       return MaValue::Yes();
     } else {
@@ -166,7 +166,7 @@ namespace mavka::mama {
                                                MaObject* native_o,
                                                MaArgs* args,
                                                const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isObject()) {
       if (cell.asObject()->isList(M)) {
         return cell;

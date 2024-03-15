@@ -5,7 +5,7 @@ namespace mavka::mama {
                                                  MaObject* o,
                                                  MaArgs* args,
                                                  const MaLocation& location) {
-    const auto arg_value_v = args->Get(0, "значення");
+    const auto arg_value_v = args->get(0, "значення");
     if (arg_value_v.isEmpty()) {
       return MaValue::Number(0);
     }

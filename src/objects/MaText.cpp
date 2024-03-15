@@ -60,7 +60,7 @@ namespace mavka::mama {
                                    MaObject* native_o,
                                    MaArgs* args,
                                    const MaLocation& location) {
-    const auto cell = args->Get(0, "роздільник");
+    const auto cell = args->get(0, "роздільник");
     if (cell.isObject() && cell.asObject()->isText(M)) {
       const auto delim = cell.asObject()->asText()->data;
 
@@ -100,14 +100,14 @@ namespace mavka::mama {
                                      MaObject* o,
                                      MaArgs* args,
                                      const MaLocation& location) {
-    const auto oldVal = args->Get(0, "старе");
+    const auto oldVal = args->get(0, "старе");
     if (!(oldVal.isObject() && oldVal.asObject()->isText(M))) {
       return MaValue::Error(MaError::Create(
           MaValue::Object(MaText::Create(
               M, "Для дії \"замінити\" перший аргумент повинен бути текстом.")),
           M->call_stack.top()->module, location));
     }
-    const auto newVal = args->Get(1, "нове");
+    const auto newVal = args->get(1, "нове");
     if (!(newVal.isObject() && newVal.asObject()->isText(M))) {
       return MaValue::Error(MaError::Create(
           MaValue::Object(MaText::Create(
@@ -133,7 +133,7 @@ namespace mavka::mama {
                                         MaObject* o,
                                         MaArgs* args,
                                         const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isObject() && cell.asObject()->isText(M)) {
       if (o->asDiia()->getMe()->asText()->data.find(
               cell.asObject()->asText()->data) == 0) {
@@ -153,7 +153,7 @@ namespace mavka::mama {
                                       MaObject* o,
                                       MaArgs* args,
                                       const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isObject() && cell.asObject()->isText(M)) {
       const auto text = cell.asText();
       if (o->asDiia()->getMe()->asText()->getLength() < text->getLength()) {
@@ -187,7 +187,7 @@ namespace mavka::mama {
                                     MaObject* o,
                                     MaArgs* args,
                                     const MaLocation& location) {
-    const auto arg_cell = args->Get(0, "значення");
+    const auto arg_cell = args->get(0, "значення");
     if (arg_cell.isEmpty()) {
       return MaValue::Object(
           MaText::Create(M, o->asDiia()->getMe()->asText()->data + "пусто"));
@@ -224,7 +224,7 @@ namespace mavka::mama {
                                          MaObject* o,
                                          MaArgs* args,
                                          const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isObject() && cell.asObject()->isText(M)) {
       if (o->asDiia()->getMe()->asText()->data.find(
               cell.asObject()->asText()->data) != std::string::npos) {
@@ -244,7 +244,7 @@ namespace mavka::mama {
                                            MaObject* o,
                                            MaArgs* args,
                                            const MaLocation& location) {
-    const auto cell = args->Get(0, "позиція");
+    const auto cell = args->get(0, "позиція");
     if (cell.isNumber()) {
       const auto i = cell.asNumber();
       if (i < o->asDiia()->getMe()->asText()->getLength()) {
@@ -317,7 +317,7 @@ namespace mavka::mama {
                                                MaObject* native_o,
                                                MaArgs* args,
                                                const MaLocation& location) {
-    const auto cell = args->Get(0, "значення");
+    const auto cell = args->get(0, "значення");
     if (cell.isNumber()) {
       return MaValue::Object(
           MaText::Create(M, ma_number_to_string(cell.v.number)));

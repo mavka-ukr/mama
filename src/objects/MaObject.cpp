@@ -148,7 +148,7 @@ namespace mavka::mama {
         }
         for (int i = 0; i < diia->getParams().size(); ++i) {
           const auto& param = this->d.diia->params[i];
-          const auto arg_value = args->Get(i, param.name, param.default_value);
+          const auto arg_value = args->get(i, param.name, param.default_value);
           frame->scope->setSubject(param.name, arg_value);
         }
         std::stack<MaValue> stack;
@@ -165,7 +165,7 @@ namespace mavka::mama {
       const auto object = MaObject::Instance(M, this, nullptr);
       for (int i = 0; i < this->d.structure->params.size(); ++i) {
         const auto& param = this->d.structure->params[i];
-        const auto arg_value = args->Get(i, param.name, param.default_value);
+        const auto arg_value = args->get(i, param.name, param.default_value);
         object->setProperty(M, param.name, arg_value);
       }
       FRAME_POP();
@@ -330,6 +330,37 @@ namespace mavka::mama {
     return this->callMagWithValue(M, value, location, MAG_BW_SHIFT_RIGHT);
   }
 
+  std::string MaObject::getPrettyString(MaMa* M) {
+    if (this->isStructure(M)) {
+      const auto structureName = this->asStructure()->getName();
+      return "<структура " + structureName + ">";
+    }
+    if (this->isDiia(M)) {
+      const auto diiaName = this->asDiia()->name;
+      const auto boundName = this->asDiia()->me
+                                 ? this->asDiia()->me->getStructure()
+                                       ? this->asDiia()
+                                             ->me->getStructure()
+                                             ->asStructure()
+                                             ->getName()
+                                       : ""
+                                 : "";
+      if (boundName.empty()) {
+        return "<дія " + diiaName + ">";
+      }
+      return "<дія " + boundName + "." + diiaName + ">";
+    }
+    if (this->isModule(M)) {
+      const auto moduleName = this->asModule()->getName();
+      return "<модуль " + moduleName + ">";
+    }
+    if (this->getStructure()) {
+      const auto structureName = this->getStructure()->asStructure()->getName();
+      return "<обʼєкт " + structureName + ">";
+    }
+    return "<обʼєкт>";
+  }
+
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
     M->global_scope->setSubject("обʼєкт", object_structure_object);
@@ -337,9 +368,6 @@ namespace mavka::mama {
   }
 
   MaObject* MaObject::Instance(MaMa* M, MaObject* structure_object, void* d) {
-#if MAMA_GC_DEBUG
-    std::cout << "MaObject::Instance " << (void*)d << std::endl;
-#endif
     const auto object = new MaObject();
     object->type = structure_object;
     object->d.ptr = d;
@@ -348,6 +376,10 @@ namespace mavka::mama {
       object->setProperty(M, method->d.diia->name,
                           MaValue::Object(bound_diia_object));
     }
+#if MAMA_GC_DEBUG
+    std::cout << "[GC] created " << object->getPrettyString(M) << " "
+              << (void*)object << std::endl;
+#endif
     return object;
   }
 

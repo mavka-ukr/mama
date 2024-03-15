@@ -13,7 +13,7 @@ namespace mavka::mama {
                                                 MaObject* native_o,
                                                 MaArgs* args,
                                                 const MaLocation& location) {
-    const auto value = args->Get(0, "значення");
+    const auto value = args->get(0, "значення");
     if (value.isObject()) {
       if (value.asObject()->isBytes(M)) {
         return value;
