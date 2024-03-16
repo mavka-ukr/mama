@@ -271,7 +271,7 @@ class MaModule final {
  public:
   std::string name;
   MaCode* code;
-  bool is_file_module;
+  MaObject* root;
 
   inline std::string getName() const { return this->name; };
 

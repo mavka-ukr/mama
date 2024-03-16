@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "../src/mama.h"
+#include "../src/takeFs.h"
 
 using namespace mavka::mama;
 
@@ -96,34 +97,6 @@ void init_print(MaMa* M) {
                                MaDiia::Create(M, "друк", native_fn, nullptr));
 }
 
-void init_create_module(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* diiaObject, MaObject* args,
-                            size_t li) {
-    const auto name = args->getArg(M, "0", "назва");
-    if (name.isObject() && name.asObject()->isText(M)) {
-      const auto module =
-          MaValue::Object(MaModule::Create(M, name.asText()->data));
-
-      const auto path = args->getArg(M, "1", "шлях");
-      if (path.isObject() && path.asObject()->isText(M)) {
-        module.asObject()->d.module->is_file_module = true;
-        if (M->main_module == nullptr) {
-          M->main_module = module.asObject();
-        }
-        M->loaded_file_modules.insert_or_assign(path.asObject()->asText()->data,
-                                                module.asObject());
-      }
-
-      return module;
-    }
-    return MaValue::Error(
-        MaError::Create(M, "Не вдалося створити модуль.", li));
-  };
-  M->global_scope->setProperty(
-      M, "створити_модуль",
-      MaDiia::Create(M, "створити_модуль", native_fn, nullptr));
-}
-
 void init_read(MaMa* M) {
   const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
     const auto prefix = args->getArg(M, "0", "префікс");
@@ -141,72 +114,16 @@ void init_read(MaMa* M) {
                                MaDiia::Create(M, "читати", native_fn, nullptr));
 }
 
-MaValue takePath(MaMa* M, const std::string& raw_path, size_t li) {
-  const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
-  const auto path = canonical_path.string();
-  if (!std::filesystem::exists(canonical_path)) {
-    return MaValue::Error(MaError::Create(
-        M, "Шлях \"" + canonical_path.string() + "\" не існує.", li));
-  }
-  if (!std::filesystem::is_regular_file(canonical_path)) {
-    return MaValue::Error(
-        MaError::Create(M, "Шлях \"" + path + "\" не вказує на файл.", li));
-  }
-
-  if (M->loaded_file_modules.contains(path)) {
-    return MaValue::Object(M->loaded_file_modules[path]);
-  }
-
-  auto file = std::ifstream(path);
-  if (!file.is_open()) {
-    return MaValue::Error(
-        MaError::Create(M, "Не вдалося прочитати файл \"" + path + "\".", li));
-  }
-
-  const auto fs_path = std::filesystem::path(path);
-  const auto name = fs_path.stem().string();
-
-  const auto source = std::string(std::istreambuf_iterator(file),
-                                  std::istreambuf_iterator<char>());
-
-  return M->takeSource(path, name, source, li);
-}
-
-MaValue take_fn(MaMa* M,
-                const std::string& repository,
-                bool relative,
-                const std::vector<std::string>& parts,
-                size_t li) {
-  if (!repository.empty()) {
-    //    const auto frame = M->call_stack.top();
-    //    const auto currentModule = frame->module;
-
-    return MaValue::Error(
-        MaError::Create(M, "Не підтримується взяття з репозиторію.", li));
-  }
-  if (relative) {
-    return MaValue::Error(
-        MaError::Create(M, "Не підтримується взяття відносного шляху.", li));
-  }
-  const auto mainModulePath = M->main_module->asModule()->code->path;
-  const auto mainModuleDir =
-      std::filesystem::path(mainModulePath).parent_path();
-  const auto path = mainModuleDir.string() + "/" +
-                    mavka::internal::tools::implode(parts, "/") + ".м";
-  return takePath(M, path, li);
-}
-
 int main(int argc, char** argv) {
   const auto args = std::vector<std::string>(argv, argv + argc);
 
   const auto M = MaMa::Create();
-  M->take_fn = take_fn;
+  M->take_fn = maTakeFsFn;
 
   init_print(M);
   init_read(M);
-  init_create_module(M);
 
-  const auto take_result = takePath(M, args[1], {});
+  const auto take_result = maTakeFsPath(M, args[1], true, {});
   if (take_result.isError()) {
     const auto stackTrace = M->getStackTrace();
     if (!stackTrace.empty()) {

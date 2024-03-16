@@ -1,5 +1,7 @@
-#ifndef MAMA_H
-#define MAMA_H
+#pragma once
+
+#ifndef MAMA_H_
+#define MAMA_H_
 
 #include <algorithm>
 #include <cmath>
@@ -159,6 +161,7 @@ namespace mavka::mama {
     MaValue takeSource(const std::string& path,
                        const std::string& name,
                        const std::string& source,
+                       bool root,
                        size_t li);
 
     std::string getStackTrace();
@@ -186,4 +189,4 @@ namespace mavka::mama {
   };
 } // namespace mavka::mama
 
-#endif // MAMA_H
+#endif // MAMA_H_

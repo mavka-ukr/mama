@@ -608,6 +608,7 @@ namespace mavka::mama {
   MaValue MaMa::takeSource(const std::string& path,
                            const std::string& name,
                            const std::string& source,
+                           bool root,
                            size_t li) {
     if (this->loaded_file_modules.contains(path)) {
       return MaValue::Object(this->loaded_file_modules[path]);
@@ -620,10 +621,15 @@ namespace mavka::mama {
     const auto moduleCode = new MaCode();
     moduleCode->path = path;
     const auto moduleObject = MaModule::Create(this, name);
-    moduleObject->d.module->code = moduleCode;
-    moduleObject->d.module->is_file_module = true;
+    moduleObject->asModule()->code = moduleCode;
     if (this->main_module == nullptr) {
       this->main_module = moduleObject;
+    }
+    if (root) {
+      moduleObject->asModule()->root = moduleObject;
+    } else {
+      moduleObject->asModule()->root =
+          this->call_stack.top()->module->asModule()->root;
     }
     this->loaded_file_modules.insert_or_assign(path, moduleObject);
     const auto bodyCompilationResult =
@@ -634,8 +640,9 @@ namespace mavka::mama {
     }
     const auto makeModuleDiiaObject = MaDiia::Create(
         this, "",
-        [&moduleCode](MaMa* M, MaObject* diiaObject, MaObject* args,
-                       size_t li) {
+        [&moduleCode, &moduleObject](MaMa* M, MaObject* diiaObject,
+                                     MaObject* args, size_t li) {
+          M->call_stack.top()->module = moduleObject;
           std::stack<MaValue> stack;
           const auto result = M->run(moduleCode, stack);
           if (result.isError()) {
