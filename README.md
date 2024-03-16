@@ -46,7 +46,7 @@ using namespace mavka::mama;
 
 MaValue TakePath(MaMa* M,
                  const std::string& raw_path,
-                 const MaLocation& location) {
+                 size_t li) {
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
@@ -81,7 +81,7 @@ MaValue take_fn(MaMa* M,
                 const std::string& repository,
                 bool relative,
                 const std::vector<std::string>& parts,
-                const MaLocation& location) {
+                size_t li) {
   if (!repository.empty()) {
     return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття з репозиторію.", location));

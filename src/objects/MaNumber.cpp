@@ -4,7 +4,7 @@ namespace mavka::mama {
   MaValue MaNumber_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                  MaObject* o,
                                                  MaObject* args,
-                                                 const MaLocation& location) {
+                                                 size_t li) {
     const auto arg_value_v = args->getArg(M, "0", "значення");
     if (arg_value_v.isEmpty()) {
       return MaValue::Number(0);
@@ -19,13 +19,11 @@ namespace mavka::mama {
       return MaValue::Number(0);
     }
     if (arg_value_v.isObject()) {
-      return arg_value_v.asObject()
-          ->getProperty(M, MAG_NUMBER)
-          .call(M, {}, location);
+      return arg_value_v.asObject()->getProperty(M, MAG_NUMBER).call(M, {}, li);
     }
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на число.")),
-        M->call_stack.top()->module, location));
+        li));
   }
 
   void InitNumber(MaMa* M) {

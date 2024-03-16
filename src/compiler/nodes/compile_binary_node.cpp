@@ -13,55 +13,58 @@ namespace mavka::mama {
     if (right.error) {
       return right;
     }
-    const auto instruction_location =
-        MaLocation(ast_value->start_line, ast_value->start_column);
+    const auto location =
+        MaLocation(ast_value->start_line, ast_value->start_column, code->path);
+    M->locations.push_back(location);
+    const auto li = M->locations.size() - 1;
+
     if (binary_node->op == ast::ARITHMETIC_ADD) {
-      code->push(MaInstruction::add(instruction_location));
+      code->push(MaInstruction::add(li));
     } else if (binary_node->op == ast::ARITHMETIC_SUB) {
-      code->push(MaInstruction::sub(instruction_location));
+      code->push(MaInstruction::sub(li));
     } else if (binary_node->op == ast::ARITHMETIC_MUL) {
-      code->push(MaInstruction::mul(instruction_location));
+      code->push(MaInstruction::mul(li));
     } else if (binary_node->op == ast::ARITHMETIC_DIV) {
-      code->push(MaInstruction::div(instruction_location));
+      code->push(MaInstruction::div(li));
     } else if (binary_node->op == ast::ARITHMETIC_MOD) {
-      code->push(MaInstruction::mod(instruction_location));
+      code->push(MaInstruction::mod(li));
     } else if (binary_node->op == ast::ARITHMETIC_DIVDIV) {
-      code->push(MaInstruction::divdiv(instruction_location));
+      code->push(MaInstruction::divdiv(li));
     } else if (binary_node->op == ast::ARITHMETIC_POW) {
-      code->push(MaInstruction::pow(instruction_location));
+      code->push(MaInstruction::pow(li));
     } else if (binary_node->op == ast::BITWISE_XOR) {
-      code->push(MaInstruction::xor_());
+      code->push(MaInstruction::xor_(li));
     } else if (binary_node->op == ast::BITWISE_OR) {
-      code->push(MaInstruction::bor());
+      code->push(MaInstruction::bor(li));
     } else if (binary_node->op == ast::BITWISE_AND) {
-      code->push(MaInstruction::band());
+      code->push(MaInstruction::band(li));
     } else if (binary_node->op == ast::BITWISE_SHIFT_LEFT) {
-      code->push(MaInstruction::shl());
+      code->push(MaInstruction::shl(li));
     } else if (binary_node->op == ast::BITWISE_SHIFT_RIGHT) {
-      code->push(MaInstruction::shr());
+      code->push(MaInstruction::shr(li));
     } else if (binary_node->op == ast::COMPARISON_EQ) {
-      code->push(MaInstruction::eq());
+      code->push(MaInstruction::eq(li));
     } else if (binary_node->op == ast::COMPARISON_NE) {
-      code->push(MaInstruction::eq());
-      code->push(MaInstruction::not_());
+      code->push(MaInstruction::eq(li));
+      code->push(MaInstruction::not_(li));
     } else if (binary_node->op == ast::COMPARISON_GT) {
-      code->push(MaInstruction::gt());
+      code->push(MaInstruction::gt(li));
     } else if (binary_node->op == ast::COMPARISON_GE) {
-      code->push(MaInstruction::ge());
+      code->push(MaInstruction::ge(li));
     } else if (binary_node->op == ast::COMPARISON_LT) {
-      code->push(MaInstruction::lt());
+      code->push(MaInstruction::lt(li));
     } else if (binary_node->op == ast::COMPARISON_LE) {
-      code->push(MaInstruction::le());
+      code->push(MaInstruction::le(li));
     } else if (binary_node->op == ast::COMPARISON_CONTAINS) {
-      code->push(MaInstruction::contains());
+      code->push(MaInstruction::contains(li));
     } else if (binary_node->op == ast::COMPARISON_NOT_CONTAINS) {
-      code->push(MaInstruction::contains());
-      code->push(MaInstruction::not_());
+      code->push(MaInstruction::contains(li));
+      code->push(MaInstruction::not_(li));
     } else if (binary_node->op == ast::COMPARISON_IS) {
-      code->push(MaInstruction::is());
+      code->push(MaInstruction::is(li));
     } else if (binary_node->op == ast::COMPARISON_NOT_IS) {
-      code->push(MaInstruction::is());
-      code->push(MaInstruction::not_());
+      code->push(MaInstruction::is(li));
+      code->push(MaInstruction::not_(li));
     } else if (binary_node->op == ast::UTIL_AS) {
       return error(ast_value, "Вказівка \"як\" тимчасово недоступна.");
     }

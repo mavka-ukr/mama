@@ -30,7 +30,6 @@ namespace mavka::mama {
   MaObject* MaDiia::Bind(MaMa* M, MaObject* object) {
     const auto diia_object = MaDiia::Create(M, this->name, this->code, object);
     diia_object->d.diia->scope = this->scope;
-    diia_object->d.diia->fm = this->fm;
     diia_object->d.diia->params = this->params;
     return diia_object;
   }

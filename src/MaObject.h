@@ -50,11 +50,9 @@ struct MaObject {
   bool is(MaMa* M, MaObject* object) const;
   MaValue callMagWithValue(MaMa* M,
                            const MaValue& value,
-                           const MaLocation& location,
+                           size_t li,
                            const std::string& name);
-  MaValue callMagWithoutValue(MaMa* M,
-                              const MaLocation& location,
-                              const std::string& name);
+  MaValue callMagWithoutValue(MaMa* M, size_t li, const std::string& name);
 
   void setProperty(MaMa* M, const std::string& name, const MaValue& value);
   void setProperty(MaMa* M, const std::string& name, MaObject* value);
@@ -66,7 +64,7 @@ struct MaObject {
                  const std::string& name,
                  const MaValue& defaultValue);
 
-  MaValue call(MaMa* M, MaObject* args, const MaLocation& location);
+  MaValue call(MaMa* M, MaObject* args, size_t li);
 
   std::string getPrettyString(MaMa* M);
 
@@ -97,67 +95,31 @@ struct MaValue {
 
   std::string getName() const;
 
-  MaValue call(MaMa* M, MaObject* args, const MaLocation& location) const;
-  MaValue call(MaMa* M,
-               const std::vector<MaValue>& args,
-               const MaLocation& location) const;
+  MaValue call(MaMa* M, MaObject* args, size_t li) const;
+  MaValue call(MaMa* M, const std::vector<MaValue>& args, size_t li) const;
   bool isEqual(MaMa* M, const MaValue& other) const;
-  MaValue is(MaMa* M, const MaValue& value, const MaLocation& location) const;
-  MaValue isGreater(MaMa* M,
-                    const MaValue& value,
-                    const MaLocation& location) const;
-  MaValue isGreaterOrEqual(MaMa* M,
-                           const MaValue& value,
-                           const MaLocation& location) const;
-  MaValue isLesser(MaMa* M,
-                   const MaValue& value,
-                   const MaLocation& location) const;
-  MaValue isLesserOrEqual(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) const;
-  MaValue contains(MaMa* M,
-                   const MaValue& value,
-                   const MaLocation& location) const;
-  MaValue doNot(MaMa* M, const MaLocation& location) const;
-  MaValue doNegative(MaMa* M, const MaLocation& location) const;
-  MaValue doPositive(MaMa* M, const MaLocation& location) const;
-  MaValue doBNot(MaMa* M, const MaLocation& location) const;
-  MaValue doAdd(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doSub(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doMul(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doDiv(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doMod(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doDivDiv(MaMa* M,
-                   const MaValue& value,
-                   const MaLocation& location) const;
-  MaValue doPow(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doXor(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doBor(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doBand(MaMa* M,
-                 const MaValue& value,
-                 const MaLocation& location) const;
-  MaValue doShl(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
-  MaValue doShr(MaMa* M,
-                const MaValue& value,
-                const MaLocation& location) const;
+  MaValue is(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue isGreater(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue isGreaterOrEqual(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue isLesser(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue isLesserOrEqual(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue contains(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doNot(MaMa* M, size_t li) const;
+  MaValue doNegative(MaMa* M, size_t li) const;
+  MaValue doPositive(MaMa* M, size_t li) const;
+  MaValue doBNot(MaMa* M, size_t li) const;
+  MaValue doAdd(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doSub(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doMul(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doDiv(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doMod(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doDivDiv(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doPow(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doXor(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doBor(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doBand(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doShl(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue doShr(MaMa* M, const MaValue& value, size_t li) const;
 
   inline bool isEmpty() const { return this->type == MaValueTypeEmpty; };
   inline bool isNumber() const { return this->type == MaValueTypeNumber; };
@@ -192,11 +154,11 @@ struct MaValue {
   static MaValue ErrorDiiaNotDefinedFor(MaMa* M,
                                         const std::string& name,
                                         const MaValue& value,
-                                        const MaLocation& location);
+                                        size_t li);
   static MaValue ErrorExpectedNumberFirstParam(MaMa* M,
                                                const std::string& name,
                                                const MaValue& value,
-                                               const MaLocation& location);
+                                               size_t li);
 };
 
 class MaText final {
@@ -247,7 +209,7 @@ class MaDiiaParam final {
 typedef MaValue NativeFn(MaMa* M,
                          MaObject* diiaObject,
                          MaObject* args,
-                         MaLocation location);
+                         size_t li);
 
 class MaDiia final {
  public:
@@ -255,7 +217,6 @@ class MaDiia final {
   MaCode* code;
   MaObject* me;
   MaObject* scope;
-  MaObject* fm;
   std::vector<MaDiiaParam> params;
   std::unordered_map<std::string, std::string> param_index_map;
 

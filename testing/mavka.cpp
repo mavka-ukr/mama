@@ -86,8 +86,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
 }
 
 void init_print(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args,
-                            const MaLocation& location) {
+  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
     for (const auto& [key, value] : args->properties) {
       std::cout << cell_to_string(M, value) << std::endl;
     }
@@ -97,9 +96,36 @@ void init_print(MaMa* M) {
                                MaDiia::Create(M, "друк", native_fn, nullptr));
 }
 
+void init_create_module(MaMa* M) {
+  const auto native_fn = [](MaMa* M, MaObject* diiaObject, MaObject* args,
+                            size_t li) {
+    const auto name = args->getArg(M, "0", "назва");
+    if (name.isObject() && name.asObject()->isText(M)) {
+      const auto module =
+          MaValue::Object(MaModule::Create(M, name.asText()->data));
+
+      const auto path = args->getArg(M, "1", "шлях");
+      if (path.isObject() && path.asObject()->isText(M)) {
+        module.asObject()->d.module->is_file_module = true;
+        if (M->main_module == nullptr) {
+          M->main_module = module.asObject();
+        }
+        M->loaded_file_modules.insert_or_assign(path.asObject()->asText()->data,
+                                                module.asObject());
+      }
+
+      return module;
+    }
+    return MaValue::Error(
+        MaError::Create(M, "Не вдалося створити модуль.", li));
+  };
+  M->global_scope->setProperty(
+      M, "створити_модуль",
+      MaDiia::Create(M, "створити_модуль", native_fn, nullptr));
+}
+
 void init_read(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args,
-                            const MaLocation& location) {
+  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
     const auto prefix = args->getArg(M, "0", "префікс");
     if (prefix.isObject() && prefix.asObject()->isText(M)) {
       std::cout << prefix.asText()->data;
@@ -115,18 +141,16 @@ void init_read(MaMa* M) {
                                MaDiia::Create(M, "читати", native_fn, nullptr));
 }
 
-MaValue TakePath(MaMa* M,
-                 const std::string& raw_path,
-                 const MaLocation& location) {
+MaValue TakePath(MaMa* M, const std::string& raw_path, size_t li) {
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
     return MaValue::Error(MaError::Create(
-        M, "Шлях \"" + canonical_path.string() + "\" не існує.", location));
+        M, "Шлях \"" + canonical_path.string() + "\" не існує.", li));
   }
   if (!std::filesystem::is_regular_file(canonical_path)) {
-    return MaValue::Error(MaError::Create(
-        M, "Шлях \"" + path + "\" не вказує на файл.", location));
+    return MaValue::Error(
+        MaError::Create(M, "Шлях \"" + path + "\" не вказує на файл.", li));
   }
 
   if (M->loaded_file_modules.contains(path)) {
@@ -135,8 +159,8 @@ MaValue TakePath(MaMa* M,
 
   auto file = std::ifstream(path);
   if (!file.is_open()) {
-    return MaValue::Error(MaError::Create(
-        M, "Не вдалося прочитати файл \"" + path + "\".", location));
+    return MaValue::Error(
+        MaError::Create(M, "Не вдалося прочитати файл \"" + path + "\".", li));
   }
 
   const auto fs_path = std::filesystem::path(path);
@@ -145,26 +169,26 @@ MaValue TakePath(MaMa* M,
   const auto source = std::string(std::istreambuf_iterator(file),
                                   std::istreambuf_iterator<char>());
 
-  return M->doTake(path, name, source, location);
+  return M->doTake(path, name, source, li);
 }
 
 MaValue take_fn(MaMa* M,
                 const std::string& repository,
                 bool relative,
                 const std::vector<std::string>& parts,
-                const MaLocation& location) {
+                size_t li) {
   if (!repository.empty()) {
     return MaValue::Error(
-        MaError::Create(M, "Не підтримується взяття з репозиторію.", location));
+        MaError::Create(M, "Не підтримується взяття з репозиторію.", li));
   }
   if (relative) {
-    return MaValue::Error(MaError::Create(
-        M, "Не підтримується взяття відносного шляху.", location));
+    return MaValue::Error(
+        MaError::Create(M, "Не підтримується взяття відносного шляху.", li));
   }
   const auto cwd = std::filesystem::current_path();
   const auto raw_path =
       cwd.string() + "/" + mavka::internal::tools::implode(parts, "/") + ".м";
-  return TakePath(M, raw_path, location);
+  return TakePath(M, raw_path, li);
 }
 
 int main(int argc, char** argv) {
@@ -175,6 +199,7 @@ int main(int argc, char** argv) {
 
   init_print(M);
   init_read(M);
+  init_create_module(M);
 
   const auto take_result = TakePath(M, args[1], {});
   if (take_result.isError()) {
@@ -182,10 +207,10 @@ int main(int argc, char** argv) {
     if (!stackTrace.empty()) {
       std::cout << stackTrace << std::endl;
     }
-    std::cerr << take_result.asError()->module->asModule()->code->path << ":"
-              << take_result.asError()->location.line << ":"
-              << take_result.asError()->location.column << ": "
-              << cell_to_string(M, take_result.v.error->value) << std::endl;
+    const auto location = M->locations[take_result.asError()->li];
+    std::cerr << location.path << ":" << location.line << ":" << location.column
+              << ": " << cell_to_string(M, take_result.v.error->value)
+              << std::endl;
     return 1;
   }
 

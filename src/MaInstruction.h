@@ -169,7 +169,7 @@ struct MaInstruction {
     MaGiveInstructionArgs* give;
     MaTakeInstructionArgs* take;
   } data;
-  MaLocation location;
+  size_t li;
 
   std::string ToString();
 
@@ -181,7 +181,7 @@ struct MaInstruction {
   static MaInstruction no();
   static MaInstruction args();
   static MaInstruction storeArg(const std::string& name);
-  static MaInstruction call(MaLocation location);
+  static MaInstruction call(size_t li);
   static MaInstruction return_();
   static MaInstruction diia(MaCode* code, const std::string& name);
   static MaInstruction diiaParam(const std::string& name);
@@ -194,7 +194,7 @@ struct MaInstruction {
   static MaInstruction eGet(const std::string& name);
   static MaInstruction set(const std::string& name);
   static MaInstruction try_(MaTryInstructionArgs* args);
-  static MaInstruction throw_(MaLocation location);
+  static MaInstruction throw_(size_t li);
   static MaInstruction list();
   static MaInstruction listAppend();
   static MaInstruction dict();
@@ -207,29 +207,29 @@ struct MaInstruction {
   static MaInstruction take(const std::string& repository,
                             bool relative,
                             const std::vector<std::string>& path_parts);
-  static MaInstruction eq();
-  static MaInstruction gt();
-  static MaInstruction ge();
-  static MaInstruction lt();
-  static MaInstruction le();
-  static MaInstruction contains();
-  static MaInstruction is();
-  static MaInstruction not_();
-  static MaInstruction negative();
-  static MaInstruction positive();
-  static MaInstruction bnot();
-  static MaInstruction add(MaLocation location);
-  static MaInstruction sub(MaLocation location);
-  static MaInstruction mul(MaLocation location);
-  static MaInstruction div(MaLocation location);
-  static MaInstruction mod(MaLocation location);
-  static MaInstruction divdiv(MaLocation location);
-  static MaInstruction pow(MaLocation location);
-  static MaInstruction xor_();
-  static MaInstruction bor();
-  static MaInstruction band();
-  static MaInstruction shl();
-  static MaInstruction shr();
+  static MaInstruction eq(size_t li);
+  static MaInstruction gt(size_t li);
+  static MaInstruction ge(size_t li);
+  static MaInstruction lt(size_t li);
+  static MaInstruction le(size_t li);
+  static MaInstruction contains(size_t li);
+  static MaInstruction is(size_t li);
+  static MaInstruction not_(size_t li);
+  static MaInstruction negative(size_t li);
+  static MaInstruction positive(size_t li);
+  static MaInstruction bnot(size_t li);
+  static MaInstruction add(size_t li);
+  static MaInstruction sub(size_t li);
+  static MaInstruction mul(size_t li);
+  static MaInstruction div(size_t li);
+  static MaInstruction mod(size_t li);
+  static MaInstruction divdiv(size_t li);
+  static MaInstruction pow(size_t li);
+  static MaInstruction xor_(size_t li);
+  static MaInstruction bor(size_t li);
+  static MaInstruction band(size_t li);
+  static MaInstruction shl(size_t li);
+  static MaInstruction shr(size_t li);
 };
 
 #endif // MA_INSTRUCTION_H

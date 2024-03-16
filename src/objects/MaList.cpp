@@ -41,7 +41,7 @@ namespace mavka::mama {
   MaValue MaList_MagIteratorNativeFn(MaMa* M,
                                      MaObject* native_o,
                                      MaObject* args,
-                                     const MaLocation& location) {
+                                     size_t li) {
     const auto list_o = native_o->asDiia()->me;
 
     const auto iterator_o = MaObject::Empty(M);
@@ -54,8 +54,7 @@ namespace mavka::mama {
       iterator_o->setProperty(M, "значення", list_o->asList()->getAt(M, 0));
       const auto next_native_o = MaDiia::Create(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaObject* args,
-             const MaLocation& location) {
+          [](MaMa* M, MaObject* native_o, MaObject* args, size_t li) {
             const auto iterator_object = native_o->asDiia()->getMe();
             iterator_object->setProperty(M, "завершено", MaValue::Yes());
             return MaValue::Empty();
@@ -68,8 +67,7 @@ namespace mavka::mama {
       iterator_o->setProperty(M, "_індекс", MaValue::Number(1));
       const auto next_native_o = MaDiia::Create(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaObject* args,
-             const MaLocation& location) {
+          [](MaMa* M, MaObject* native_o, MaObject* args, size_t li) {
             const auto iterator_o = native_o->asDiia()->getMe();
             const auto i = iterator_o->getProperty(M, "_індекс").asInteger();
             const auto list =
@@ -93,7 +91,7 @@ namespace mavka::mama {
   MaValue MaList_MagGetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
                                            MaObject* args,
-                                           const MaLocation& location) {
+                                           size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
     if (key.isNumber()) {
       return native_o->asDiia()->getMe()->asList()->getAt(M, key.asInteger());
@@ -105,7 +103,7 @@ namespace mavka::mama {
   MaValue MaList_MagSetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
                                            MaObject* args,
-                                           const MaLocation& location) {
+                                           size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
     if (!key.isNumber()) {
       // maybe return error
@@ -120,7 +118,7 @@ namespace mavka::mama {
   MaValue MaList_AppendNativeDiiaFn(MaMa* M,
                                     MaObject* native_o,
                                     MaObject* args,
-                                    const MaLocation& location) {
+                                    size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
     native_o->asDiia()->getMe()->asList()->append(M, cell);
     return MaValue::Integer(native_o->asDiia()->getMe()->asList()->getLength());
@@ -130,7 +128,7 @@ namespace mavka::mama {
   MaValue MaList_MagContainsNativeDiiaFn(MaMa* M,
                                          MaObject* native_o,
                                          MaObject* args,
-                                         const MaLocation& location) {
+                                         size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
     if (native_o->asDiia()->getMe()->asList()->contains(M, cell)) {
       return MaValue::Yes();
@@ -165,7 +163,7 @@ namespace mavka::mama {
   MaValue MaList_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                MaObject* native_o,
                                                MaObject* args,
-                                               const MaLocation& location) {
+                                               size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
     if (cell.isObject()) {
       if (cell.asObject()->isList(M)) {
@@ -175,7 +173,7 @@ namespace mavka::mama {
     }
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на список.")),
-        M->call_stack.top()->module, location));
+        li));
   }
 
   size_t MaList::getLength() const {

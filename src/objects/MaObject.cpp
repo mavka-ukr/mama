@@ -151,7 +151,13 @@ namespace mavka::mama {
   MaValue MaObject::getArg(mavka::mama::MaMa* M,
                            const std::string& index,
                            const std::string& name) {
-    return this->getArg(M, index, name, MaValue::Empty());
+    if (this->properties.contains(index)) {
+      return this->properties[index];
+    }
+    if (this->properties.contains(name)) {
+      return this->properties[name];
+    }
+    return MaValue::Empty();
   }
 
   MaValue MaObject::getArg(mavka::mama::MaMa* M,
@@ -169,29 +175,31 @@ namespace mavka::mama {
 
   MaValue MaObject::call(mavka::mama::MaMa* M,
                          mavka::mama::MaObject* args,
-                         const mavka::mama::MaLocation& location) {
+                         size_t li) {
     const auto magicDiia = this->getProperty(M, MAG_CALL);
     if (!magicDiia.isEmpty()) {
-      return magicDiia.call(M, args, location);
+      return magicDiia.call(M, args, li);
     }
-    const auto frame = new MaFrame(M->call_stack.top()->scope, this,
-                                   M->call_stack.top()->module, location);
+    const auto currentScope =
+        M->call_stack.empty() ? M->global_scope : M->call_stack.top()->scope;
+    const auto frame = new MaFrame(currentScope, this, li);
     FRAME_PUSH(frame);
     if (this->isDiia(M)) {
       const auto diia = this->asDiia();
+      const auto diia_scope =
+          MaObject::Instance(M, M->scope_structure_object,
+                             diia->scope ? diia->scope : currentScope);
+      frame->scope = diia_scope;
+      if (diia->getMe()) {
+        frame->scope->setProperty(M, "я", diia->getMe());
+      }
       if (diia->fn) {
-        const auto result = diia->fn(M, this, args, location);
+        const auto result = diia->fn(M, this, args, li);
         if (!result.isError()) {
           FRAME_POP();
         }
         return result;
       } else {
-        const auto diia_scope =
-            MaObject::Instance(M, M->scope_structure_object, diia->scope);
-        frame->scope = diia_scope;
-        if (diia->getMe()) {
-          frame->scope->setProperty(M, "я", diia->getMe());
-        }
         for (int i = 0; i < diia->getParams().size(); ++i) {
           const auto& param = this->d.diia->params[i];
           const auto arg_value = args->getArg(M, std::to_string(i), param.name,
@@ -221,17 +229,16 @@ namespace mavka::mama {
     }
     FRAME_POP();
     return MaValue::Error(MaError::Create(
-        MaValue::Object(MaText::Create(M, "Неможливо викликати.")),
-        M->call_stack.top()->module, location));
+        MaValue::Object(MaText::Create(M, "Неможливо викликати.")), li));
   }
 
   MaValue MaObject::callMagWithValue(MaMa* M,
                                      const MaValue& value,
-                                     const MaLocation& location,
+                                     size_t li,
                                      const std::string& name) {
     if (!this->hasProperty(M, name)) {
       return MaValue::ErrorDiiaNotDefinedFor(M, name, MaValue::Object(this),
-                                             location);
+                                             li);
     }
     this->retain();
     const auto magicDiia = this->getProperty(M, name);
@@ -241,7 +248,7 @@ namespace mavka::mama {
     if (value.isObject()) {
       value.asObject()->retain();
     }
-    const auto result = magicDiia.call(M, {value}, location);
+    const auto result = magicDiia.call(M, {value}, li);
     if (value.isObject()) {
       //      value.asObject()->release();
     }
@@ -253,11 +260,11 @@ namespace mavka::mama {
   }
 
   MaValue MaObject::callMagWithoutValue(MaMa* M,
-                                        const MaLocation& location,
+                                        size_t li,
                                         const std::string& name) {
     if (!this->hasProperty(M, name)) {
       return MaValue::ErrorDiiaNotDefinedFor(M, name, MaValue::Object(this),
-                                             location);
+                                             li);
     }
     this->retain();
     const auto magicDiia = this->getProperty(M, name);

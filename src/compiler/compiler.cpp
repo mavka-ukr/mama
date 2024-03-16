@@ -4,7 +4,7 @@ namespace mavka::mama {
   MaCompilationResult compile_node(MaMa* M,
                                    MaCode* code,
                                    mavka::ast::ASTValue* ast_value) {
-    if (!ast_value) {
+    if (ast_value == nullptr) {
       return error(nullptr, "null node");
     }
 

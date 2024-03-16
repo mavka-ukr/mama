@@ -4,7 +4,7 @@ namespace mavka::mama {
   MaValue MaLogical_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                   MaObject* native_o,
                                                   MaObject* args,
-                                                  const MaLocation& location) {
+                                                  size_t li) {
     const auto value = args->getArg(M, "0", "значення");
     if (value.isEmpty()) {
       return MaValue::No();
@@ -20,7 +20,7 @@ namespace mavka::mama {
     }
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на логічне.")),
-        M->call_stack.top()->module, location));
+        li));
   }
 
   void InitLogical(MaMa* M) {

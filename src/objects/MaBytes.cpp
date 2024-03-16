@@ -12,17 +12,17 @@ namespace mavka::mama {
   MaValue MaBytes_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                 MaObject* native_o,
                                                 MaObject* args,
-                                                const MaLocation& location) {
+                                                size_t li) {
     const auto value = args->getArg(M, "0", "значення");
     if (value.isObject()) {
       if (value.asObject()->isBytes(M)) {
         return value;
       }
-      return value.asObject()->callMagWithoutValue(M, location, MAG_BYTES);
+      return value.asObject()->callMagWithoutValue(M, li, MAG_BYTES);
     }
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо перетворити на байти.")),
-        M->call_stack.top()->module, location));
+        li));
   }
 
   void MaBytes::Init(MaMa* M) {

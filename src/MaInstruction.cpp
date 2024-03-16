@@ -151,8 +151,8 @@ namespace mavka::mama {
     return MaInstruction{VStoreArg,
                          {.storeArg = new MaStoreArgInstructionArgs(name)}};
   }
-  MaInstruction MaInstruction::call(MaLocation location) {
-    return MaInstruction{VCall, {}, location};
+  MaInstruction MaInstruction::call(size_t li) {
+    return MaInstruction{VCall, {}, li};
   }
   MaInstruction MaInstruction::return_() {
     return MaInstruction{VReturn};
@@ -192,9 +192,8 @@ namespace mavka::mama {
   MaInstruction MaInstruction::try_(MaTryInstructionArgs* args) {
     return MaInstruction{VTry, {.try_ = args}};
   }
-  MaInstruction MaInstruction::throw_(MaLocation location) {
-    return MaInstruction{
-        VThrow, {.throw_ = new MaThrowInstructionArgs()}, location};
+  MaInstruction MaInstruction::throw_(size_t li) {
+    return MaInstruction{VThrow, {.throw_ = new MaThrowInstructionArgs()}, li};
   }
   MaInstruction MaInstruction::list() {
     return MaInstruction{VList};
@@ -235,73 +234,73 @@ namespace mavka::mama {
         VTake,
         {.take = new MaTakeInstructionArgs(repository, relative, path_parts)}};
   }
-  MaInstruction MaInstruction::eq() {
-    return MaInstruction{VEq};
+  MaInstruction MaInstruction::eq(size_t li) {
+    return MaInstruction{VEq, {}, li};
   }
-  MaInstruction MaInstruction::gt() {
-    return MaInstruction{VGt};
+  MaInstruction MaInstruction::gt(size_t li) {
+    return MaInstruction{VGt, {}, li};
   }
-  MaInstruction MaInstruction::ge() {
-    return MaInstruction{VGe};
+  MaInstruction MaInstruction::ge(size_t li) {
+    return MaInstruction{VGe, {}, li};
   }
-  MaInstruction MaInstruction::lt() {
-    return MaInstruction{VLt};
+  MaInstruction MaInstruction::lt(size_t li) {
+    return MaInstruction{VLt, {}, li};
   }
-  MaInstruction MaInstruction::le() {
-    return MaInstruction{VLe};
+  MaInstruction MaInstruction::le(size_t li) {
+    return MaInstruction{VLe, {}, li};
   }
-  MaInstruction MaInstruction::contains() {
-    return MaInstruction{VContains};
+  MaInstruction MaInstruction::contains(size_t li) {
+    return MaInstruction{VContains, {}, li};
   }
-  MaInstruction MaInstruction::is() {
-    return MaInstruction{VIs};
+  MaInstruction MaInstruction::is(size_t li) {
+    return MaInstruction{VIs, {}, li};
   }
-  MaInstruction MaInstruction::not_() {
-    return MaInstruction{VNot};
+  MaInstruction MaInstruction::not_(size_t li) {
+    return MaInstruction{VNot, {}, li};
   }
-  MaInstruction MaInstruction::negative() {
-    return MaInstruction{VNegative};
+  MaInstruction MaInstruction::negative(size_t li) {
+    return MaInstruction{VNegative, {}, li};
   }
-  MaInstruction MaInstruction::positive() {
-    return MaInstruction{VPositive};
+  MaInstruction MaInstruction::positive(size_t li) {
+    return MaInstruction{VPositive, {}, li};
   }
-  MaInstruction MaInstruction::bnot() {
-    return MaInstruction{VBnot};
+  MaInstruction MaInstruction::bnot(size_t li) {
+    return MaInstruction{VBnot, {}, li};
   }
-  MaInstruction MaInstruction::add(MaLocation location) {
-    return MaInstruction{VAdd, {}, location};
+  MaInstruction MaInstruction::add(size_t li) {
+    return MaInstruction{VAdd, {}, li};
   }
-  MaInstruction MaInstruction::sub(MaLocation location) {
-    return MaInstruction{VSub, {}, location};
+  MaInstruction MaInstruction::sub(size_t li) {
+    return MaInstruction{VSub, {}, li};
   }
-  MaInstruction MaInstruction::mul(MaLocation location) {
-    return MaInstruction{VMul, {}, location};
+  MaInstruction MaInstruction::mul(size_t li) {
+    return MaInstruction{VMul, {}, li};
   }
-  MaInstruction MaInstruction::div(MaLocation location) {
-    return MaInstruction{VDiv, {}, location};
+  MaInstruction MaInstruction::div(size_t li) {
+    return MaInstruction{VDiv, {}, li};
   }
-  MaInstruction MaInstruction::mod(MaLocation location) {
-    return MaInstruction{VMod, {}, location};
+  MaInstruction MaInstruction::mod(size_t li) {
+    return MaInstruction{VMod, {}, li};
   }
-  MaInstruction MaInstruction::divdiv(MaLocation location) {
-    return MaInstruction{VDivDiv, {}, location};
+  MaInstruction MaInstruction::divdiv(size_t li) {
+    return MaInstruction{VDivDiv, {}, li};
   }
-  MaInstruction MaInstruction::pow(MaLocation location) {
-    return MaInstruction{VPow, {}, location};
+  MaInstruction MaInstruction::pow(size_t li) {
+    return MaInstruction{VPow, {}, li};
   }
-  MaInstruction MaInstruction::xor_() {
-    return MaInstruction{VXor};
+  MaInstruction MaInstruction::xor_(size_t li) {
+    return MaInstruction{VXor, {}, li};
   }
-  MaInstruction MaInstruction::bor() {
-    return MaInstruction{VBor};
+  MaInstruction MaInstruction::bor(size_t li) {
+    return MaInstruction{VBor, {}, li};
   }
-  MaInstruction MaInstruction::band() {
-    return MaInstruction{VBand};
+  MaInstruction MaInstruction::band(size_t li) {
+    return MaInstruction{VBand, {}, li};
   }
-  MaInstruction MaInstruction::shl() {
-    return MaInstruction{VShl};
+  MaInstruction MaInstruction::shl(size_t li) {
+    return MaInstruction{VShl, {}, li};
   }
-  MaInstruction MaInstruction::shr() {
-    return MaInstruction{VShr};
+  MaInstruction MaInstruction::shr(size_t li) {
+    return MaInstruction{VShr, {}, li};
   }
 } // namespace mavka::mama

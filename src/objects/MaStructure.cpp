@@ -5,7 +5,7 @@ namespace mavka::mama {
   MaValue MaStructure_DiscoverNativeDiiaFn(MaMa* M,
                                            MaObject* o,
                                            MaObject* args,
-                                           const MaLocation& location) {
+                                           size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
     if (cell.isEmpty()) {
       return MaValue::Empty();

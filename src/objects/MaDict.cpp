@@ -37,7 +37,7 @@ namespace mavka::mama {
   MaValue MaDict_MagGetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
                                            MaObject* args,
-                                           const MaLocation& location) {
+                                           size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
     return native_o->asDiia()->getMe()->asDict()->getAt(M, key);
   }
@@ -46,7 +46,7 @@ namespace mavka::mama {
   MaValue MaDict_MagSetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
                                            MaObject* args,
-                                           const MaLocation& location) {
+                                           size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
     const auto value = args->getArg(M, "1", "значення");
     native_o->asDiia()->getMe()->asDict()->setAt(M, key, value);

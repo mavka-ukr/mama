@@ -72,10 +72,9 @@
   const auto name = FRAME_TOP(); \
   FRAME_POP();
 
-#define DO_RETURN_STRING_ERROR(v, location)                    \
-  return MaValue::Error(                                       \
-      MaError::Create(MaValue::Object(MaText::Create(M, (v))), \
-                      M->call_stack.top()->module, (location)));
+#define DO_RETURN_STRING_ERROR(v, li) \
+  return MaValue::Error(              \
+      MaError::Create(MaValue::Object(MaText::Create(M, (v))), (li)));
 
 namespace mavka::mama {
   struct MaMa;
@@ -98,9 +97,15 @@ namespace mavka::mama {
   struct MaLocation {
     size_t line;
     size_t column;
+    std::string path;
   };
 
-#include "MaFrame.h"
+  struct MaFrame {
+    MaObject* scope = nullptr;
+    MaObject* diia = nullptr;
+    size_t li;
+  };
+
 #include "MaInstruction.h"
 #include "MaObject.h"
 #include "compiler/compiler.h"
@@ -120,6 +125,7 @@ namespace mavka::mama {
     MaObject* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
+    std::vector<MaLocation> locations;
 
     std::stack<MaFrame*> call_stack;
 
@@ -139,21 +145,16 @@ namespace mavka::mama {
                           const std::string& repository,
                           bool relative,
                           const std::vector<std::string>& parts,
-                          const MaLocation& location)>
+                          size_t li)>
         take_fn;
 
     MaValue run(MaCode* code, std::stack<MaValue>& stack);
-    MaValue eval(const std::string& code, const MaLocation& location = {});
+    MaValue eval(const std::string& code, size_t li = {});
 
     MaValue doTake(const std::string& id,
                    const std::string& name,
                    const std::string& code,
-                   const MaLocation& location);
-    MaValue doTakeWithScope(const std::string& id,
-                            const std::string& name,
-                            const std::string& code,
-                            const MaLocation& location,
-                            MaObject* module_scope);
+                   size_t li);
 
     std::string getStackTrace();
 
@@ -161,27 +162,20 @@ namespace mavka::mama {
   };
 
   struct MaError {
-    MaObject* module;
     MaValue value;
-    MaLocation location;
+    size_t li;
 
-    static MaError* Create(const MaValue& value,
-                           MaObject* module,
-                           const MaLocation& location) {
+    static MaError* Create(const MaValue& value, size_t li) {
       const auto error = new MaError();
-      error->module = module;
       error->value = value;
-      error->location = location;
+      error->li = li;
       return error;
     }
 
-    static MaError* Create(MaMa* M,
-                           const std::string& value,
-                           const MaLocation& location) {
+    static MaError* Create(MaMa* M, const std::string& value, size_t li) {
       const auto error = new MaError();
-      error->module = M->call_stack.top()->module;
       error->value = MaValue::Object(MaText::Create(M, value));
-      error->location = location;
+      error->li = li;
       return error;
     }
   };

@@ -10,8 +10,10 @@ namespace mavka::mama {
       return result;
     }
 
-    const auto instruction_location =
-        MaLocation(ast_value->start_line, ast_value->start_column);
+    const auto location =
+        MaLocation(ast_value->start_line, ast_value->start_column, code->path);
+    M->locations.push_back(location);
+    const auto li = M->locations.size() - 1;
 
     code->push(MaInstruction::args());
 
@@ -28,7 +30,7 @@ namespace mavka::mama {
       }
     }
 
-    code->push(MaInstruction::call(instruction_location));
+    code->push(MaInstruction::call(li));
 
     return success();
   }
