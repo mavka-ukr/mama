@@ -79,9 +79,6 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
     return cell.v.object->getStructure()->d.structure->name + "(" +
            mavka::internal::tools::implode(items, ", ") + ")";
   }
-  if (cell.isArgs()) {
-    return "<аргументи>";
-  }
   if (cell.isError()) {
     return "<помилка>";
   }
@@ -89,27 +86,21 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
 }
 
 void init_print(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
+  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args,
                             const MaLocation& location) {
-    if (args->type == MA_ARGS_TYPE_POSITIONED) {
-      for (const auto& arg : args->positioned) {
-        std::cout << cell_to_string(M, arg) << std::endl;
-      }
-    } else {
-      for (const auto& [key, value] : args->named) {
-        std::cout << key << ": " << cell_to_string(M, value) << std::endl;
-      }
+    for (const auto& [key, value] : args->properties) {
+      std::cout << cell_to_string(M, value) << std::endl;
     }
     return MaValue::Empty();
   };
-  M->global_scope->setSubject("друк",
-                              MaDiia::Create(M, "друк", native_fn, nullptr));
+  M->global_scope->setProperty(M, "друк",
+                               MaDiia::Create(M, "друк", native_fn, nullptr));
 }
 
 void init_read(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaArgs* args,
+  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args,
                             const MaLocation& location) {
-    const auto prefix = args->get(0, "префікс");
+    const auto prefix = args->getArg(M, "0", "префікс");
     if (prefix.isObject() && prefix.asObject()->isText(M)) {
       std::cout << prefix.asText()->data;
     }
@@ -120,8 +111,8 @@ void init_read(MaMa* M) {
     }
     return MaValue::Object(MaText::Create(M, value));
   };
-  M->global_scope->setSubject("читати",
-                              MaDiia::Create(M, "читати", native_fn, nullptr));
+  M->global_scope->setProperty(M, "читати",
+                               MaDiia::Create(M, "читати", native_fn, nullptr));
 }
 
 MaValue TakePath(MaMa* M,

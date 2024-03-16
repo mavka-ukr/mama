@@ -87,7 +87,6 @@ namespace mavka::mama {
   struct MaFrame;
   struct MaLocation;
   struct MaInstruction;
-  class MaScope;
   struct MaCompilationError;
   struct MaCompilationResult;
   class MaText;
@@ -109,7 +108,6 @@ namespace mavka::mama {
 #include "MaFrame.h"
 #include "MaInstruction.h"
 #include "MaObject.h"
-#include "MaScope.h"
 #include "compiler/compiler.h"
 #include "utils/helpers.h"
 
@@ -124,13 +122,14 @@ namespace mavka::mama {
 
   struct MaMa {
     std::vector<MaValue> constants;
-    MaScope* global_scope;
+    MaObject* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;
 
     std::stack<MaFrame*> call_stack;
 
     MaObject* object_structure_object;
+    MaObject* scope_structure_object;
     MaObject* structure_structure_object;
     MaObject* number_structure_object;
     MaObject* logical_structure_object;
@@ -159,7 +158,7 @@ namespace mavka::mama {
                             const std::string& name,
                             const std::string& code,
                             const MaLocation& location,
-                            MaScope* module_scope);
+                            MaObject* module_scope);
 
     std::string getStackTrace();
 

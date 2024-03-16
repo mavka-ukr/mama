@@ -11,7 +11,6 @@ typedef enum {
   VNo,
 
   VArgs,
-  VPushArg,
   VStoreArg,
   VCall,
   VReturn,
@@ -82,10 +81,6 @@ struct MaStoreInstructionArgs {
   std::string name;
 };
 
-struct MaArgsInstructionArgs {
-  MaArgsType args_type;
-};
-
 struct MaGetInstructionArgs {
   std::string name;
 };
@@ -154,7 +149,6 @@ struct MaInstruction {
   union {
     size_t constant;
     double number;
-    MaArgsType args_type;
     MaStoreArgInstructionArgs* storeArg;
     MaDiiaInstructionArgs* diia;
     MaDiiaParamInstructionArgs* diiaParam;
@@ -185,8 +179,7 @@ struct MaInstruction {
   static MaInstruction empty();
   static MaInstruction yes();
   static MaInstruction no();
-  static MaInstruction args(MaArgsType args_type);
-  static MaInstruction pushArg();
+  static MaInstruction args();
   static MaInstruction storeArg(const std::string& name);
   static MaInstruction call(MaLocation location);
   static MaInstruction return_();

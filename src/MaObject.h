@@ -15,6 +15,7 @@ struct MaObject {
   MaObject* type;
   union {
     void* ptr;
+    MaObject* parent; // scope
     MaStructure* structure;
     MaDiia* diia;
     MaModule* module;
@@ -23,8 +24,9 @@ struct MaObject {
     MaList* list;
     MaDict* dict;
   } d;
-  std::unordered_map<std::string, MaValue> properties;
+  tsl::ordered_map<std::string, MaValue> properties;
 
+  bool isScope(MaMa* M) const;
   bool isStructure(MaMa* M) const;
   bool isDiia(MaMa* M) const;
   bool isModule(MaMa* M) const;
@@ -80,9 +82,15 @@ struct MaObject {
 
   void setProperty(MaMa* M, const std::string& name, const MaValue& value);
   void setProperty(MaMa* M, const std::string& name, MaObject* value);
+  bool hasProperty(MaMa* M, const std::string& name);
   MaValue getProperty(MaMa* M, const std::string& name);
+  MaValue getArg(MaMa* M, const std::string& index, const std::string& name);
+  MaValue getArg(MaMa* M,
+                 const std::string& index,
+                 const std::string& name,
+                 const MaValue& defaultValue);
 
-  MaValue call(MaMa* M, MaArgs* args, const MaLocation& location);
+  MaValue call(MaMa* M, MaObject* args, const MaLocation& location);
 
   std::string getPrettyString(MaMa* M);
 
@@ -107,13 +115,13 @@ struct MaValue {
   union {
     MaObject* object;
     double number;
-    MaArgs* args;
+    MaObject* args;
     MaError* error;
   } v;
 
   std::string getName() const;
 
-  MaValue call(MaMa* M, MaArgs* args, const MaLocation& location) const;
+  MaValue call(MaMa* M, MaObject* args, const MaLocation& location) const;
   MaValue call(MaMa* M,
                const std::vector<MaValue>& args,
                const MaLocation& location) const;
@@ -180,13 +188,11 @@ struct MaValue {
   inline bool isYes() const { return this->type == MaValueTypeYes; };
   inline bool isNo() const { return this->type == MaValueTypeNo; };
   inline bool isObject() const { return this->type == MaValueTypeObject; };
-  inline bool isArgs() const { return this->type == MaValueTypeArgs; };
   inline bool isError() const { return this->type == MaValueTypeError; };
 
   inline double asNumber() const { return this->v.number; };
   inline long asInteger() const { return static_cast<long>(this->v.number); };
   inline MaObject* asObject() const { return this->v.object; };
-  inline MaArgs* asArgs() const { return this->v.args; };
   inline MaError* asError() const { return this->v.error; };
   inline MaText* asText() const { return this->v.object->asText(); };
   inline MaList* asList() const { return this->v.object->asList(); };
@@ -203,9 +209,6 @@ struct MaValue {
   inline static MaValue No() { return MaValue{MaValueTypeNo}; };
   inline static MaValue Object(MaObject* value) {
     return MaValue{MaValueTypeObject, {.object = value}};
-  };
-  inline static MaValue Args(MaArgs* value) {
-    return MaValue{MaValueTypeArgs, {.args = value}};
   };
   inline static MaValue Error(MaError* value) {
     return MaValue{MaValueTypeError, {.error = value}};
@@ -258,8 +261,8 @@ class MaDiiaParam final {
 };
 
 typedef MaValue NativeFn(MaMa* M,
-                         MaObject* native_o,
-                         MaArgs* args,
+                         MaObject* diiaObject,
+                         MaObject* args,
                          MaLocation location);
 
 class MaDiia final {
@@ -267,9 +270,10 @@ class MaDiia final {
   std::string name;
   MaCode* code;
   MaObject* me;
-  MaScope* scope;
+  MaObject* scope;
   MaObject* fm;
   std::vector<MaDiiaParam> params;
+  std::unordered_map<std::string, std::string> param_index_map;
 
   // native
   std::function<NativeFn> fn;
@@ -277,7 +281,9 @@ class MaDiia final {
   inline MaObject* getMe() const { return this->me; }
   inline std::vector<MaDiiaParam> getParams() const { return this->params; }
   inline void pushParam(const MaDiiaParam& param) {
+    const auto index = std::to_string(this->params.size());
     this->params.push_back(param);
+    this->param_index_map[index] = name;
   }
 
   static void Init(MaMa* M);

@@ -2,7 +2,7 @@
 
 namespace mavka::mama {
   MaValue MaValue::call(MaMa* M,
-                        MaArgs* args,
+                        MaObject* args,
                         const MaLocation& location) const {
     if (this->isObject()) {
       return this->asObject()->call(M, args, location);
@@ -15,8 +15,11 @@ namespace mavka::mama {
   MaValue MaValue::call(MaMa* M,
                         const std::vector<MaValue>& args,
                         const MaLocation& location) const {
-    return this->call(M, new MaArgs(MA_ARGS_TYPE_POSITIONED, {}, args),
-                      location);
+    const auto argsObject = MaObject::Empty(M);
+    for (size_t i = 0; i < args.size(); i++) {
+      argsObject->setProperty(M, std::to_string(i), args[i]);
+    }
+    return this->call(M, argsObject, location);
   }
 
   bool MaValue::isEqual(MaMa* M, const MaValue& other) const {

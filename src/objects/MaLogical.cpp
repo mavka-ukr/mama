@@ -3,9 +3,9 @@
 namespace mavka::mama {
   MaValue MaLogical_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                   MaObject* native_o,
-                                                  MaArgs* args,
+                                                  MaObject* args,
                                                   const MaLocation& location) {
-    const auto value = args->get(0, "значення");
+    const auto value = args->getArg(M, "0", "значення");
     if (value.isEmpty()) {
       return MaValue::No();
     }
@@ -25,7 +25,7 @@ namespace mavka::mama {
 
   void InitLogical(MaMa* M) {
     const auto logical_structure_object = MaStructure::Create(M, "логічне");
-    M->global_scope->setSubject("логічне", logical_structure_object);
+    M->global_scope->setProperty(M, "логічне", logical_structure_object);
     M->logical_structure_object = logical_structure_object;
     logical_structure_object->setProperty(
         M, MAG_CALL,

@@ -57,7 +57,6 @@ set(MAMA_SRC
         src/utils/tools.h
         src/utils/helpers.cpp
         src/utils/helpers.h
-        src/MaArgs.cpp
         src/MaValue.cpp
         src/MaFrame.h
         src/MaInstruction.cpp
@@ -65,8 +64,6 @@ set(MAMA_SRC
         src/MaMa.cpp
         src/mama.h
         src/MaObject.h
-        src/MaScope.cpp
-        src/MaScope.h
 )
 
 add_library(mama ${MAMA_SRC})

@@ -3,9 +3,9 @@
 namespace mavka::mama {
   MaValue MaNumber_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                  MaObject* o,
-                                                 MaArgs* args,
+                                                 MaObject* args,
                                                  const MaLocation& location) {
-    const auto arg_value_v = args->get(0, "значення");
+    const auto arg_value_v = args->getArg(M, "0", "значення");
     if (arg_value_v.isEmpty()) {
       return MaValue::Number(0);
     }
@@ -30,7 +30,7 @@ namespace mavka::mama {
 
   void InitNumber(MaMa* M) {
     const auto number_structure_object = MaStructure::Create(M, "число");
-    M->global_scope->setSubject("число", number_structure_object);
+    M->global_scope->setProperty(M, "число", number_structure_object);
     M->number_structure_object = number_structure_object;
     number_structure_object->setProperty(
         M, MAG_CALL,

@@ -11,9 +11,9 @@ namespace mavka::mama {
 
   MaValue MaBytes_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                 MaObject* native_o,
-                                                MaArgs* args,
+                                                MaObject* args,
                                                 const MaLocation& location) {
-    const auto value = args->get(0, "значення");
+    const auto value = args->getArg(M, "0", "значення");
     if (value.isObject()) {
       if (value.asObject()->isBytes(M)) {
         return value;
@@ -27,7 +27,7 @@ namespace mavka::mama {
 
   void MaBytes::Init(MaMa* M) {
     const auto bytes_structure_object = MaStructure::Create(M, "байти");
-    M->global_scope->setSubject("байти", bytes_structure_object);
+    M->global_scope->setProperty(M, "байти", bytes_structure_object);
     M->bytes_structure_object = bytes_structure_object;
     bytes_structure_object->setProperty(
         M, MAG_CALL,

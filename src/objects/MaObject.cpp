@@ -1,6 +1,10 @@
 #include "../mama.h"
 
 namespace mavka::mama {
+  bool MaObject::isScope(MaMa* M) const {
+    return this->type == M->scope_structure_object;
+  }
+
   bool MaObject::isStructure(MaMa* M) const {
     return this->type == M->structure_structure_object;
   }
@@ -94,24 +98,46 @@ namespace mavka::mama {
     this->properties.insert_or_assign(name, MaValue::Object(value));
   }
 
+  bool MaObject::hasProperty(MaMa* M, const std::string& name) {
+    if (this->properties.contains(name)) {
+      return true;
+    }
+    if (this->isScope(M)) {
+      if (this->d.parent) {
+        return this->d.parent->hasProperty(M, name);
+      }
+    }
+    return false;
+  }
+
   MaValue MaObject::getProperty(MaMa* M, const std::string& name) {
+    if (this->isScope(M)) {
+      if (this->properties.contains(name)) {
+        return this->properties[name];
+      }
+      auto parent_tmp = this->d.parent;
+      while (parent_tmp) {
+        if (parent_tmp->properties.contains(name)) {
+          return parent_tmp->properties[name];
+        }
+        parent_tmp = parent_tmp->d.parent;
+      }
+      return MaValue::Empty();
+    }
     if (this->isStructure(M)) {
       if (name == "назва") {
         return MaValue::Object(
             MaText::Create(M, this->asStructure()->getName()));
       }
-    }
-    if (this->isText(M)) {
+    } else if (this->isText(M)) {
       if (name == "довжина") {
         return MaValue::Integer(this->asText()->getLength());
       }
-    }
-    if (this->isList(M)) {
+    } else if (this->isList(M)) {
       if (name == "довжина") {
         return MaValue::Integer(this->asList()->getLength());
       }
-    }
-    if (this->isDict(M)) {
+    } else if (this->isDict(M)) {
       if (name == "розмір") {
         return MaValue::Integer(this->asDict()->getSize());
       }
@@ -122,8 +148,27 @@ namespace mavka::mama {
     return MaValue::Empty();
   }
 
+  MaValue MaObject::getArg(mavka::mama::MaMa* M,
+                           const std::string& index,
+                           const std::string& name) {
+    return this->getArg(M, index, name, MaValue::Empty());
+  }
+
+  MaValue MaObject::getArg(mavka::mama::MaMa* M,
+                           const std::string& index,
+                           const std::string& name,
+                           const mavka::mama::MaValue& defaultValue) {
+    if (this->properties.contains(index)) {
+      return this->properties[index];
+    }
+    if (this->properties.contains(name)) {
+      return this->properties[name];
+    }
+    return defaultValue;
+  }
+
   MaValue MaObject::call(mavka::mama::MaMa* M,
-                         mavka::mama::MaArgs* args,
+                         mavka::mama::MaObject* args,
                          const mavka::mama::MaLocation& location) {
     const auto magicDiia = this->getProperty(M, MAG_CALL);
     if (!magicDiia.isEmpty()) {
@@ -141,15 +186,17 @@ namespace mavka::mama {
         }
         return result;
       } else {
-        const auto diia_scope = new MaScope(diia->scope);
+        const auto diia_scope =
+            MaObject::Instance(M, M->scope_structure_object, diia->scope);
         frame->scope = diia_scope;
         if (diia->getMe()) {
-          frame->scope->setSubject("я", diia->getMe());
+          frame->scope->setProperty(M, "я", diia->getMe());
         }
         for (int i = 0; i < diia->getParams().size(); ++i) {
           const auto& param = this->d.diia->params[i];
-          const auto arg_value = args->get(i, param.name, param.default_value);
-          frame->scope->setSubject(param.name, arg_value);
+          const auto arg_value = args->getArg(M, std::to_string(i), param.name,
+                                              param.default_value);
+          frame->scope->setProperty(M, param.name, arg_value);
         }
         std::stack<MaValue> stack;
         const auto result = M->run(this->d.diia->code, stack);
@@ -165,7 +212,8 @@ namespace mavka::mama {
       const auto object = MaObject::Instance(M, this, nullptr);
       for (int i = 0; i < this->d.structure->params.size(); ++i) {
         const auto& param = this->d.structure->params[i];
-        const auto arg_value = args->get(i, param.name, param.default_value);
+        const auto arg_value =
+            args->getArg(M, std::to_string(i), param.name, param.default_value);
         object->setProperty(M, param.name, arg_value);
       }
       FRAME_POP();
@@ -363,7 +411,7 @@ namespace mavka::mama {
 
   void MaObject::Init(MaMa* M) {
     const auto object_structure_object = MaStructure::Create(M, "обʼєкт");
-    M->global_scope->setSubject("обʼєкт", object_structure_object);
+    M->global_scope->setProperty(M, "обʼєкт", object_structure_object);
     M->object_structure_object = object_structure_object;
   }
 

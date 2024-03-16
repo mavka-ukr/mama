@@ -11,7 +11,7 @@ namespace mavka::mama {
     for (auto& item : this->data) {
       if (key.isEqual(M, item.first)) {
         if (item.second.isObject()) {
-//          item.second.asObject()->release();
+          //          item.second.asObject()->release();
         }
         item.second = value;
         return;
@@ -36,19 +36,19 @@ namespace mavka::mama {
   // чародія_отримати
   MaValue MaDict_MagGetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
-                                           MaArgs* args,
+                                           MaObject* args,
                                            const MaLocation& location) {
-    const auto key = args->get(0, "ключ");
+    const auto key = args->getArg(M, "0", "ключ");
     return native_o->asDiia()->getMe()->asDict()->getAt(M, key);
   }
 
   // чародія_покласти
   MaValue MaDict_MagSetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
-                                           MaArgs* args,
+                                           MaObject* args,
                                            const MaLocation& location) {
-    const auto key = args->get(0, "ключ");
-    const auto value = args->get(1, "значення");
+    const auto key = args->getArg(M, "0", "ключ");
+    const auto value = args->getArg(M, "1", "значення");
     native_o->asDiia()->getMe()->asDict()->setAt(M, key, value);
     return MaValue::Empty();
   }
@@ -69,7 +69,7 @@ namespace mavka::mama {
 
   void MaDict::Init(MaMa* M) {
     const auto dict_structure_object = MaStructure::Create(M, "словник");
-    M->global_scope->setSubject("словник", dict_structure_object);
+    M->global_scope->setProperty(M, "словник", dict_structure_object);
     M->dict_structure_object = dict_structure_object;
   }
 } // namespace mavka::mama

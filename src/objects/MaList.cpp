@@ -40,7 +40,7 @@ namespace mavka::mama {
   // чародія_перебір
   MaValue MaList_MagIteratorNativeFn(MaMa* M,
                                      MaObject* native_o,
-                                     MaArgs* args,
+                                     MaObject* args,
                                      const MaLocation& location) {
     const auto list_o = native_o->asDiia()->me;
 
@@ -54,7 +54,7 @@ namespace mavka::mama {
       iterator_o->setProperty(M, "значення", list_o->asList()->getAt(M, 0));
       const auto next_native_o = MaDiia::Create(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaArgs* args,
+          [](MaMa* M, MaObject* native_o, MaObject* args,
              const MaLocation& location) {
             const auto iterator_object = native_o->asDiia()->getMe();
             iterator_object->setProperty(M, "завершено", MaValue::Yes());
@@ -68,7 +68,7 @@ namespace mavka::mama {
       iterator_o->setProperty(M, "_індекс", MaValue::Number(1));
       const auto next_native_o = MaDiia::Create(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaArgs* args,
+          [](MaMa* M, MaObject* native_o, MaObject* args,
              const MaLocation& location) {
             const auto iterator_o = native_o->asDiia()->getMe();
             const auto i = iterator_o->getProperty(M, "_індекс").asInteger();
@@ -92,9 +92,9 @@ namespace mavka::mama {
   // чародія_отримати
   MaValue MaList_MagGetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
-                                           MaArgs* args,
+                                           MaObject* args,
                                            const MaLocation& location) {
-    const auto key = args->get(0, "ключ");
+    const auto key = args->getArg(M, "0", "ключ");
     if (key.isNumber()) {
       return native_o->asDiia()->getMe()->asList()->getAt(M, key.asInteger());
     }
@@ -104,14 +104,14 @@ namespace mavka::mama {
   // чародія_покласти
   MaValue MaList_MagSetElementNativeDiiaFn(MaMa* M,
                                            MaObject* native_o,
-                                           MaArgs* args,
+                                           MaObject* args,
                                            const MaLocation& location) {
-    const auto key = args->get(0, "ключ");
+    const auto key = args->getArg(M, "0", "ключ");
     if (!key.isNumber()) {
       // maybe return error
       return MaValue::Empty();
     }
-    const auto value = args->get(1, "значення");
+    const auto value = args->getArg(M, "1", "значення");
     native_o->asDiia()->getMe()->asList()->setAt(M, key.asInteger(), value);
     return MaValue::Empty();
   }
@@ -119,9 +119,9 @@ namespace mavka::mama {
   // додати
   MaValue MaList_AppendNativeDiiaFn(MaMa* M,
                                     MaObject* native_o,
-                                    MaArgs* args,
+                                    MaObject* args,
                                     const MaLocation& location) {
-    const auto cell = args->get(0, "значення");
+    const auto cell = args->getArg(M, "0", "значення");
     native_o->asDiia()->getMe()->asList()->append(M, cell);
     return MaValue::Integer(native_o->asDiia()->getMe()->asList()->getLength());
   }
@@ -129,9 +129,9 @@ namespace mavka::mama {
   // чародія_містить
   MaValue MaList_MagContainsNativeDiiaFn(MaMa* M,
                                          MaObject* native_o,
-                                         MaArgs* args,
+                                         MaObject* args,
                                          const MaLocation& location) {
-    const auto cell = args->get(0, "значення");
+    const auto cell = args->getArg(M, "0", "значення");
     if (native_o->asDiia()->getMe()->asList()->contains(M, cell)) {
       return MaValue::Yes();
     } else {
@@ -164,9 +164,9 @@ namespace mavka::mama {
 
   MaValue MaList_Structure_MagCallNativeDiiaFn(MaMa* M,
                                                MaObject* native_o,
-                                               MaArgs* args,
+                                               MaObject* args,
                                                const MaLocation& location) {
-    const auto cell = args->get(0, "значення");
+    const auto cell = args->getArg(M, "0", "значення");
     if (cell.isObject()) {
       if (cell.asObject()->isList(M)) {
         return cell;
@@ -184,7 +184,7 @@ namespace mavka::mama {
 
   void MaList::Init(MaMa* M) {
     const auto list_structure_object = MaStructure::Create(M, "список");
-    M->global_scope->setSubject("список", list_structure_object);
+    M->global_scope->setProperty(M, "список", list_structure_object);
     M->list_structure_object = list_structure_object;
     list_structure_object->setProperty(
         M, MAG_CALL,

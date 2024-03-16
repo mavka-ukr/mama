@@ -121,8 +121,6 @@ namespace mavka::mama {
         return "VIs";
       case VTake:
         return "VTake";
-      case VPushArg:
-        return "VPushArg";
       default:
         return std::to_string(v);
         break;
@@ -146,11 +144,8 @@ namespace mavka::mama {
   MaInstruction MaInstruction::no() {
     return MaInstruction{VNo};
   }
-  MaInstruction MaInstruction::args(MaArgsType args_type) {
-    return MaInstruction{VArgs, {.args_type = args_type}};
-  }
-  MaInstruction MaInstruction::pushArg() {
-    return MaInstruction{VPushArg};
+  MaInstruction MaInstruction::args() {
+    return MaInstruction{VArgs, {}};
   }
   MaInstruction MaInstruction::storeArg(const std::string& name) {
     return MaInstruction{VStoreArg,

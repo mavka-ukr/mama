@@ -4,9 +4,9 @@ namespace mavka::mama {
   // дізнатись
   MaValue MaStructure_DiscoverNativeDiiaFn(MaMa* M,
                                            MaObject* o,
-                                           MaArgs* args,
+                                           MaObject* args,
                                            const MaLocation& location) {
-    const auto cell = args->get(0, "значення");
+    const auto cell = args->getArg(M, "0", "значення");
     if (cell.isEmpty()) {
       return MaValue::Empty();
     }
@@ -42,7 +42,7 @@ namespace mavka::mama {
   void MaStructure::Init(MaMa* M) {
     const auto structure_structure_object = MaStructure::Create(M, "Структура");
     M->structure_structure_object = structure_structure_object;
-    M->global_scope->setSubject("Структура", structure_structure_object);
+    M->global_scope->setProperty(M, "Структура", structure_structure_object);
   }
 
   void MaStructure::Init2(MaMa* M) {

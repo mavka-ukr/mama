@@ -10,16 +10,10 @@ namespace mavka::mama {
       return result;
     }
 
-    const auto args_type = call_node->args.empty()
-                               ? MA_ARGS_TYPE_POSITIONED
-                               : (call_node->args[0]->data.ArgNode->name.empty()
-                                      ? MA_ARGS_TYPE_POSITIONED
-                                      : MA_ARGS_TYPE_NAMED);
-
     const auto instruction_location =
         MaLocation(ast_value->start_line, ast_value->start_column);
 
-    code->push(MaInstruction::args(args_type));
+    code->push(MaInstruction::args());
 
     for (const auto& arg : call_node->args) {
       const auto arg_result = compile_node(M, code, arg->data.ArgNode->value);
@@ -27,7 +21,8 @@ namespace mavka::mama {
         return arg_result;
       }
       if (arg->data.ArgNode->name.empty()) {
-        code->push(MaInstruction::pushArg());
+        code->push(
+            MaInstruction::storeArg(std::to_string(arg->data.ArgNode->index)));
       } else {
         code->push(MaInstruction::storeArg(arg->data.ArgNode->name));
       }

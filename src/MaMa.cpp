@@ -17,7 +17,11 @@
 namespace mavka::mama {
   MaMa* MaMa::Create() {
     const auto M = new MaMa();
-    M->global_scope = new MaScope(nullptr);
+    const auto scope_structure_object = new MaObject();
+    M->scope_structure_object = scope_structure_object;
+    M->global_scope = new MaObject();
+    M->global_scope->type = scope_structure_object;
+    M->global_scope->d.parent = nullptr;
     MaStructure::Init(M);
     MaObject::Init(M);
     MaDiia::Init(M);
@@ -29,6 +33,9 @@ namespace mavka::mama {
     MaDict::Init(M);
     MaBytes::Init(M);
     MaStructure::Init2(M);
+    scope_structure_object->d.structure = new MaStructure();
+    scope_structure_object->d.structure->name = "Сковп";
+    scope_structure_object->type = M->structure_structure_object;
     return M;
   }
 
@@ -72,25 +79,20 @@ namespace mavka::mama {
           break;
         }
         case VArgs: {
-          PUSH(MaValue::Args(new MaArgs(I.data.args_type)));
-          break;
-        }
-        case VPushArg: {
-          POP_VALUE(value);
-          TOP_VALUE(argsValue);
-          argsValue.asArgs()->push(value);
+          PUSH(MaValue::Object(MaObject::Empty(this)));
           break;
         }
         case VStoreArg: {
           POP_VALUE(value);
           TOP_VALUE(argsValue);
-          argsValue.asArgs()->set(I.data.store->name, value);
+          argsValue.asObject()->setProperty(this, I.data.store->name, value);
           break;
         }
         case VCall: {
           POP_VALUE(argsValue);
           POP_VALUE(value);
-          const auto result = value.call(this, argsValue.asArgs(), I.location);
+          const auto result =
+              value.call(this, argsValue.asObject(), I.location);
           if (result.isError()) {
             return result;
           }
@@ -117,13 +119,13 @@ namespace mavka::mama {
         }
         case VStore: {
           POP_VALUE(value);
-          frame->scope->setSubject(I.data.store->name, value);
+          frame->scope->setProperty(M, I.data.store->name, value);
           break;
         }
         case VLoad: {
           const auto scope = frame->scope;
-          if (scope->hasSubject(I.data.load->name)) {
-            PUSH(scope->getSubject(I.data.load->name));
+          if (scope->hasProperty(M, I.data.load->name)) {
+            PUSH(scope->getProperty(M, I.data.load->name));
             break;
           }
           return MaValue::Error(MaError::Create(
@@ -301,11 +303,12 @@ namespace mavka::mama {
         }
         case VModule: {
           const auto moduleObject = MaModule::Create(this, I.data.module->name);
-          const auto moduleScope = new MaScope(frame->scope);
-          moduleScope->setSubject("я", moduleObject);
+          const auto moduleScope =
+              MaObject::Instance(M, M->scope_structure_object, frame->scope);
+          moduleScope->setProperty(M, "я", moduleObject);
           const auto moduleFrame =
               new MaFrame(moduleScope, moduleObject, frame->module);
-          frame->scope->setSubject(I.data.module->name, moduleObject);
+          frame->scope->setProperty(M, I.data.module->name, moduleObject);
           FRAME_PUSH(moduleFrame);
           const auto result = this->run(I.data.module->code, stack);
           FRAME_POP();
@@ -316,7 +319,7 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          const auto meValue = frame->scope->getSubject("я");
+          const auto meValue = frame->scope->getProperty(M, "я");
           if (meValue.isError()) {
             return meValue;
           }
@@ -606,7 +609,8 @@ namespace mavka::mama {
     const auto parent_scope = this->call_stack.empty()
                                   ? this->global_scope
                                   : this->call_stack.top()->scope;
-    const auto module_scope = new MaScope(parent_scope);
+    const auto module_scope =
+        MaObject::Instance(this, this->scope_structure_object, parent_scope);
     return this->doTakeWithScope(path, name, code, location, module_scope);
   }
 
@@ -614,7 +618,7 @@ namespace mavka::mama {
                                 const std::string& name,
                                 const std::string& code,
                                 const MaLocation& location,
-                                MaScope* module_scope) {
+                                MaObject* module_scope) {
     const auto M = this;
 
     const auto parser_result = parser::parse(code, path);
@@ -637,7 +641,7 @@ namespace mavka::mama {
     }
     this->loaded_file_modules.insert_or_assign(path, module_object);
 
-    module_scope->setSubject("я", module_object);
+    module_scope->setProperty(M, "я", module_object);
 
     const auto body_compilation_result =
         compile_body(this, module_code, parser_result.module_node->body);
