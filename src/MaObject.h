@@ -74,19 +74,19 @@ struct MaObject {
 };
 
 enum MaValueType : uint8_t {
-  MaValueTypeEmpty = 0,
-  MaValueTypeNumber,
-  MaValueTypeYes,
-  MaValueTypeNo,
-  MaValueTypeObject,
-  MaValueTypeArgs,
-  MaValueTypeError,
+  MaValueTypeError = 0,
+  MaValueTypeEmpty = 1,
+  MaValueTypeNumber = 2,
+  MaValueTypeYes = 3,
+  MaValueTypeNo = 4,
+  MaValueTypeObject = 5,
 };
 
 // You must never store MaValue in the heap! It's a value type.
 struct MaValue {
   MaValueType type;
   union {
+    void* ptr;
     MaObject* object;
     double number;
     MaObject* args;

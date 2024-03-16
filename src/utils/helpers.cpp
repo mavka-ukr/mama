@@ -18,8 +18,6 @@ namespace mavka::mama {
         return "логічне";
       case MaValueTypeObject:
         return "обʼєкт";
-      case MaValueTypeArgs:
-        return "аргументи";
       case MaValueTypeError:
         return "помилка";
       default:
