@@ -9,9 +9,7 @@ namespace mavka::mama {
     diia->name = name;
     diia->code = code;
     diia->me = me;
-    const auto diia_object =
-        MaObject::Instance(M, M->diia_structure_object, diia);
-    return diia_object;
+    return MaObject::Instance(M, M->diia_structure_object, diia);
   }
 
   MaObject* MaDiia::Create(MaMa* M,
@@ -22,16 +20,19 @@ namespace mavka::mama {
     diia->name = name;
     diia->fn = fn;
     diia->me = me;
-    const auto diia_object =
-        MaObject::Instance(M, M->diia_structure_object, diia);
-    return diia_object;
+    return MaObject::Instance(M, M->diia_structure_object, diia);
   }
 
   MaObject* MaDiia::Bind(MaMa* M, MaObject* object) {
-    const auto diia_object = MaDiia::Create(M, this->name, this->code, object);
-    diia_object->d.diia->scope = this->scope;
-    diia_object->d.diia->params = this->params;
-    return diia_object;
+    const auto diia = new MaDiia();
+    diia->name = this->name;
+    diia->code = this->code;
+    diia->fn = this->fn;
+    diia->me = object;
+    diia->scope = this->scope;
+    diia->params = this->params;
+    diia->param_index_map = this->param_index_map;
+    return MaObject::Instance(M, M->diia_structure_object, diia);
   }
 
   void MaDiia::Init(MaMa* M) {

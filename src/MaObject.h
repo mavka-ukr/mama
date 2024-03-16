@@ -214,13 +214,11 @@ class MaDiia final {
  public:
   std::string name;
   MaCode* code;
+  std::function<NativeFn> fn;
   MaObject* me;
   MaObject* scope;
   std::vector<MaDiiaParam> params;
   std::unordered_map<std::string, std::string> param_index_map;
-
-  // native
-  std::function<NativeFn> fn;
 
   inline MaObject* getMe() const { return this->me; }
   inline std::vector<MaDiiaParam> getParams() const { return this->params; }

@@ -612,32 +612,32 @@ namespace mavka::mama {
     if (this->loaded_file_modules.contains(path)) {
       return MaValue::Object(this->loaded_file_modules[path]);
     }
-    const auto parser_result = parser::parse(source);
-    if (!parser_result.errors.empty()) {
-      const auto error = parser_result.errors[0];
+    const auto parserResult = parser::parse(source);
+    if (!parserResult.errors.empty()) {
+      const auto error = parserResult.errors[0];
       return MaValue::Error(MaError::Create(this, error.message, li));
     }
-    const auto module_code = new MaCode();
-    module_code->path = path;
+    const auto moduleCode = new MaCode();
+    moduleCode->path = path;
     const auto moduleObject = MaModule::Create(this, name);
-    moduleObject->d.module->code = module_code;
+    moduleObject->d.module->code = moduleCode;
     moduleObject->d.module->is_file_module = true;
     if (this->main_module == nullptr) {
       this->main_module = moduleObject;
     }
     this->loaded_file_modules.insert_or_assign(path, moduleObject);
     const auto bodyCompilationResult =
-        compile_body(this, module_code, parser_result.module_node->body);
+        compile_body(this, moduleCode, parserResult.module_node->body);
     if (bodyCompilationResult.error) {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
     const auto makeModuleDiiaObject = MaDiia::Create(
         this, "",
-        [&module_code](MaMa* M, MaObject* diiaObject, MaObject* args,
+        [&moduleCode](MaMa* M, MaObject* diiaObject, MaObject* args,
                        size_t li) {
           std::stack<MaValue> stack;
-          const auto result = M->run(module_code, stack);
+          const auto result = M->run(moduleCode, stack);
           if (result.isError()) {
             return result;
           }
