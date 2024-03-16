@@ -109,9 +109,10 @@ namespace mavka::mama {
         }
       }
     } else if (this->isObject()) {
-      return this->asObject()->isGreater(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_GREATER);
     }
-    return MaValue::No();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_GREATER, *this, location);
   }
 
   MaValue MaValue::isGreaterOrEqual(MaMa* M,
@@ -126,9 +127,11 @@ namespace mavka::mama {
         }
       }
     } else if (this->isObject()) {
-      return this->asObject()->isGreaterOrEqual(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_GREATER_EQUAL);
     }
-    return MaValue::No();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_GREATER_EQUAL, *this,
+                                           location);
   }
 
   MaValue MaValue::isLesser(MaMa* M,
@@ -143,9 +146,9 @@ namespace mavka::mama {
         }
       }
     } else if (this->isObject()) {
-      return this->asObject()->isLesser(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_LESSER);
     }
-    return MaValue::No();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_LESSER, *this, location);
   }
 
   MaValue MaValue::isLesserOrEqual(MaMa* M,
@@ -160,18 +163,21 @@ namespace mavka::mama {
         }
       }
     } else if (this->isObject()) {
-      return this->asObject()->isLesserOrEqual(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_LESSER_EQUAL);
     }
-    return MaValue::No();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_LESSER_EQUAL, *this,
+                                           location);
   }
 
   MaValue MaValue::contains(MaMa* M,
                             const MaValue& value,
                             const MaLocation& location) const {
     if (this->isObject()) {
-      return this->asObject()->contains(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_CONTAINS);
     }
-    return MaValue::No();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_CONTAINS, *this, location);
   }
 
   MaValue MaValue::doNot(MaMa* M, const MaLocation& location) const {
@@ -196,20 +202,18 @@ namespace mavka::mama {
     if (this->isNumber()) {
       return MaValue::Number(-this->asNumber());
     } else if (this->isObject()) {
-      return this->asObject()->doNegative(M, location);
+      return this->asObject()->callMagWithoutValue(M, location, MAG_NEGATIVE);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_NEGATIVE, *this, location);
   }
 
   MaValue MaValue::doPositive(MaMa* M, const MaLocation& location) const {
     if (this->isNumber()) {
       return MaValue::Number(+this->asNumber());
     } else if (this->isObject()) {
-      return this->asObject()->doPositive(M, location);
+      return this->asObject()->callMagWithoutValue(M, location, MAG_POSITIVE);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_POSITIVE, *this, location);
   }
 
   MaValue MaValue::doBNot(MaMa* M, const MaLocation& location) const {
@@ -217,10 +221,9 @@ namespace mavka::mama {
       return MaValue::Number(
           static_cast<double>(~static_cast<long>(this->asNumber())));
     } else if (this->isObject()) {
-      return this->asObject()->doBNot(M, location);
+      return this->asObject()->callMagWithoutValue(M, location, MAG_BW_NOT);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_NOT, *this, location);
   }
 
   MaValue MaValue::doAdd(MaMa* M,
@@ -230,13 +233,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(this->asNumber() + value.asNumber());
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_ADD, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doAdd(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_ADD);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_ADD, *this, location);
   }
 
   MaValue MaValue::doSub(MaMa* M,
@@ -246,13 +248,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(this->asNumber() - value.asNumber());
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_SUB, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doSub(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_SUB);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_SUB, *this, location);
   }
 
   MaValue MaValue::doMul(MaMa* M,
@@ -262,13 +263,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(this->asNumber() * value.asNumber());
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_MUL, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doMul(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_MUL);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_MUL, *this, location);
   }
 
   MaValue MaValue::doDiv(MaMa* M,
@@ -278,13 +278,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(this->asNumber() / value.asNumber());
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_DIV, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doDiv(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_DIV);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_DIV, *this, location);
   }
 
   MaValue MaValue::doMod(MaMa* M,
@@ -294,13 +293,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(fmod(this->asNumber(), value.asNumber()));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_MOD, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doMod(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_MOD);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_MOD, *this, location);
   }
 
   MaValue MaValue::doDivDiv(MaMa* M,
@@ -310,13 +308,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(floor(this->asNumber() / value.asNumber()));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_DIVDIV, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doDivDiv(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_DIVDIV);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_DIVDIV, *this, location);
   }
 
   MaValue MaValue::doPow(MaMa* M,
@@ -326,13 +323,12 @@ namespace mavka::mama {
       if (value.isNumber()) {
         return MaValue::Number(pow(this->asNumber(), value.asNumber()));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_POW, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doPow(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_POW);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_POW, *this, location);
   }
 
   MaValue MaValue::doXor(MaMa* M,
@@ -344,13 +340,12 @@ namespace mavka::mama {
             static_cast<double>(static_cast<long>(this->asNumber()) ^
                                 static_cast<long>(value.asNumber())));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_BW_XOR, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doXor(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_BW_XOR);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_XOR, *this, location);
   }
 
   MaValue MaValue::doBor(MaMa* M,
@@ -362,13 +357,12 @@ namespace mavka::mama {
             static_cast<double>(static_cast<long>(this->asNumber()) |
                                 static_cast<long>(value.asNumber())));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_BW_OR, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doBor(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_BW_OR);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_OR, *this, location);
   }
 
   MaValue MaValue::doBand(MaMa* M,
@@ -380,13 +374,12 @@ namespace mavka::mama {
             static_cast<double>(static_cast<long>(this->asNumber()) &
                                 static_cast<long>(value.asNumber())));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_BW_AND, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doBand(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location, MAG_BW_AND);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_AND, *this, location);
   }
 
   MaValue MaValue::doShl(MaMa* M,
@@ -398,13 +391,14 @@ namespace mavka::mama {
             static_cast<double>(static_cast<long>(this->asNumber())
                                 << static_cast<long>(value.asNumber())));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_BW_SHIFT_LEFT, *this,
+                                                    location);
     } else if (this->isObject()) {
-      return this->asObject()->doShl(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_BW_SHIFT_LEFT);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_SHIFT_LEFT, *this,
+                                           location);
   }
 
   MaValue MaValue::doShr(MaMa* M,
@@ -416,12 +410,33 @@ namespace mavka::mama {
             static_cast<double>(static_cast<long>(this->asNumber()) >>
                                 static_cast<long>(value.asNumber())));
       }
-      // todo: error
-      return MaValue::Empty();
+      return MaValue::ErrorExpectedNumberFirstParam(M, MAG_BW_SHIFT_RIGHT,
+                                                    *this, location);
     } else if (this->isObject()) {
-      return this->asObject()->doShr(M, value, location);
+      return this->asObject()->callMagWithValue(M, value, location,
+                                                MAG_BW_SHIFT_RIGHT);
     }
-    // todo: error
-    return MaValue::Empty();
+    return MaValue::ErrorDiiaNotDefinedFor(M, MAG_BW_SHIFT_RIGHT, *this,
+                                           location);
+  }
+
+  MaValue MaValue::ErrorDiiaNotDefinedFor(MaMa* M,
+                                          const std::string& name,
+                                          const MaValue& value,
+                                          const MaLocation& location) {
+    return MaValue::Error(MaError::Create(
+        M, "Дію \"" + value.getName() + "." + name + "\" не втілено.",
+        location));
+  }
+
+  MaValue MaValue::ErrorExpectedNumberFirstParam(MaMa* M,
+                                                 const std::string& name,
+                                                 const MaValue& value,
+                                                 const MaLocation& location) {
+    return MaValue::Error(
+        MaError::Create(M,
+                        "Дія \"" + value.getName() + "." + name +
+                            "\" очікує першим параметром число.",
+                        location));
   }
 } // namespace mavka::mama

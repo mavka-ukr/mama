@@ -76,11 +76,6 @@
   return MaValue::Error(                                       \
       MaError::Create(MaValue::Object(MaText::Create(M, (v))), \
                       M->call_stack.top()->module, (location)));
-#define DO_RETURN_DIIA_NOT_DEFINED_FOR_TYPE_ERROR(varname, cell, location) \
-  DO_RETURN_STRING_ERROR("Дію \"" + std::string(varname) +                 \
-                             "\" не визначено для типу \"" +               \
-                             (cell).getName() + "\".",                     \
-                         (location))
 
 namespace mavka::mama {
   struct MaMa;

@@ -229,6 +229,10 @@ namespace mavka::mama {
                                      const MaValue& value,
                                      const MaLocation& location,
                                      const std::string& name) {
+    if (!this->hasProperty(M, name)) {
+      return MaValue::ErrorDiiaNotDefinedFor(M, name, MaValue::Object(this),
+                                             location);
+    }
     this->retain();
     const auto magicDiia = this->getProperty(M, name);
     if (magicDiia.isObject()) {
@@ -251,6 +255,10 @@ namespace mavka::mama {
   MaValue MaObject::callMagWithoutValue(MaMa* M,
                                         const MaLocation& location,
                                         const std::string& name) {
+    if (!this->hasProperty(M, name)) {
+      return MaValue::ErrorDiiaNotDefinedFor(M, name, MaValue::Object(this),
+                                             location);
+    }
     this->retain();
     const auto magicDiia = this->getProperty(M, name);
     if (magicDiia.isObject()) {
@@ -262,120 +270,6 @@ namespace mavka::mama {
     }
     //    this->release();
     return result;
-  }
-
-  MaValue MaObject::isGreater(MaMa* M,
-                              const MaValue& value,
-                              const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_GREATER);
-  }
-
-  MaValue MaObject::isGreaterOrEqual(MaMa* M,
-                                     const MaValue& value,
-                                     const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_GREATER_EQUAL);
-  }
-
-  MaValue MaObject::isLesser(MaMa* M,
-                             const MaValue& value,
-                             const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_LESSER);
-  }
-
-  MaValue MaObject::isLesserOrEqual(MaMa* M,
-                                    const MaValue& value,
-                                    const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_LESSER_EQUAL);
-  }
-
-  MaValue MaObject::contains(MaMa* M,
-                             const MaValue& value,
-                             const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_CONTAINS);
-  }
-
-  MaValue MaObject::doNegative(MaMa* M, const MaLocation& location) {
-    return this->callMagWithoutValue(M, location, MAG_NEGATIVE);
-  }
-
-  MaValue MaObject::doPositive(MaMa* M, const MaLocation& location) {
-    return this->callMagWithoutValue(M, location, MAG_POSITIVE);
-  }
-
-  MaValue MaObject::doBNot(MaMa* M, const MaLocation& location) {
-    return this->callMagWithoutValue(M, location, MAG_BW_NOT);
-  }
-
-  MaValue MaObject::doAdd(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_ADD);
-  }
-
-  MaValue MaObject::doSub(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_SUB);
-  }
-
-  MaValue MaObject::doMul(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_MUL);
-  }
-
-  MaValue MaObject::doDiv(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_DIV);
-  }
-
-  MaValue MaObject::doMod(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_MOD);
-  }
-
-  MaValue MaObject::doDivDiv(MaMa* M,
-                             const MaValue& value,
-                             const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_DIVDIV);
-  }
-
-  MaValue MaObject::doPow(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_POW);
-  }
-
-  MaValue MaObject::doXor(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_BW_XOR);
-  }
-
-  MaValue MaObject::doBor(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_BW_OR);
-  }
-
-  MaValue MaObject::doBand(MaMa* M,
-                           const MaValue& value,
-                           const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_BW_AND);
-  }
-
-  MaValue MaObject::doShl(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_BW_SHIFT_LEFT);
-  }
-
-  MaValue MaObject::doShr(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location) {
-    return this->callMagWithValue(M, value, location, MAG_BW_SHIFT_RIGHT);
   }
 
   std::string MaObject::getPrettyString(MaMa* M) {

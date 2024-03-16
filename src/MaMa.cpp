@@ -666,7 +666,7 @@ namespace mavka::mama {
   }
 
   std::string MaMa::getStackTrace() {
-    std::vector<std::string> stack_trace{"Слід:"};
+    std::vector<std::string> stack_trace{};
     std::stack<MaFrame*> call_stack_copy = this->call_stack;
     while (!call_stack_copy.empty()) {
       const auto frame = call_stack_copy.top();
@@ -678,6 +678,9 @@ namespace mavka::mama {
         stack_trace.push_back("  " + frame->object->asDiia()->name + " " +
                               modulePath + ":" + line + ":" + column);
       }
+    }
+    if (!stack_trace.empty()) {
+      stack_trace.insert(stack_trace.begin(), "Слід :");
     }
     return internal::tools::implode(stack_trace, "\n");
   }

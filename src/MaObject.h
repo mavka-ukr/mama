@@ -55,30 +55,6 @@ struct MaObject {
   MaValue callMagWithoutValue(MaMa* M,
                               const MaLocation& location,
                               const std::string& name);
-  MaValue isGreater(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue isGreaterOrEqual(MaMa* M,
-                           const MaValue& value,
-                           const MaLocation& location);
-  MaValue isLesser(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue isLesserOrEqual(MaMa* M,
-                          const MaValue& value,
-                          const MaLocation& location);
-  MaValue contains(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doNegative(MaMa* M, const MaLocation& location);
-  MaValue doPositive(MaMa* M, const MaLocation& location);
-  MaValue doBNot(MaMa* M, const MaLocation& location);
-  MaValue doAdd(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doSub(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doMul(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doDiv(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doMod(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doDivDiv(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doPow(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doXor(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doBor(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doBand(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doShl(MaMa* M, const MaValue& value, const MaLocation& location);
-  MaValue doShr(MaMa* M, const MaValue& value, const MaLocation& location);
 
   void setProperty(MaMa* M, const std::string& name, const MaValue& value);
   void setProperty(MaMa* M, const std::string& name, MaObject* value);
@@ -213,6 +189,14 @@ struct MaValue {
   inline static MaValue Error(MaError* value) {
     return MaValue{MaValueTypeError, {.error = value}};
   };
+  static MaValue ErrorDiiaNotDefinedFor(MaMa* M,
+                                        const std::string& name,
+                                        const MaValue& value,
+                                        const MaLocation& location);
+  static MaValue ErrorExpectedNumberFirstParam(MaMa* M,
+                                               const std::string& name,
+                                               const MaValue& value,
+                                               const MaLocation& location);
 };
 
 class MaText final {
