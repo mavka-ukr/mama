@@ -95,8 +95,6 @@ namespace mavka::mama {
         return "VModule";
       case VTry:
         return "VTry";
-      case VTryDone:
-        return "VTryDone";
       case VNot:
         return "VNot";
       case VArgs:

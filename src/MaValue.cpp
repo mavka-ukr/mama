@@ -10,16 +10,6 @@ namespace mavka::mama {
         li));
   };
 
-  MaValue MaValue::call(MaMa* M,
-                        const std::vector<MaValue>& args,
-                        size_t li) const {
-    const auto argsObject = MaObject::Empty(M);
-    for (size_t i = 0; i < args.size(); i++) {
-      argsObject->setProperty(M, std::to_string(i), args[i]);
-    }
-    return this->call(M, argsObject, li);
-  }
-
   bool MaValue::isEqual(MaMa* M, const MaValue& other) const {
     if (other.isEmpty()) {
       if (this->isEmpty()) {

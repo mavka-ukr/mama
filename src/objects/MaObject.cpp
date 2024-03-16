@@ -248,7 +248,11 @@ namespace mavka::mama {
     if (value.isObject()) {
       value.asObject()->retain();
     }
-    const auto result = magicDiia.call(M, {value}, li);
+    const auto args = MaObject::Empty(M);
+    args->retain();
+    args->setProperty(M, "0", value);
+    const auto result = magicDiia.call(M, args, li);
+    //    args->release();
     if (value.isObject()) {
       //      value.asObject()->release();
     }

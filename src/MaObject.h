@@ -96,7 +96,6 @@ struct MaValue {
   std::string getName() const;
 
   MaValue call(MaMa* M, MaObject* args, size_t li) const;
-  MaValue call(MaMa* M, const std::vector<MaValue>& args, size_t li) const;
   bool isEqual(MaMa* M, const MaValue& other) const;
   MaValue is(MaMa* M, const MaValue& value, size_t li) const;
   MaValue isGreater(MaMa* M, const MaValue& value, size_t li) const;

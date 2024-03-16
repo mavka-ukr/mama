@@ -32,7 +32,6 @@ typedef enum {
   VESetR,
 
   VTry,
-  VTryDone,
   VThrow,
 
   VList,

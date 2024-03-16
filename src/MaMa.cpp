@@ -240,11 +240,6 @@ namespace mavka::mama {
           }
           break;
         }
-        case VTryDone: {
-          FRAME_POP();
-          i = I.data.tryDone->index;
-          break;
-        }
         case VThrow: {
           POP_VALUE(value);
           return MaValue::Error(MaError::Create(value, I.li));
@@ -301,7 +296,7 @@ namespace mavka::mama {
         case VModule: {
           const auto moduleObject = MaModule::Create(this, I.data.module->name);
           frame->scope->setProperty(M, I.data.module->name, moduleObject);
-          const auto make_module_diia_object = MaDiia::Create(
+          const auto makeModuleDiiaObject = MaDiia::Create(
               M, "",
               [&I](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
                 std::stack<MaValue> stack;
@@ -312,8 +307,12 @@ namespace mavka::mama {
                 return MaValue::Object(diiaObject->d.diia->me);
               },
               moduleObject);
-          const auto result =
-              make_module_diia_object->call(this, MaObject::Empty(this), I.li);
+          makeModuleDiiaObject->retain();
+          const auto args = MaObject::Empty(this);
+          args->retain();
+          const auto result = makeModuleDiiaObject->call(this, args, I.li);
+          //          args->release();
+          //          makeModuleDiiaObject->release();
           if (result.isError()) {
             return result;
           }
@@ -579,29 +578,20 @@ namespace mavka::mama {
   }
 
   MaValue MaMa::eval(const std::string& code, size_t li) {
-    const auto M = this;
-
-    const auto parser_result = parser::parse(code);
-    if (!parser_result.errors.empty()) {
-      const auto error = parser_result.errors[0];
-      DO_RETURN_STRING_ERROR(std::to_string(error.line) + ":" +
-                                 std::to_string(error.column) + ": " +
-                                 error.message,
-                             li);
+    const auto parserResult = parser::parse(code);
+    if (!parserResult.errors.empty()) {
+      const auto error = parserResult.errors[0];
+      return MaValue::Error(MaError::Create(this, error.message, li));
     }
-
-    const auto eval_code = new MaCode();
-    const auto body_compilation_result =
-        compile_body(this, eval_code, parser_result.module_node->body);
-    if (body_compilation_result.error) {
-      DO_RETURN_STRING_ERROR(
-          std::to_string(body_compilation_result.error->line) + ":" +
-              std::to_string(body_compilation_result.error->column) + ": " +
-              body_compilation_result.error->message,
-          li);
+    const auto evalCode = new MaCode();
+    const auto bodyCompilationResult =
+        compile_body(this, evalCode, parserResult.module_node->body);
+    if (bodyCompilationResult.error) {
+      return MaValue::Error(
+          MaError::Create(this, bodyCompilationResult.error->message, li));
     }
     std::stack<MaValue> stack;
-    const auto result = this->run(eval_code, stack);
+    const auto result = this->run(evalCode, stack);
     if (result.isError()) {
       return result;
     }
@@ -612,40 +602,36 @@ namespace mavka::mama {
                        const std::string& name,
                        const std::string& code,
                        size_t li) {
-    const auto M = this;
+    if (this->loaded_file_modules.contains(path)) {
+      return MaValue::Object(this->loaded_file_modules[path]);
+    }
 
     const auto parser_result = parser::parse(code);
     if (!parser_result.errors.empty()) {
       const auto error = parser_result.errors[0];
-      DO_RETURN_STRING_ERROR(path + ":" + std::to_string(error.line) + ":" +
-                                 std::to_string(error.column) + ": " +
-                                 error.message,
-                             li);
+      return MaValue::Error(MaError::Create(this, error.message, li));
     }
 
     const auto module_code = new MaCode();
     module_code->path = path;
 
-    const auto module_object = MaModule::Create(this, name);
-    module_object->d.module->code = module_code;
-    module_object->d.module->is_file_module = true;
+    const auto moduleObject = MaModule::Create(this, name);
+    moduleObject->d.module->code = module_code;
+    moduleObject->d.module->is_file_module = true;
     if (this->main_module == nullptr) {
-      this->main_module = module_object;
+      this->main_module = moduleObject;
     }
-    this->loaded_file_modules.insert_or_assign(path, module_object);
+    this->loaded_file_modules.insert_or_assign(path, moduleObject);
 
-    const auto body_compilation_result =
+    const auto bodyCompilationResult =
         compile_body(this, module_code, parser_result.module_node->body);
-    if (body_compilation_result.error) {
-      DO_RETURN_STRING_ERROR(
-          path + ":" + std::to_string(body_compilation_result.error->line) +
-              ":" + std::to_string(body_compilation_result.error->column) +
-              ": " + body_compilation_result.error->message,
-          li);
+    if (bodyCompilationResult.error) {
+      return MaValue::Error(
+          MaError::Create(this, bodyCompilationResult.error->message, li));
     }
 
-    const auto make_module_diia_object = MaDiia::Create(
-        M, "",
+    const auto makeModuleDiiaObject = MaDiia::Create(
+        this, "",
         [&module_code](MaMa* M, MaObject* diiaObject, MaObject* args,
                        size_t li) {
           std::stack<MaValue> stack;
@@ -655,9 +641,15 @@ namespace mavka::mama {
           }
           return MaValue::Object(diiaObject->d.diia->me);
         },
-        module_object);
+        moduleObject);
 
-    return make_module_diia_object->call(this, MaObject::Empty(this), li);
+    makeModuleDiiaObject->retain();
+    const auto args = MaObject::Empty(this);
+    args->retain();
+    const auto result = makeModuleDiiaObject->call(this, args, li);
+    //    args->release();
+    //    makeModuleDiiaObject->release();
+    return result;
   }
 
   std::string MaMa::getStackTrace() {
