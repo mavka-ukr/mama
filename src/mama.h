@@ -103,6 +103,7 @@ namespace mavka::mama {
   struct MaFrame {
     MaObject* scope = nullptr;
     MaObject* diia = nullptr;
+    MaObject* module = nullptr;
     size_t li;
   };
 

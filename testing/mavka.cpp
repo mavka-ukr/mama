@@ -141,7 +141,7 @@ void init_read(MaMa* M) {
                                MaDiia::Create(M, "читати", native_fn, nullptr));
 }
 
-MaValue TakePath(MaMa* M, const std::string& raw_path, size_t li) {
+MaValue takePath(MaMa* M, const std::string& raw_path, size_t li) {
   const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
   const auto path = canonical_path.string();
   if (!std::filesystem::exists(canonical_path)) {
@@ -178,6 +178,9 @@ MaValue take_fn(MaMa* M,
                 const std::vector<std::string>& parts,
                 size_t li) {
   if (!repository.empty()) {
+    //    const auto frame = M->call_stack.top();
+    //    const auto currentModule = frame->module;
+
     return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття з репозиторію.", li));
   }
@@ -185,10 +188,12 @@ MaValue take_fn(MaMa* M,
     return MaValue::Error(
         MaError::Create(M, "Не підтримується взяття відносного шляху.", li));
   }
-  const auto cwd = std::filesystem::current_path();
-  const auto raw_path =
-      cwd.string() + "/" + mavka::internal::tools::implode(parts, "/") + ".м";
-  return TakePath(M, raw_path, li);
+  const auto mainModulePath = M->main_module->asModule()->code->path;
+  const auto mainModuleDir =
+      std::filesystem::path(mainModulePath).parent_path();
+  const auto path = mainModuleDir.string() + "/" +
+                    mavka::internal::tools::implode(parts, "/") + ".м";
+  return takePath(M, path, li);
 }
 
 int main(int argc, char** argv) {
@@ -201,7 +206,7 @@ int main(int argc, char** argv) {
   init_read(M);
   init_create_module(M);
 
-  const auto take_result = TakePath(M, args[1], {});
+  const auto take_result = takePath(M, args[1], {});
   if (take_result.isError()) {
     const auto stackTrace = M->getStackTrace();
     if (!stackTrace.empty()) {

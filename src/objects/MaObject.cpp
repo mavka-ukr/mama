@@ -182,7 +182,9 @@ namespace mavka::mama {
     }
     const auto currentScope =
         M->call_stack.empty() ? M->global_scope : M->call_stack.top()->scope;
-    const auto frame = new MaFrame(currentScope, this, li);
+    const auto currentModule =
+        M->call_stack.empty() ? M->main_module : M->call_stack.top()->module;
+    const auto frame = new MaFrame(currentScope, this, currentModule, li);
     FRAME_PUSH(frame);
     if (this->isDiia(M)) {
       const auto diia = this->asDiia();
