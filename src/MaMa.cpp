@@ -557,9 +557,8 @@ namespace mavka::mama {
           break;
         }
         case VTake: {
-          const auto result =
-              this->take(I.data.take->repository, I.data.take->relative,
-                         I.data.take->path_parts, I.li);
+          const auto result = this->take(I.data.take->repository,
+                                         I.data.take->path_parts, I.li);
           if (result.isError()) {
             return result;
           }
@@ -600,10 +599,9 @@ namespace mavka::mama {
   }
 
   MaValue MaMa::take(const std::string& repository,
-                     bool relative,
                      const std::vector<std::string>& parts,
                      size_t li) {
-    return this->take_fn(this, repository, relative, parts, li);
+    return this->take_fn(this, repository, parts, li);
   }
 
   MaValue MaMa::takeSource(const std::string& path,

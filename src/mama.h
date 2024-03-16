@@ -152,7 +152,6 @@ namespace mavka::mama {
 
     std::function<MaValue(MaMa*,
                           const std::string& repository,
-                          bool relative,
                           const std::vector<std::string>& parts,
                           size_t li)>
         take_fn;
@@ -161,7 +160,6 @@ namespace mavka::mama {
     MaValue eval(const std::string& source, size_t li = {});
 
     MaValue take(const std::string& repository,
-                 bool relative,
                  const std::vector<std::string>& parts,
                  size_t li);
     MaValue takeSource(const std::string& path,

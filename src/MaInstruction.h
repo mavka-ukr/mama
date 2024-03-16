@@ -139,7 +139,6 @@ struct MaGiveInstructionArgs {
 
 struct MaTakeInstructionArgs {
   std::string repository;
-  bool relative;
   std::vector<std::string> path_parts;
 };
 
@@ -204,7 +203,6 @@ struct MaInstruction {
   static MaInstruction module(MaCode* code, const std::string& name);
   static MaInstruction give(const std::string& name);
   static MaInstruction take(const std::string& repository,
-                            bool relative,
                             const std::vector<std::string>& path_parts);
   static MaInstruction eq(size_t li);
   static MaInstruction gt(size_t li);

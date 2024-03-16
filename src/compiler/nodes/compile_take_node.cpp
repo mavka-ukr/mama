@@ -7,8 +7,7 @@ namespace mavka::mama {
     const auto take_node = ast_value->data.TakeNode;
     const auto parts = mavka::internal::tools::explode(take_node->name, ".");
 
-    code->push(
-        MaInstruction::take(take_node->repo, take_node->relative, parts));
+    code->push(MaInstruction::take(take_node->repo, parts));
 
     if (take_node->elements.empty()) {
       if (take_node->as.empty()) {

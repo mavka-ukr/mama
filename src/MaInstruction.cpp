@@ -226,11 +226,10 @@ namespace mavka::mama {
   }
   MaInstruction MaInstruction::take(
       const std::string& repository,
-      bool relative,
       const std::vector<std::string>& path_parts) {
     return MaInstruction{
         VTake,
-        {.take = new MaTakeInstructionArgs(repository, relative, path_parts)}};
+        {.take = new MaTakeInstructionArgs(repository, path_parts)}};
   }
   MaInstruction MaInstruction::eq(size_t li) {
     return MaInstruction{VEq, {}, li};

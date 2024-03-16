@@ -37,7 +37,6 @@ namespace mavka::mama {
 
   MaValue maTakeFsFn(MaMa* M,
                      const std::string& repository,
-                     bool relative,
                      const std::vector<std::string>& parts,
                      size_t li) {
     const auto currentModule = M->call_stack.top()->getModule();
@@ -58,12 +57,7 @@ namespace mavka::mama {
                         mavka::internal::tools::implode(parts, "/") + ".м";
       return maTakeFsPath(M, path, true, li);
     }
-    std::string takeDir;
-    if (relative) {
-      takeDir = currentModuleDir.string();
-    } else {
-      takeDir = rootModuleDir.string();
-    }
+    const auto takeDir = rootModuleDir.string();
     const auto path =
         takeDir + "/" + mavka::internal::tools::implode(parts, "/") + ".м";
     return maTakeFsPath(M, path, false, li);
