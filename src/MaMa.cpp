@@ -652,6 +652,7 @@ namespace mavka::mama {
           return MaValue::Object(diiaObject->d.diia->me);
         },
         moduleObject);
+    makeModuleDiiaObject->asDiia()->is_module_make_diia = true;
     makeModuleDiiaObject->retain();
     const auto args = MaObject::Empty(this);
     args->retain();
