@@ -44,67 +44,38 @@ mavka.cpp:
 
 using namespace mavka::mama;
 
-MaValue TakePath(MaMa* M,
-                 const std::string& raw_path,
-                 size_t li) {
-  const auto canonical_path = std::filesystem::weakly_canonical(raw_path);
-  const auto path = canonical_path.string();
-  if (!std::filesystem::exists(canonical_path)) {
-    return MaValue::Error(
-        MaError::Create(M, "Шлях \"" + path + "\" не існує.", location));
-  }
-  if (!std::filesystem::is_regular_file(canonical_path)) {
-    return MaValue::Error(MaError::Create(
-        M, "Шлях \"" + path + "\" не вказує на файл.", location));
-  }
-
-  if (M->loaded_file_modules.contains(path)) {
-    return MaValue::Object(M->loaded_file_modules[path]);
-  }
-
-  auto file = std::ifstream(path);
-  if (!file.is_open()) {
-    return MaValue::Error(MaError::Create(
-        M, "Не вдалося прочитати файл \"" + path + "\".", location));
-  }
-
-  const auto fs_path = std::filesystem::path(path);
-  const auto name = fs_path.stem().string();
-
-  const auto source = std::string(std::istreambuf_iterator(file),
-                                  std::istreambuf_iterator<char>());
-
-  return M->DoTake(path, name, source, location);
-}
-
-MaValue take_fn(MaMa* M,
-                const std::string& repository,
-                bool relative,
-                const std::vector<std::string>& parts,
-                size_t li) {
-  if (!repository.empty()) {
-    return MaValue::Error(
-        MaError::Create(M, "Не підтримується взяття з репозиторію.", location));
-  }
-  if (relative) {
-    return MaValue::Error(MaError::Create(
-        M, "Не підтримується взяття відносного шляху.", location));
-  }
-  const auto cwd = std::filesystem::current_path();
-  const auto raw_path =
-      cwd.string() + "/" + mavka::internal::tools::implode(parts, "/") + ".м";
-  return TakePath(M, raw_path, location);
-}
-
 int main(int argc, char** argv) {
-  const auto M = MaMa::Create();
-  M->take_fn = take_fn;
+  const auto source = "2 + 2";
 
-  const auto take_result = TakePath(M, "./старт.м", {});
-  if (take_result.isError()) {
-    std::cerr << cell_to_string(take_result.v.error->value) << std::endl;
+  const auto M = MaMa::Create();
+
+  const auto mainModule = MaModule::Create(M, "старт");
+  mainModule->retain();
+  M->main_module = mainModule;
+
+  const auto mainDiia = MaDiia::Create(
+      M, "старт",
+      [&source](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
+        return M->eval(source, 0);
+      },
+      mainModule);
+  mainDiia->retain();
+
+  const auto args = MaObject::Empty(M);
+  args->retain();
+
+  const auto result = mainDiia->call(M, args, 0);
+  if (result.isError()) {
+    std::cout << "error" << std::endl;
     return 1;
   }
+  std::cout << "result: " << result.asNumber() << std::endl;
+
+  args->release();
+  mainDiia->release();
+  mainModule->release();
+
+  delete M;
 
   return 0;
 }

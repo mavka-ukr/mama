@@ -169,7 +169,7 @@ MaValue TakePath(MaMa* M, const std::string& raw_path, size_t li) {
   const auto source = std::string(std::istreambuf_iterator(file),
                                   std::istreambuf_iterator<char>());
 
-  return M->doTake(path, name, source, li);
+  return M->takeSource(path, name, source, li);
 }
 
 MaValue take_fn(MaMa* M,

@@ -149,12 +149,16 @@ namespace mavka::mama {
         take_fn;
 
     MaValue run(MaCode* code, std::stack<MaValue>& stack);
-    MaValue eval(const std::string& code, size_t li = {});
+    MaValue eval(const std::string& source, size_t li = {});
 
-    MaValue doTake(const std::string& id,
-                   const std::string& name,
-                   const std::string& code,
-                   size_t li);
+    MaValue take(const std::string& repository,
+                 bool relative,
+                 const std::vector<std::string>& parts,
+                 size_t li);
+    MaValue takeSource(const std::string& path,
+                       const std::string& name,
+                       const std::string& source,
+                       size_t li);
 
     std::string getStackTrace();
 
