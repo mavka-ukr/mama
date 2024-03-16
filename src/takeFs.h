@@ -40,17 +40,18 @@ namespace mavka::mama {
                      bool relative,
                      const std::vector<std::string>& parts,
                      size_t li) {
-    const auto currentModule = M->call_stack.top()->module;
-    const auto currentModulePath = currentModule->asModule()->code->path;
+    const auto currentModule = M->call_stack.top()->getModule();
+    const auto currentModulePath =
+        currentModule->asModule()->getCode()->getPath();
     const auto currentModuleDir =
         std::filesystem::path(currentModulePath).parent_path();
-    const auto rootModule = currentModule->asModule()->root;
-    const auto rootModulePath = rootModule->asModule()->code->path;
+    const auto rootModule = currentModule->asModule()->getRoot();
+    const auto rootModulePath = rootModule->asModule()->getCode()->getPath();
     const auto rootModuleDir =
         std::filesystem::path(rootModulePath).parent_path();
     if (!repository.empty()) {
       const auto mainModule = M->main_module;
-      const auto mainModulePath = mainModule->asModule()->code->path;
+      const auto mainModulePath = mainModule->asModule()->getCode()->getPath();
       const auto mainModuleDir =
           std::filesystem::path(mainModulePath).parent_path();
       const auto path = mainModuleDir.string() + "/.паки/" + parts[0] + "/" +

@@ -15,7 +15,7 @@ struct MaObject {
   MaObject* type;
   union {
     void* ptr;
-    MaObject* parent; // scope
+    MaObject* outer; // scope
     MaStructure* structure;
     MaDiia* diia;
     MaModule* module;
@@ -216,9 +216,10 @@ class MaDiia final {
   MaCode* code;
   std::function<NativeFn> fn;
   MaObject* me;
-  MaObject* scope;
+  MaObject* outerScope;
   std::vector<MaDiiaParam> params;
   std::unordered_map<std::string, std::string> param_index_map;
+  bool is_module_make_diia;
 
   inline MaObject* getMe() const { return this->me; }
   inline std::vector<MaDiiaParam> getParams() const { return this->params; }
@@ -227,6 +228,7 @@ class MaDiia final {
     this->params.push_back(param);
     this->param_index_map[index] = name;
   }
+  inline void setOuterScope(MaObject* os) { this->outerScope = os; }
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M,
@@ -274,6 +276,8 @@ class MaModule final {
   MaObject* root;
 
   inline std::string getName() const { return this->name; };
+  inline MaObject* getRoot() const { return this->root; };
+  inline MaCode* getCode() const { return this->code; };
 
   static void Init(MaMa* M);
   static MaObject* Create(MaMa* M, const std::string& name);

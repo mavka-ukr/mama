@@ -29,7 +29,7 @@ namespace mavka::mama {
     diia->code = this->code;
     diia->fn = this->fn;
     diia->me = object;
-    diia->scope = this->scope;
+    diia->outerScope = this->outerScope;
     diia->params = this->params;
     diia->param_index_map = this->param_index_map;
     return MaObject::Instance(M, M->diia_structure_object, diia);

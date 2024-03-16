@@ -103,8 +103,8 @@ namespace mavka::mama {
       return true;
     }
     if (this->isScope(M)) {
-      if (this->d.parent) {
-        return this->d.parent->hasProperty(M, name);
+      if (this->d.outer) {
+        return this->d.outer->hasProperty(M, name);
       }
     }
     return false;
@@ -115,12 +115,12 @@ namespace mavka::mama {
       if (this->properties.contains(name)) {
         return this->properties[name];
       }
-      auto parent_tmp = this->d.parent;
+      auto parent_tmp = this->d.outer;
       while (parent_tmp) {
         if (parent_tmp->properties.contains(name)) {
           return parent_tmp->properties[name];
         }
-        parent_tmp = parent_tmp->d.parent;
+        parent_tmp = parent_tmp->d.outer;
       }
       return MaValue::Empty();
     }
@@ -188,9 +188,9 @@ namespace mavka::mama {
     FRAME_PUSH(frame);
     if (this->isDiia(M)) {
       const auto diia = this->asDiia();
-      const auto diia_scope =
-          MaObject::Instance(M, M->scope_structure_object,
-                             diia->scope ? diia->scope : currentScope);
+      const auto diia_scope = MaObject::Instance(
+          M, M->scope_structure_object,
+          diia->outerScope ? diia->outerScope : currentScope);
       frame->scope = diia_scope;
       if (diia->getMe()) {
         frame->scope->setProperty(M, "я", diia->getMe());

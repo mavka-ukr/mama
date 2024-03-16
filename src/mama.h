@@ -107,6 +107,10 @@ namespace mavka::mama {
     MaObject* diia = nullptr;
     MaObject* module = nullptr;
     size_t li;
+
+    inline MaObject* getScope() const { return this->scope; };
+    inline MaObject* getDiia() const { return this->diia; };
+    inline MaObject* getModule() const { return this->module; };
   };
 
 #include "MaInstruction.h"
@@ -121,6 +125,8 @@ namespace mavka::mama {
     inline void push(const MaInstruction& instruction) {
       instructions.push_back(instruction);
     }
+
+    inline std::string getPath() { return this->path; }
   };
 
   struct MaMa {

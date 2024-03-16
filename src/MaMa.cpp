@@ -22,7 +22,7 @@ namespace mavka::mama {
     M->scope_structure_object = scope_structure_object;
     M->global_scope = new MaObject();
     M->global_scope->type = scope_structure_object;
-    M->global_scope->d.parent = nullptr;
+    M->global_scope->d.outer = nullptr;
     MaStructure::Init(M);
     MaObject::Init(M);
     MaDiia::Init(M);
@@ -105,7 +105,7 @@ namespace mavka::mama {
         case VDiia: {
           const auto diiaObject = MaDiia::Create(this, I.data.diia->name,
                                                  I.data.diia->code, nullptr);
-          diiaObject->d.diia->scope = frame->scope;
+          diiaObject->asDiia()->setOuterScope(frame->getScope());
           PUSH_OBJECT(diiaObject);
           break;
         }
@@ -118,7 +118,7 @@ namespace mavka::mama {
         }
         case VStore: {
           POP_VALUE(value);
-          frame->scope->setProperty(M, I.data.store->name, value);
+          frame->getScope()->setProperty(M, I.data.store->name, value);
           break;
         }
         case VLoad: {
@@ -295,7 +295,7 @@ namespace mavka::mama {
         }
         case VModule: {
           const auto moduleObject = MaModule::Create(this, I.data.module->name);
-          frame->scope->setProperty(M, I.data.module->name, moduleObject);
+          frame->getScope()->setProperty(M, I.data.module->name, moduleObject);
           const auto makeModuleDiiaObject = MaDiia::Create(
               M, "",
               [&I](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
@@ -307,6 +307,7 @@ namespace mavka::mama {
                 return MaValue::Object(diiaObject->d.diia->me);
               },
               moduleObject);
+          makeModuleDiiaObject->asDiia()->is_module_make_diia = true;
           makeModuleDiiaObject->retain();
           const auto args = MaObject::Empty(this);
           args->retain();
@@ -666,12 +667,14 @@ namespace mavka::mama {
     while (!call_stack_copy.empty()) {
       const auto frame = call_stack_copy.top();
       call_stack_copy.pop();
-      const auto location = this->locations[frame->li];
-      const auto path = location.path;
-      const auto line = std::to_string(location.line);
-      const auto column = std::to_string(location.column);
-      stack_trace.push_back("  " + frame->diia->asDiia()->name + " " + path +
-                            ":" + line + ":" + column);
+      if (!frame->diia->asDiia()->is_module_make_diia) {
+        const auto location = this->locations[frame->li];
+        const auto path = location.path;
+        const auto line = std::to_string(location.line);
+        const auto column = std::to_string(location.column);
+        stack_trace.push_back("  " + frame->diia->asDiia()->name + " " + path +
+                              ":" + line + ":" + column);
+      }
     }
     if (!stack_trace.empty()) {
       stack_trace.insert(stack_trace.begin(), "Слід :");
