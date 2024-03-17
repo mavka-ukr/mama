@@ -1,35 +1,35 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  void MaList::append(MaMa* M, const MaValue& cell) {
+  void MaObject::listAppend(MaMa* M, const MaValue& cell) {
     if (cell.isObject()) {
       cell.asObject()->retain();
     }
-    this->data.push_back(cell);
+    this->listData.push_back(cell);
   }
 
-  void MaList::setAt(MaMa* M, size_t index, const MaValue& value) {
-    if (value.isObject()) {
-      value.asObject()->retain();
-    }
-    if (index >= 0) {
-      if (index >= this->getLength()) {
-        // todo: looks bad
-        this->data.resize(index + 1);
-      }
-      this->data[index] = value;
-    }
-  }
-
-  MaValue MaList::getAt(MaMa* M, size_t index) const {
-    if (index >= 0 && index < this->getLength()) {
-      return this->data[index];
+  MaValue MaObject::listGetAt(MaMa* M, long index) const {
+    if (index >= 0 && index < this->listGetLength()) {
+      return this->listData[index];
     }
     return MaValue::Empty();
   }
 
-  bool MaList::contains(MaMa* M, const MaValue& cell) {
-    for (const auto& item : this->data) {
+  void MaObject::listSetAt(MaMa* M, long index, const MaValue& value) {
+    if (value.isObject()) {
+      value.asObject()->retain();
+    }
+    if (index >= 0) {
+      if (index >= this->listGetLength()) {
+        // todo: looks bad
+        this->listData.resize(index + 1);
+      }
+      this->listData[index] = value;
+    }
+  }
+
+  bool MaObject::listContains(MaMa* M, const MaValue& cell) {
+    for (const auto& item : this->listData) {
       if (cell.isEqual(M, item)) {
         return true;
       }
@@ -39,69 +39,72 @@ namespace mavka::mama {
 
   // чародія_перебір
   MaValue MaList_MagIteratorNativeFn(MaMa* M,
-                                     MaObject* native_o,
+                                     MaObject* diiaObject,
                                      MaObject* args,
                                      size_t li) {
-    const auto list_o = native_o->asDiia()->me;
+    const auto listObject = diiaObject->diiaGetBoundObject();
 
-    const auto iterator_o = MaObject::Empty(M);
-    iterator_o->setProperty(M, "_список", list_o);
+    const auto iteratorObject = MaObject::Empty(M);
+    iteratorObject->setProperty(M, "_список", listObject);
 
-    if (list_o->asList()->getLength() == 0) {
-      iterator_o->setProperty(M, "завершено", MaValue::Yes());
-    } else if (list_o->asList()->getLength() == 1) {
-      iterator_o->setProperty(M, "завершено", MaValue::No());
-      iterator_o->setProperty(M, "значення", list_o->asList()->getAt(M, 0));
-      const auto next_native_o = MaDiia::Create(
+    if (listObject->listGetLength() == 0) {
+      iteratorObject->setProperty(M, "завершено", MaValue::Yes());
+    } else if (listObject->listGetLength() == 1) {
+      iteratorObject->setProperty(M, "завершено", MaValue::No());
+      iteratorObject->setProperty(M, "значення", listObject->listGetAt(M, 0));
+      const auto nextDiiaObject = MaObject::CreateDiiaNativeFn(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaObject* args, size_t li) {
-            const auto iterator_object = native_o->asDiia()->getMe();
-            iterator_object->setProperty(M, "завершено", MaValue::Yes());
+          [](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
+            const auto iteratorObject = diiaObject->diiaGetBoundObject();
+            iteratorObject->setProperty(M, "завершено", MaValue::Yes());
             return MaValue::Empty();
           },
-          iterator_o);
-      iterator_o->setProperty(M, "далі", next_native_o);
+          iteratorObject);
+      iteratorObject->setProperty(M, "далі", nextDiiaObject);
     } else {
-      iterator_o->setProperty(M, "завершено", MaValue::No());
-      iterator_o->setProperty(M, "значення", list_o->asList()->getAt(M, 0));
-      iterator_o->setProperty(M, "_індекс", MaValue::Number(1));
-      const auto next_native_o = MaDiia::Create(
+      iteratorObject->setProperty(M, "завершено", MaValue::No());
+      iteratorObject->setProperty(M, "значення", listObject->listGetAt(M, 0));
+      iteratorObject->setProperty(M, "_індекс", MaValue::Number(1));
+      const auto nextDiiaObject = MaObject::CreateDiiaNativeFn(
           M, "далі",
-          [](MaMa* M, MaObject* native_o, MaObject* args, size_t li) {
-            const auto iterator_o = native_o->asDiia()->getMe();
-            const auto i = iterator_o->getProperty(M, "_індекс").asInteger();
-            const auto list =
-                iterator_o->getProperty(M, "_список").asObject()->asList();
-            if (i < list->getLength()) {
-              iterator_o->setProperty(M, "завершено", MaValue::No());
-              iterator_o->setProperty(M, "значення", list->getAt(M, i));
-              iterator_o->setProperty(M, "_індекс", MaValue::Integer(i + 1));
+          [](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
+            const auto iteratorObject = diiaObject->diiaGetBoundObject();
+            const auto i =
+                iteratorObject->getProperty(M, "_індекс").asInteger();
+            const auto listObject =
+                iteratorObject->getProperty(M, "_список").asObject();
+            if (i < listObject->listGetLength()) {
+              iteratorObject->setProperty(M, "завершено", MaValue::No());
+              iteratorObject->setProperty(M, "значення",
+                                          listObject->listGetAt(M, i));
+              iteratorObject->setProperty(M, "_індекс",
+                                          MaValue::Integer(i + 1));
             } else {
-              iterator_o->setProperty(M, "завершено", MaValue::Yes());
+              iteratorObject->setProperty(M, "завершено", MaValue::Yes());
             }
             return MaValue::Empty();
           },
-          iterator_o);
-      iterator_o->setProperty(M, "далі", next_native_o);
+          iteratorObject);
+      iteratorObject->setProperty(M, "далі", nextDiiaObject);
     }
-    return MaValue::Object(iterator_o);
+    return MaValue::Object(iteratorObject);
   }
 
   // чародія_отримати
   MaValue MaList_MagGetElementNativeDiiaFn(MaMa* M,
-                                           MaObject* native_o,
+                                           MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
     if (key.isNumber()) {
-      return native_o->asDiia()->getMe()->asList()->getAt(M, key.asInteger());
+      return diiaObject->diiaGetBoundObject()->listGetAt(M, key.asInteger());
     }
     return MaValue::Empty();
   }
 
   // чародія_покласти
   MaValue MaList_MagSetElementNativeDiiaFn(MaMa* M,
-                                           MaObject* native_o,
+                                           MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
     const auto key = args->getArg(M, "0", "ключ");
@@ -110,54 +113,56 @@ namespace mavka::mama {
       return MaValue::Empty();
     }
     const auto value = args->getArg(M, "1", "значення");
-    native_o->asDiia()->getMe()->asList()->setAt(M, key.asInteger(), value);
+    diiaObject->diiaGetBoundObject()->listSetAt(M, key.asInteger(), value);
     return MaValue::Empty();
   }
 
   // додати
   MaValue MaList_AppendNativeDiiaFn(MaMa* M,
-                                    MaObject* native_o,
+                                    MaObject* diiaObject,
                                     MaObject* args,
                                     size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
-    native_o->asDiia()->getMe()->asList()->append(M, cell);
-    return MaValue::Integer(native_o->asDiia()->getMe()->asList()->getLength());
+    diiaObject->diiaGetBoundObject()->listAppend(M, cell);
+    return MaValue::Integer(diiaObject->diiaGetBoundObject()->listGetLength());
   }
 
   // чародія_містить
   MaValue MaList_MagContainsNativeDiiaFn(MaMa* M,
-                                         MaObject* native_o,
+                                         MaObject* diiaObject,
                                          MaObject* args,
                                          size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
-    if (native_o->asDiia()->getMe()->asList()->contains(M, cell)) {
+    if (diiaObject->diiaGetBoundObject()->listContains(M, cell)) {
       return MaValue::Yes();
     } else {
       return MaValue::No();
     }
   }
 
-  MaObject* MaList::Create(MaMa* M) {
-    const auto list = new MaList();
-    const auto list_o = MaObject::Instance(M, M->list_structure_object, list);
-    list_o->setProperty(
+  MaObject* MaObject::CreateList(MaMa* M) {
+    const auto listObject = MaObject::Instance(M, M->list_structure_object);
+    listObject->setProperty(
         M, MAG_ITERATOR,
-        MaDiia::Create(M, MAG_ITERATOR, MaList_MagIteratorNativeFn, list_o));
-    list_o->setProperty(
+        MaObject::CreateDiiaNativeFn(M, MAG_ITERATOR,
+                                     MaList_MagIteratorNativeFn, listObject));
+    listObject->setProperty(
         M, MAG_GET_ELEMENT,
-        MaDiia::Create(M, MAG_GET_ELEMENT, MaList_MagGetElementNativeDiiaFn,
-                       list_o));
-    list_o->setProperty(
+        MaObject::CreateDiiaNativeFn(
+            M, MAG_GET_ELEMENT, MaList_MagGetElementNativeDiiaFn, listObject));
+    listObject->setProperty(
         M, MAG_SET_ELEMENT,
-        MaDiia::Create(M, MAG_SET_ELEMENT, MaList_MagSetElementNativeDiiaFn,
-                       list_o));
-    list_o->setProperty(
+        MaObject::CreateDiiaNativeFn(
+            M, MAG_SET_ELEMENT, MaList_MagSetElementNativeDiiaFn, listObject));
+    listObject->setProperty(
         M, "додати",
-        MaDiia::Create(M, "додати", MaList_AppendNativeDiiaFn, list_o));
-    list_o->setProperty(M, MAG_CONTAINS,
-                        MaDiia::Create(M, MAG_CONTAINS,
-                                       MaList_MagContainsNativeDiiaFn, list_o));
-    return list_o;
+        MaObject::CreateDiiaNativeFn(M, "додати", MaList_AppendNativeDiiaFn,
+                                     listObject));
+    listObject->setProperty(
+        M, MAG_CONTAINS,
+        MaObject::CreateDiiaNativeFn(
+            M, MAG_CONTAINS, MaList_MagContainsNativeDiiaFn, listObject));
+    return listObject;
   }
 
   MaValue MaList_Structure_MagCallNativeDiiaFn(MaMa* M,
@@ -171,22 +176,24 @@ namespace mavka::mama {
       }
       return cell.asObject()->getProperty(M, MAG_LIST).call(M, {}, {});
     }
-    return MaValue::Error(MaError::Create(
-        MaValue::Object(MaText::Create(M, "Неможливо перетворити на список.")),
-        li));
+    return MaValue::Error(
+        MaError::Create(MaValue::Object(MaObject::CreateText(
+                            M, "Неможливо перетворити на список.")),
+                        li));
   }
 
-  size_t MaList::getLength() const {
-    return this->data.size();
+  size_t MaObject::listGetLength() const {
+    return this->listData.size();
   }
 
-  void MaList::Init(MaMa* M) {
-    const auto list_structure_object = MaStructure::Create(M, "список");
+  void InitList(MaMa* M) {
+    const auto list_structure_object = MaObject::CreateStructure(M, "список");
     M->global_scope->setProperty(M, "список", list_structure_object);
     M->list_structure_object = list_structure_object;
     list_structure_object->setProperty(
         M, MAG_CALL,
-        MaDiia::Create(M, MAG_CALL, MaList_Structure_MagCallNativeDiiaFn,
-                       list_structure_object));
+        MaObject::CreateDiiaNativeFn(M, MAG_CALL,
+                                     MaList_Structure_MagCallNativeDiiaFn,
+                                     list_structure_object));
   }
 } // namespace mavka::mama

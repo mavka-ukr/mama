@@ -29,20 +29,19 @@ namespace mavka::mama {
     M->global_scope = new MaObject();
     M->global_scope->retain();
     M->global_scope->type = scope_structure_object;
-    M->global_scope->d.outer = nullptr;
-    MaStructure::Init(M);
+    M->global_scope->scopeSetOuter(nullptr);
+    InitStructure(M);
     MaObject::Init(M);
-    MaDiia::Init(M);
-    MaModule::Init(M);
+    InitDiia(M);
+    InitModule(M);
     InitNumber(M);
     InitLogical(M);
-    MaText::Init(M);
-    MaList::Init(M);
-    MaDict::Init(M);
-    MaBytes::Init(M);
-    MaStructure::Init2(M);
-    scope_structure_object->d.structure = new MaStructure();
-    scope_structure_object->d.structure->name = "Сковп";
+    InitText(M);
+    InitList(M);
+    InitDict(M);
+    InitBytes(M);
+    InitStructure2(M);
+    scope_structure_object->structureName = "Сковп";
     scope_structure_object->type = M->structure_structure_object;
     return M;
   }
@@ -112,16 +111,16 @@ namespace mavka::mama {
           return stack.top();
         }
         case VDiia: {
-          const auto diiaObject = MaDiia::Create(this, I.data.diia->name,
-                                                 I.data.diia->code, nullptr);
-          diiaObject->asDiia()->setOuterScope(frame->getScope());
+          const auto diiaObject = MaObject::CreateDiia(
+              this, I.data.diia->name, I.data.diia->code, nullptr);
+          diiaObject->diiaSetOuterScope(frame->getScope());
           PUSH_OBJECT(diiaObject);
           break;
         }
         case VDiiaParam: {
           POP_VALUE(defaultValue);
           TOP_VALUE(diiaValue);
-          diiaValue.asObject()->asDiia()->pushParam(MaDiiaParam{
+          diiaValue.asObject()->diiaPushParam(MaDiiaParam{
               .name = I.data.diiaParam->name, .default_value = defaultValue});
           break;
         }
@@ -265,37 +264,38 @@ namespace mavka::mama {
           return MaValue::Error(MaError::Create(value, I.li));
         }
         case VList: {
-          PUSH_OBJECT(MaList::Create(this));
+          PUSH_OBJECT(MaObject::CreateList(this));
           break;
         }
         case VListAppend: {
           POP_VALUE(value);
           TOP_VALUE(listValue);
-          listValue.asObject()->asList()->append(M, value);
+          listValue.asObject()->listAppend(M, value);
           break;
         }
         case VDict: {
-          PUSH_OBJECT(MaDict::Create(this));
+          PUSH_OBJECT(MaObject::CreateDict(this));
           break;
         }
         case VDictSet: {
           POP_VALUE(value);
           TOP_VALUE(dictValue);
-          dictValue.asDict()->setAt(
-              M, MaValue::Object(MaText::Create(this, I.data.dictSet->key)),
+          dictValue.asObject()->dictSetAt(
+              M,
+              MaValue::Object(MaObject::CreateText(this, I.data.dictSet->key)),
               value);
           break;
         }
         case VStruct: {
           const auto structureObject =
-              MaStructure::Create(this, I.data.struct_->name);
+              MaObject::CreateStructure(this, I.data.struct_->name);
           PUSH_OBJECT(structureObject);
           break;
         }
         case VStructParam: {
           POP_VALUE(defaultValue);
           TOP_VALUE(structureValue);
-          structureValue.asObject()->asStructure()->pushParam(MaDiiaParam{
+          structureValue.asObject()->structurePushParam(MaDiiaParam{
               .name = I.data.diiaParam->name, .default_value = defaultValue});
           break;
         }
@@ -304,7 +304,7 @@ namespace mavka::mama {
           TOP_VALUE(structureValue);
           if (structureValue.isObject()) {
             if (structureValue.asObject()->isStructure(M)) {
-              structureValue.asObject()->asStructure()->pushMethod(
+              structureValue.asObject()->structurePushMethod(
                   diiaValue.asObject());
               break;
             }
@@ -314,9 +314,10 @@ namespace mavka::mama {
               I.li)
         }
         case VModule: {
-          const auto moduleObject = MaModule::Create(this, I.data.module->name);
+          const auto moduleObject =
+              MaObject::CreateModule(this, I.data.module->name);
           frame->getScope()->setProperty(M, I.data.module->name, moduleObject);
-          const auto makeModuleDiiaObject = MaDiia::Create(
+          const auto makeModuleDiiaObject = MaObject::CreateDiiaNativeFn(
               M, "",
               [&I](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
                 std::stack<MaValue> stack;
@@ -324,10 +325,10 @@ namespace mavka::mama {
                 if (result.isError()) {
                   return result;
                 }
-                return MaValue::Object(diiaObject->d.diia->me);
+                return MaValue::Object(diiaObject->diiaGetBoundObject());
               },
               moduleObject);
-          makeModuleDiiaObject->asDiia()->is_module_make_diia = true;
+          makeModuleDiiaObject->diiaSetIsModuleBuilder(true);
           makeModuleDiiaObject->retain();
           const auto args = MaObject::Empty(this);
           args->retain();
@@ -639,17 +640,17 @@ namespace mavka::mama {
     }
     const auto moduleCode = new MaCode();
     moduleCode->path = path;
-    const auto moduleObject = MaModule::Create(this, name);
-    moduleObject->asModule()->code = moduleCode;
+    const auto moduleObject = MaObject::CreateModule(this, name);
+    moduleObject->moduleSetCode(moduleCode);
     if (this->main_module == nullptr) {
       moduleObject->retain();
       this->main_module = moduleObject;
     }
     if (root) {
-      moduleObject->asModule()->root = moduleObject;
+      moduleObject->moduleSetRoot(moduleObject);
     } else {
-      moduleObject->asModule()->root =
-          this->call_stack.top()->module->asModule()->root;
+      moduleObject->moduleSetRoot(
+          this->call_stack.top()->module->moduleGetRoot());
     }
     this->loaded_file_modules.insert_or_assign(path, moduleObject);
     const auto bodyCompilationResult =
@@ -658,7 +659,7 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
-    const auto makeModuleDiiaObject = MaDiia::Create(
+    const auto makeModuleDiiaObject = MaObject::CreateDiiaNativeFn(
         this, "",
         [&moduleCode, &moduleObject](MaMa* M, MaObject* diiaObject,
                                      MaObject* args, size_t li) {
@@ -668,10 +669,10 @@ namespace mavka::mama {
           if (result.isError()) {
             return result;
           }
-          return MaValue::Object(diiaObject->d.diia->me);
+          return MaValue::Object(diiaObject->diiaGetBoundObject());
         },
         moduleObject);
-    makeModuleDiiaObject->asDiia()->is_module_make_diia = true;
+    makeModuleDiiaObject->diiaSetIsModuleBuilder(true);
     makeModuleDiiaObject->retain();
     const auto args = MaObject::Empty(this);
     args->retain();
@@ -687,12 +688,12 @@ namespace mavka::mama {
     while (!call_stack_copy.empty()) {
       const auto frame = call_stack_copy.top();
       call_stack_copy.pop();
-      if (!frame->diia->asDiia()->is_module_make_diia) {
+      if (!frame->diia->diiaGetIsModuleBuilder()) {
         const auto location = this->locations[frame->li];
         const auto path = location.path;
         const auto line = std::to_string(location.line);
         const auto column = std::to_string(location.column);
-        stack_trace.push_back("  " + frame->diia->asDiia()->name + " " + path +
+        stack_trace.push_back("  " + frame->diia->diiaGetName() + " " + path +
                               ":" + line + ":" + column);
       }
     }

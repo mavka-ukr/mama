@@ -1,29 +1,17 @@
 #ifndef MA_OBJECT_H
 #define MA_OBJECT_H
 
-class MaText;
-class MaList;
-class MaDict;
-class MaDiia;
-class MaStructure;
-class MaModule;
-class MaBytes;
 struct MaValue;
+struct MaDiiaParam;
+
+typedef MaValue NativeFn(MaMa* M,
+                         MaObject* diiaObject,
+                         MaObject* args,
+                         size_t li);
 
 struct MaObject {
   int ref_count;
   MaObject* type;
-  union {
-    void* ptr;
-    MaObject* outer; // scope
-    MaStructure* structure;
-    MaDiia* diia;
-    MaModule* module;
-    MaBytes* bytes;
-    MaText* text;
-    MaList* list;
-    MaDict* dict;
-  } d;
   tsl::ordered_map<std::string, MaValue> properties;
 
   ~MaObject();
@@ -36,14 +24,6 @@ struct MaObject {
   bool isText(MaMa* M) const;
   bool isList(MaMa* M) const;
   bool isDict(MaMa* M) const;
-
-  MaStructure* asStructure() const;
-  MaDiia* asDiia() const;
-  MaModule* asModule() const;
-  MaBytes* asBytes() const;
-  MaText* asText() const;
-  MaList* asList() const;
-  MaDict* asDict() const;
 
   void retain();
   void release();
@@ -71,8 +51,105 @@ struct MaObject {
   std::string getPrettyString(MaMa* M);
 
   static void Init(MaMa* M);
-  static MaObject* Instance(MaMa* M, MaObject* structure_object, void* d);
+  static MaObject* Instance(MaMa* M, MaObject* structureObject);
   static MaObject* Empty(MaMa* M);
+
+  // scope
+  MaObject* scopeOuter;
+  bool scopeHasOuter() const;
+  MaObject* scopeGetOuter() const;
+  void scopeSetOuter(MaObject* outer);
+  static MaObject* CreateScope(MaMa* M);
+
+  // text
+  std::string textData;
+  size_t textGetLength() const;
+  std::string textSubstr(size_t start, size_t length) const;
+  static MaObject* CreateText(MaMa* M, const std::string& value);
+
+  // list
+  std::vector<MaValue> listData;
+  size_t listGetLength() const;
+  void listAppend(MaMa* M, const MaValue& cell);
+  MaValue listGetAt(MaMa* M, long index) const;
+  void listSetAt(MaMa* M, long index, const MaValue& value);
+  bool listContains(MaMa* M, const MaValue& cell);
+  static MaObject* CreateList(MaMa* M);
+
+  // dict
+  std::vector<std::pair<MaValue, MaValue>> dictData;
+  MaValue dictGetAt(MaMa* M, const MaValue& key) const;
+  void dictSetAt(MaMa* M, const MaValue& key, const MaValue& value);
+  size_t dictGetSize() const;
+  static MaObject* CreateDict(MaMa* M);
+
+  // diia
+  std::string diiaName;
+  MaCode* diiaCode;
+  std::function<NativeFn> diiaNativeFn;
+  MaObject* diiaBoundObject;
+  MaObject* diiaOuterScope;
+  std::vector<MaDiiaParam> diiaParams;
+  std::unordered_map<std::string, std::string> diiaParamIndicesMap;
+  bool diiaIsModuleBuilder;
+  std::string diiaGetName() const;
+  void diiaSetName(const std::string& name);
+  MaCode* diiaGetCode() const;
+  void diiaSetCode(MaCode* code);
+  bool diiaHasNativeFn() const;
+  std::function<NativeFn> diiaGetNativeFn() const;
+  void diiaSetNativeFn(const std::function<NativeFn>& fn);
+  bool diiaHasBoundObject() const;
+  MaObject* diiaGetBoundObject() const;
+  void diiaSetBoundObject(MaObject* diiaObject);
+  bool diiaHasOuterScope() const;
+  MaObject* diiaGetOuterScope() const;
+  void diiaSetOuterScope(MaObject* outerScopeObject);
+  std::vector<MaDiiaParam> diiaGetParams() const;
+  void diiaSetParams(const std::vector<MaDiiaParam>& diiaParams);
+  void diiaPushParam(const MaDiiaParam& diiaParam);
+  std::unordered_map<std::string, std::string> diiaGetParamIndicesMap() const;
+  void diiaSetParamIndicesMap(
+      const std::unordered_map<std::string, std::string>& paramIndicesMap);
+  bool diiaGetIsModuleBuilder() const;
+  void diiaSetIsModuleBuilder(bool isModuleBuilder);
+  MaObject* diiaBind(MaMa* M, MaObject* diiaObject);
+  static MaObject* CreateDiia(MaMa* M,
+                              const std::string& diia_o,
+                              MaCode* code,
+                              MaObject* me);
+  static MaObject* CreateDiiaNativeFn(MaMa* M,
+                                      const std::string& diia_o,
+                                      const std::function<NativeFn>& fn,
+                                      MaObject* me);
+
+  // bytes
+  std::vector<uint8_t> bytesData;
+  static MaObject* CreateBytes(MaMa* M, const std::vector<uint8_t>& data);
+
+  // structure
+  std::string structureName;
+  std::vector<MaDiiaParam> structureParams;
+  std::vector<MaObject*> structureMethods;
+  std::string structureGetName() const;
+  void structureSetName(const std::string& name);
+  std::vector<MaDiiaParam> structureGetParams();
+  void structurePushParam(const MaDiiaParam& param);
+  std::vector<MaObject*> structureGetMethods();
+  void structurePushMethod(MaObject* method);
+  static MaObject* CreateStructure(MaMa* M, const std::string& name);
+
+  // module
+  std::string moduleName;
+  MaCode* moduleCode;
+  MaObject* moduleRoot;
+  std::string moduleGetName() const;
+  void moduleSetName(const std::string& name);
+  MaObject* moduleGetRoot() const;
+  void moduleSetRoot(MaObject* root);
+  MaCode* moduleGetCode() const;
+  void moduleSetCode(MaCode* code);
+  static MaObject* CreateModule(MaMa* M, const std::string& name);
 };
 
 enum MaValueType : uint8_t {
@@ -133,9 +210,6 @@ struct MaValue {
   inline long asInteger() const { return static_cast<long>(this->v.number); };
   inline MaObject* asObject() const { return this->v.object; };
   inline MaError* asError() const { return this->v.error; };
-  inline MaText* asText() const { return this->v.object->asText(); };
-  inline MaList* asList() const { return this->v.object->asList(); };
-  inline MaDict* asDict() const { return this->v.object->asDict(); };
 
   inline static MaValue Empty() { return MaValue{MaValueTypeEmpty}; };
   inline static MaValue Number(double value) {
@@ -162,129 +236,19 @@ struct MaValue {
                                                size_t li);
 };
 
-class MaText final {
- public:
-  std::string data;
-
-  size_t getLength() const;
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M, const std::string& value);
-
-  std::string Substr(size_t start, size_t length) const;
-};
-
-class MaList final {
- public:
-  std::vector<MaValue> data;
-
-  size_t getLength() const;
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M);
-
-  void append(MaMa* M, const MaValue& cell);
-  void setAt(MaMa* M, size_t index, const MaValue& value);
-  MaValue getAt(MaMa* M, size_t index) const;
-  bool contains(MaMa* M, const MaValue& cell);
-};
-
-class MaDict final {
- public:
-  std::vector<std::pair<MaValue, MaValue>> data;
-
-  void setAt(MaMa* M, const MaValue& key, const MaValue& value);
-  MaValue getAt(MaMa* M, const MaValue& key) const;
-  size_t getSize() const;
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M);
-};
-
-class MaDiiaParam final {
- public:
+struct MaDiiaParam {
   std::string name;
   MaValue default_value;
 };
 
-typedef MaValue NativeFn(MaMa* M,
-                         MaObject* diiaObject,
-                         MaObject* args,
-                         size_t li);
-
-class MaDiia final {
- public:
-  std::string name;
-  MaCode* code;
-  std::function<NativeFn> fn;
-  MaObject* me;
-  MaObject* outerScope;
-  std::vector<MaDiiaParam> params;
-  std::unordered_map<std::string, std::string> param_index_map;
-  bool is_module_make_diia;
-
-  inline MaObject* getMe() const { return this->me; }
-  inline std::vector<MaDiiaParam> getParams() const { return this->params; }
-  inline void pushParam(const MaDiiaParam& param) {
-    const auto index = std::to_string(this->params.size());
-    this->params.push_back(param);
-    this->param_index_map[index] = name;
-  }
-  inline void setOuterScope(MaObject* os) { this->outerScope = os; }
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M,
-                          const std::string& diia_o,
-                          MaCode* code,
-                          MaObject* me);
-  static MaObject* Create(MaMa* M,
-                          const std::string& diia_o,
-                          const std::function<NativeFn>& fn,
-                          MaObject* me);
-
-  MaObject* Bind(MaMa* M, MaObject* object);
-};
-
-class MaBytes final {
- public:
-  std::vector<uint8_t> data;
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M, const std::vector<uint8_t>& data);
-};
-
-class MaStructure final {
- public:
-  std::string name;
-  std::vector<MaDiiaParam> params;
-  std::vector<MaObject*> methods;
-
-  std::string getName() const;
-  inline std::vector<MaDiiaParam> getParams() const { return this->params; }
-  inline void pushParam(const MaDiiaParam& param) {
-    this->params.push_back(param);
-  }
-  inline void pushMethod(MaObject* method) { this->methods.push_back(method); }
-
-  static void Init(MaMa* M);
-  static void Init2(MaMa* M);
-  static MaObject* Create(MaMa* M, const std::string& name);
-};
-
-class MaModule final {
- public:
-  std::string name;
-  MaCode* code;
-  MaObject* root;
-
-  inline std::string getName() const { return this->name; };
-  inline MaObject* getRoot() const { return this->root; };
-  inline MaCode* getCode() const { return this->code; };
-
-  static void Init(MaMa* M);
-  static MaObject* Create(MaMa* M, const std::string& name);
-};
-
+void InitText(MaMa* M);
+void InitList(MaMa* M);
+void InitDict(MaMa* M);
+void InitDiia(MaMa* M);
+void InitBytes(MaMa* M);
+void InitStructure(MaMa* M);
+void InitStructure2(MaMa* M);
+void InitModule(MaMa* M);
 void InitNumber(MaMa* M);
 void InitLogical(MaMa* M);
 

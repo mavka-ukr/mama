@@ -1,42 +1,127 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaObject* MaDiia::Create(MaMa* M,
-                           const std::string& name,
-                           MaCode* code,
-                           MaObject* me) {
-    const auto diia = new MaDiia();
-    diia->name = name;
-    diia->code = code;
-    diia->me = me;
-    return MaObject::Instance(M, M->diia_structure_object, diia);
+  MaObject* MaObject::CreateDiia(MaMa* M,
+                                 const std::string& name,
+                                 MaCode* code,
+                                 MaObject* me) {
+    const auto diiaObject = MaObject::Instance(M, M->diia_structure_object);
+    diiaObject->diiaSetName(name);
+    diiaObject->diiaSetCode(code);
+    diiaObject->diiaSetBoundObject(me);
+    return diiaObject;
   }
 
-  MaObject* MaDiia::Create(MaMa* M,
-                           const std::string& name,
-                           const std::function<NativeFn>& fn,
-                           MaObject* me) {
-    const auto diia = new MaDiia();
-    diia->name = name;
-    diia->fn = fn;
-    diia->me = me;
-    return MaObject::Instance(M, M->diia_structure_object, diia);
+  MaObject* MaObject::CreateDiiaNativeFn(MaMa* M,
+                                         const std::string& name,
+                                         const std::function<NativeFn>& fn,
+                                         MaObject* me) {
+    const auto diiaObject = MaObject::Instance(M, M->diia_structure_object);
+    diiaObject->diiaSetName(name);
+    diiaObject->diiaSetNativeFn(fn);
+    return diiaObject;
   }
 
-  MaObject* MaDiia::Bind(MaMa* M, MaObject* object) {
-    const auto diia = new MaDiia();
-    diia->name = this->name;
-    diia->code = this->code;
-    diia->fn = this->fn;
-    diia->me = object;
-    diia->outerScope = this->outerScope;
-    diia->params = this->params;
-    diia->param_index_map = this->param_index_map;
-    return MaObject::Instance(M, M->diia_structure_object, diia);
+  std::string MaObject::diiaGetName() const {
+    return this->diiaName;
   }
 
-  void MaDiia::Init(MaMa* M) {
-    const auto diia_structure_object = MaStructure::Create(M, "Дія");
+  void MaObject::diiaSetName(const std::string& name) {
+    this->diiaName = name;
+  }
+
+  MaCode* MaObject::diiaGetCode() const {
+    return this->diiaCode;
+  }
+
+  void MaObject::diiaSetCode(MaCode* code) {
+    this->diiaCode = code;
+  }
+
+  bool MaObject::diiaHasNativeFn() const {
+    return this->diiaNativeFn != nullptr;
+  }
+
+  std::function<NativeFn> MaObject::diiaGetNativeFn() const {
+    return this->diiaNativeFn;
+  }
+
+  void MaObject::diiaSetNativeFn(const std::function<NativeFn>& fn) {
+    this->diiaNativeFn = fn;
+  }
+
+  bool MaObject::diiaHasBoundObject() const {
+    return this->diiaBoundObject != nullptr;
+  }
+
+  MaObject* MaObject::diiaGetBoundObject() const {
+    return this->diiaBoundObject;
+  }
+
+  void MaObject::diiaSetBoundObject(MaObject* diiaObject) {
+    this->diiaBoundObject = diiaObject;
+  }
+
+  bool MaObject::diiaHasOuterScope() const {
+    return this->diiaOuterScope != nullptr;
+  }
+
+  MaObject* MaObject::diiaGetOuterScope() const {
+    return this->diiaOuterScope;
+  }
+
+  void MaObject::diiaSetOuterScope(MaObject* outerScopeObject) {
+    this->diiaOuterScope = outerScopeObject;
+  }
+
+  std::vector<MaDiiaParam> MaObject::diiaGetParams() const {
+    return this->diiaParams;
+  }
+
+  void MaObject::diiaSetParams(const std::vector<MaDiiaParam>& diiaParams) {
+    this->diiaParams = diiaParams;
+  }
+
+  void MaObject::diiaPushParam(const MaDiiaParam& diiaParam) {
+    this->diiaParams.push_back(diiaParam);
+  }
+
+  std::unordered_map<std::string, std::string>
+  MaObject::diiaGetParamIndicesMap() const {
+    return this->diiaParamIndicesMap;
+  }
+
+  void MaObject::diiaSetParamIndicesMap(
+      const std::unordered_map<std::string, std::string>& paramIndicesMap) {
+    this->diiaParamIndicesMap = paramIndicesMap;
+  }
+
+  bool MaObject::diiaGetIsModuleBuilder() const {
+    return this->diiaIsModuleBuilder;
+  }
+
+  void MaObject::diiaSetIsModuleBuilder(bool isModuleBuilder) {
+    this->diiaIsModuleBuilder = isModuleBuilder;
+  }
+
+  MaObject* MaObject::diiaBind(MaMa* M, MaObject* diiaObject) {
+    const auto boundDiiaObject =
+        MaObject::Instance(M, M->diia_structure_object);
+    boundDiiaObject->diiaSetName(diiaObject->diiaGetName());
+    boundDiiaObject->diiaSetCode(diiaObject->diiaGetCode());
+    boundDiiaObject->diiaSetNativeFn(diiaObject->diiaGetNativeFn());
+    boundDiiaObject->diiaSetBoundObject(diiaObject);
+    boundDiiaObject->diiaSetOuterScope(diiaObject->diiaGetOuterScope());
+    boundDiiaObject->diiaSetParams(diiaObject->diiaGetParams());
+    boundDiiaObject->diiaSetParamIndicesMap(
+        diiaObject->diiaGetParamIndicesMap());
+    boundDiiaObject->diiaSetIsModuleBuilder(
+        diiaObject->diiaGetIsModuleBuilder());
+    return boundDiiaObject;
+  }
+
+  void InitDiia(MaMa* M) {
+    const auto diia_structure_object = MaObject::CreateStructure(M, "Дія");
     M->global_scope->setProperty(M, "Дія", diia_structure_object);
     M->diia_structure_object = diia_structure_object;
   }

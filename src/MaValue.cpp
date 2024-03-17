@@ -43,7 +43,7 @@ namespace mavka::mama {
           return true;
         }
         if (thisObject->isText(M) && otherObject->isText(M)) {
-          return thisObject->d.text->data == otherObject->d.text->data;
+          return thisObject->textData == otherObject->textData;
         }
       }
       return false;

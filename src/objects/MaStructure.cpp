@@ -22,12 +22,10 @@ namespace mavka::mama {
     return MaValue::Empty();
   }
 
-  MaObject* MaStructure::Create(MaMa* M, const std::string& name) {
-    const auto structure = new MaStructure();
-    structure->name = name;
+  MaObject* MaObject::CreateStructure(MaMa* M, const std::string& name) {
     const auto structureObject = new MaObject();
     structureObject->type = M->structure_structure_object;
-    structureObject->d.structure = structure;
+    structureObject->structureSetName(name);
 #if MAMA_GC_DEBUG
     std::cout << "[GC] created " << structureObject->getPrettyString(M) << " "
               << (void*)structureObject << std::endl;
@@ -35,20 +33,42 @@ namespace mavka::mama {
     return structureObject;
   }
 
-  std::string MaStructure::getName() const {
-    return this->name;
+  std::string MaObject::structureGetName() const {
+    return this->structureName;
   }
 
-  void MaStructure::Init(MaMa* M) {
-    const auto structure_structure_object = MaStructure::Create(M, "Структура");
+  void MaObject::structureSetName(const std::string& name) {
+    this->structureName = name;
+  }
+
+  std::vector<MaDiiaParam> MaObject::structureGetParams() {
+    return this->structureParams;
+  }
+
+  void MaObject::structurePushParam(const MaDiiaParam& param) {
+    this->structureParams.push_back(param);
+  }
+
+  std::vector<MaObject*> MaObject::structureGetMethods() {
+    return this->structureMethods;
+  }
+
+  void MaObject::structurePushMethod(MaObject* method) {
+    this->structureMethods.push_back(method);
+  }
+
+  void InitStructure(MaMa* M) {
+    const auto structure_structure_object =
+        MaObject::CreateStructure(M, "Структура");
     M->structure_structure_object = structure_structure_object;
     M->global_scope->setProperty(M, "Структура", structure_structure_object);
   }
 
-  void MaStructure::Init2(MaMa* M) {
+  void InitStructure2(MaMa* M) {
     M->structure_structure_object->setProperty(
         M, "дізнатись",
-        MaDiia::Create(M, "дізнатись", MaStructure_DiscoverNativeDiiaFn,
-                       M->structure_structure_object));
+        MaObject::CreateDiiaNativeFn(M, "дізнатись",
+                                     MaStructure_DiscoverNativeDiiaFn,
+                                     M->structure_structure_object));
   }
 } // namespace mavka::mama

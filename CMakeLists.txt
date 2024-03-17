@@ -50,6 +50,7 @@ set(MAMA_SRC
         src/objects/MaModule.cpp
         src/objects/MaNumber.cpp
         src/objects/MaObject.cpp
+        src/objects/MaScope.cpp
         src/objects/MaText.cpp
         src/objects/MaStructure.cpp
         src/utils/chrono.h

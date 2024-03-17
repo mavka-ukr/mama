@@ -21,18 +21,20 @@ namespace mavka::mama {
     if (arg_value_v.isObject()) {
       return arg_value_v.asObject()->getProperty(M, MAG_NUMBER).call(M, {}, li);
     }
-    return MaValue::Error(MaError::Create(
-        MaValue::Object(MaText::Create(M, "Неможливо перетворити на число.")),
-        li));
+    return MaValue::Error(
+        MaError::Create(MaValue::Object(MaObject::CreateText(
+                            M, "Неможливо перетворити на число.")),
+                        li));
   }
 
   void InitNumber(MaMa* M) {
-    const auto number_structure_object = MaStructure::Create(M, "число");
+    const auto number_structure_object = MaObject::CreateStructure(M, "число");
     M->global_scope->setProperty(M, "число", number_structure_object);
     M->number_structure_object = number_structure_object;
     number_structure_object->setProperty(
         M, MAG_CALL,
-        MaDiia::Create(M, MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
-                       number_structure_object));
+        MaObject::CreateDiiaNativeFn(M, MAG_CALL,
+                                     MaNumber_Structure_MagCallNativeDiiaFn,
+                                     number_structure_object));
   }
 } // namespace mavka::mama

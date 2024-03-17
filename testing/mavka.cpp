@@ -30,7 +30,7 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
   }
   if (cell.isObject()) {
     if (cell.v.object->isDiia(M)) {
-      const auto name = cell.v.object->d.diia->name;
+      const auto name = cell.v.object->diiaGetName();
       if (name == "") {
         return "<дія>";
       }
@@ -38,30 +38,30 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
     }
     if (cell.v.object->isText(M)) {
       if (depth > 0) {
-        return "\"" + cell.v.object->d.text->data + "\"";
+        return "\"" + cell.v.object->textData + "\"";
       }
-      return cell.v.object->d.text->data;
+      return cell.v.object->textData;
     }
     if (cell.v.object->isList(M)) {
       std::vector<std::string> items;
-      for (const auto& item : cell.v.object->d.list->data) {
+      for (const auto& item : cell.v.object->listData) {
         items.push_back(cell_to_string(M, item, depth + 1));
       }
       return "[" + mavka::internal::tools::implode(items, ", ") + "]";
     }
     if (cell.v.object->isDict(M)) {
       std::vector<std::string> items;
-      for (const auto& item : cell.v.object->d.dict->data) {
+      for (const auto& item : cell.v.object->dictData) {
         items.push_back(cell_to_string(M, item.first, depth + 1) + "=" +
                         cell_to_string(M, item.second, depth + 1));
       }
       return "(" + mavka::internal::tools::implode(items, ", ") + ")";
     }
     if (cell.v.object->isStructure(M)) {
-      return "<структура " + cell.v.object->d.structure->name + ">";
+      return "<структура " + cell.v.object->structureGetName() + ">";
     }
     if (cell.v.object->isModule(M)) {
-      const auto name = cell.v.object->d.module->name;
+      const auto name = cell.v.object->moduleGetName();
       std::vector<std::string> items;
       for (const auto& [k, v] : cell.v.object->properties) {
         if (k != "назва") {
@@ -73,11 +73,11 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
     }
     std::vector<std::string> items;
     for (const auto& param :
-         cell.v.object->getStructure()->d.structure->params) {
+         cell.v.object->getStructure()->structureGetParams()) {
       const auto value = cell.v.object->getProperty(M, param.name);
       items.push_back(param.name + "=" + cell_to_string(M, value, depth + 1));
     }
-    return cell.v.object->getStructure()->d.structure->name + "(" +
+    return cell.v.object->getStructure()->structureGetName() + "(" +
            mavka::internal::tools::implode(items, ", ") + ")";
   }
   if (cell.isError()) {
@@ -93,25 +93,26 @@ void init_print(MaMa* M) {
     }
     return MaValue::Empty();
   };
-  M->global_scope->setProperty(M, "друк",
-                               MaDiia::Create(M, "друк", native_fn, nullptr));
+  M->global_scope->setProperty(
+      M, "друк", MaObject::CreateDiiaNativeFn(M, "друк", native_fn, nullptr));
 }
 
 void init_read(MaMa* M) {
   const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
     const auto prefix = args->getArg(M, "0", "префікс");
     if (prefix.isObject() && prefix.asObject()->isText(M)) {
-      std::cout << prefix.asText()->data;
+      std::cout << prefix.asObject()->textData;
     }
     std::string value;
     getline(std::cin, value);
     if (std::cin.eof()) {
       return MaValue::Empty();
     }
-    return MaValue::Object(MaText::Create(M, value));
+    return MaValue::Object(MaObject::CreateText(M, value));
   };
-  M->global_scope->setProperty(M, "читати",
-                               MaDiia::Create(M, "читати", native_fn, nullptr));
+  M->global_scope->setProperty(
+      M, "читати",
+      MaObject::CreateDiiaNativeFn(M, "читати", native_fn, nullptr));
 }
 
 int main(int argc, char** argv) {

@@ -22,7 +22,7 @@
 #include "external/parser/parser.h"
 #include "utils/tools.h"
 
-#define MAMA_DEBUG 0
+#define MAMA_DEBUG 1
 #define MAMA_GC_DEBUG 0
 
 #if MAMA_DEBUG == 0
@@ -76,7 +76,7 @@
 
 #define DO_RETURN_STRING_ERROR(v, li) \
   return MaValue::Error(              \
-      MaError::Create(MaValue::Object(MaText::Create(M, (v))), (li)));
+      MaError::Create(MaValue::Object(MaObject::CreateText(M, (v))), (li)));
 
 namespace mavka::mama {
   struct MaMa;
@@ -188,7 +188,7 @@ namespace mavka::mama {
 
     static MaError* Create(MaMa* M, const std::string& value, size_t li) {
       const auto error = new MaError();
-      error->value = MaValue::Object(MaText::Create(M, value));
+      error->value = MaValue::Object(MaObject::CreateText(M, value));
       error->li = li;
       return error;
     }
