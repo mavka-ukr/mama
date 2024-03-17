@@ -22,7 +22,7 @@
 #include "external/parser/parser.h"
 #include "utils/tools.h"
 
-#define MAMA_DEBUG 1
+#define MAMA_DEBUG 0
 #define MAMA_GC_DEBUG 0
 
 #if MAMA_DEBUG == 0
@@ -66,13 +66,9 @@
 #define MAG_BYTES "чародія_байти"
 #define MAG_LIST "чародія_список"
 
-#define READ_TOP_FRAME() const auto frame = M->call_stack.top();
 #define FRAME_POP() M->call_stack.pop();
 #define FRAME_TOP() M->call_stack.top();
 #define FRAME_PUSH(frame) M->call_stack.push(frame);
-#define POP_FRAME(name)          \
-  const auto name = FRAME_TOP(); \
-  FRAME_POP();
 
 #define DO_RETURN_STRING_ERROR(v, li) \
   return MaValue::Error(              \
@@ -103,16 +99,8 @@ namespace mavka::mama {
   };
 
   struct MaFrame {
-    MaObject* scope = nullptr;
     MaObject* diia = nullptr;
-    MaObject* module = nullptr;
     size_t li;
-
-    ~MaFrame();
-
-    inline MaObject* getScope() const { return this->scope; };
-    inline MaObject* getDiia() const { return this->diia; };
-    inline MaObject* getModule() const { return this->module; };
   };
 
 #include "MaInstruction.h"
@@ -138,7 +126,7 @@ namespace mavka::mama {
     MaObject* main_module;
     std::vector<MaLocation> locations;
 
-    std::stack<MaFrame*> call_stack;
+    std::stack<MaFrame> call_stack;
 
     MaObject* object_structure_object;
     MaObject* scope_structure_object;
@@ -153,18 +141,21 @@ namespace mavka::mama {
     MaObject* bytes_structure_object;
 
     std::function<MaValue(MaMa*,
+                          MaObject* scope,
                           const std::string& repository,
                           const std::vector<std::string>& parts,
                           size_t li)>
         take_fn;
 
-    MaValue run(MaCode* code, std::stack<MaValue>& stack);
-    MaValue eval(const std::string& source, size_t li = {});
+    MaValue run(MaObject* scope, MaCode* code);
+    MaValue eval(MaObject* scope, const std::string& source, size_t li = {});
 
-    MaValue take(const std::string& repository,
+    MaValue take(MaObject* scope,
+                 const std::string& repository,
                  const std::vector<std::string>& parts,
                  size_t li);
-    MaValue takeSource(const std::string& path,
+    MaValue takeSource(MaObject* scope,
+                       const std::string& path,
                        const std::string& name,
                        const std::string& source,
                        bool root,

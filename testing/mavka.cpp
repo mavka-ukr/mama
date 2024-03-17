@@ -87,7 +87,8 @@ std::string cell_to_string(MaMa* M, MaValue cell, int depth) {
 }
 
 void init_print(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
+  const auto native_fn = [](MaMa* M, MaObject* scope, MaObject* me,
+                            MaObject* args, size_t li) {
     for (const auto& [key, value] : args->properties) {
       std::cout << cell_to_string(M, value) << std::endl;
     }
@@ -98,7 +99,8 @@ void init_print(MaMa* M) {
 }
 
 void init_read(MaMa* M) {
-  const auto native_fn = [](MaMa* M, MaObject* me, MaObject* args, size_t li) {
+  const auto native_fn = [](MaMa* M, MaObject* scope, MaObject* me,
+                            MaObject* args, size_t li) {
     const auto prefix = args->getArg(M, "0", "префікс");
     if (prefix.isObject() && prefix.asObject()->isText(M)) {
       std::cout << prefix.asObject()->textData;
@@ -124,7 +126,7 @@ int main(int argc, char** argv) {
   init_print(M);
   init_read(M);
 
-  const auto take_result = maTakeFsPath(M, args[1], true, {});
+  const auto take_result = maTakeFsPath(M, M->global_scope, args[1], true, {});
   if (take_result.isError()) {
     const auto stackTrace = M->getStackTrace();
     if (!stackTrace.empty()) {

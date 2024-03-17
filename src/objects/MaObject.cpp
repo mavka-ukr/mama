@@ -14,35 +14,35 @@ namespace mavka::mama {
   }
 
   bool MaObject::isScope(MaMa* M) const {
-    return this->type == M->scope_structure_object;
+    return this->structure == M->scope_structure_object;
   }
 
   bool MaObject::isStructure(MaMa* M) const {
-    return this->type == M->structure_structure_object;
+    return this->structure == M->structure_structure_object;
   }
 
   bool MaObject::isDiia(MaMa* M) const {
-    return this->type == M->diia_structure_object;
+    return this->structure == M->diia_structure_object;
   }
 
   bool MaObject::isModule(MaMa* M) const {
-    return this->type == M->module_structure_object;
+    return this->structure == M->module_structure_object;
   }
 
   bool MaObject::isBytes(MaMa* M) const {
-    return this->type == M->bytes_structure_object;
+    return this->structure == M->bytes_structure_object;
   }
 
   bool MaObject::isText(MaMa* M) const {
-    return this->type == M->text_structure_object;
+    return this->structure == M->text_structure_object;
   }
 
   bool MaObject::isList(MaMa* M) const {
-    return this->type == M->list_structure_object;
+    return this->structure == M->list_structure_object;
   }
 
   bool MaObject::isDict(MaMa* M) const {
-    return this->type == M->dict_structure_object;
+    return this->structure == M->dict_structure_object;
   }
 
   void MaObject::retain() {
@@ -55,12 +55,12 @@ namespace mavka::mama {
     }
     --this->ref_count;
     if (this->ref_count == 0) {
-      delete this;
+      //      delete this;
     }
   }
 
   MaObject* MaObject::getStructure() const {
-    return this->type;
+    return this->structure;
   }
 
   bool MaObject::is(MaMa* M, MaObject* object) const {
@@ -172,35 +172,25 @@ namespace mavka::mama {
   }
 
   MaValue MaObject::call(mavka::mama::MaMa* M,
+                         mavka::mama::MaObject* scope,
                          mavka::mama::MaObject* args,
                          size_t li) {
     const auto magicDiia = this->getProperty(M, MAG_CALL);
     if (!magicDiia.isEmpty()) {
-      return magicDiia.call(M, args, li);
+      return magicDiia.call(M, scope, args, li);
     }
-    const auto currentScope =
-        M->call_stack.empty() ? M->global_scope : M->call_stack.top()->scope;
-    const auto currentModule =
-        M->call_stack.empty() ? M->main_module : M->call_stack.top()->module;
-    currentScope->retain();
-    this->retain();
-    currentModule->retain();
-    const auto frame = new MaFrame(currentScope, this, currentModule, li);
+    const auto frame = MaFrame(this, li);
     FRAME_PUSH(frame);
     if (this->isDiia(M)) {
-      const auto diiaScope = MaObject::Instance(M, M->scope_structure_object);
-      diiaScope->scopeSetOuter(
-          this->diiaHasOuterScope() ? this->diiaGetOuterScope() : currentScope);
-      diiaScope->retain();
-      frame->getScope()->release();
-      frame->scope = diiaScope;
+      const auto diiaScope = MaObject::CreateScope(M, this->diiaGetOuterScope(),
+                                                   scope->scopeGetModule());
       if (this->diiaHasBoundObject()) {
-        frame->scope->setProperty(M, "я", this->diiaGetBoundObject());
+        diiaScope->setProperty(M, "я", this->diiaGetBoundObject());
       }
       if (this->diiaHasNativeFn()) {
-        const auto result = this->diiaGetNativeFn()(M, this, args, li);
+        const auto result =
+            this->diiaGetNativeFn()(M, diiaScope, this, args, li);
         if (!result.isError()) {
-          delete frame;
           FRAME_POP();
         }
         return result;
@@ -210,13 +200,11 @@ namespace mavka::mama {
           const auto& param = diiaParams[i];
           const auto arg_value = args->getArg(M, std::to_string(i), param.name,
                                               param.default_value);
-          frame->scope->setProperty(M, param.name, arg_value);
+          diiaScope->setProperty(M, param.name, arg_value);
         }
-        std::stack<MaValue> stack;
-        const auto result = M->run(this->diiaGetCode(), stack);
+        const auto result = M->run(diiaScope, this->diiaGetCode());
         // todo: gc
         if (!result.isError()) {
-          delete frame;
           FRAME_POP();
         }
         return result;
@@ -232,17 +220,16 @@ namespace mavka::mama {
             args->getArg(M, std::to_string(i), param.name, param.default_value);
         instanceObject->setProperty(M, param.name, arg_value);
       }
-      delete frame;
       FRAME_POP();
       return MaValue::Object(instanceObject);
     }
-    delete frame;
     FRAME_POP();
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaObject::CreateText(M, "Неможливо викликати.")), li));
   }
 
   MaValue MaObject::callMagWithValue(MaMa* M,
+                                     MaObject* scope,
                                      const MaValue& value,
                                      size_t li,
                                      const std::string& name) {
@@ -261,7 +248,7 @@ namespace mavka::mama {
     const auto args = MaObject::Empty(M);
     args->retain();
     args->setProperty(M, "0", value);
-    const auto result = magicDiia.call(M, args, li);
+    const auto result = magicDiia.call(M, scope, args, li);
     args->release();
     if (value.isObject()) {
       value.asObject()->release();
@@ -274,6 +261,7 @@ namespace mavka::mama {
   }
 
   MaValue MaObject::callMagWithoutValue(MaMa* M,
+                                        MaObject* scope,
                                         size_t li,
                                         const std::string& name) {
     if (!this->hasProperty(M, name)) {
@@ -285,7 +273,7 @@ namespace mavka::mama {
     if (magicDiia.isObject()) {
       magicDiia.asObject()->retain();
     }
-    const auto result = magicDiia.call(M, {}, {});
+    const auto result = magicDiia.call(M, scope, {}, {});
     if (magicDiia.isObject()) {
       magicDiia.asObject()->release();
     }
@@ -331,12 +319,12 @@ namespace mavka::mama {
 
   MaObject* MaObject::Instance(MaMa* M, MaObject* structureObject) {
     const auto object = new MaObject();
-    object->type = structureObject;
+    object->structure = structureObject;
     const auto structureMethods = structureObject->structureGetMethods();
     for (const auto& method : structureMethods) {
-      const auto bound_diia_object = method->diiaBind(M, object);
+      const auto boundDiiaObject = method->diiaBind(M, object);
       object->setProperty(M, method->diiaGetName(),
-                          MaValue::Object(bound_diia_object));
+                          MaValue::Object(boundDiiaObject));
     }
 #if MAMA_GC_DEBUG
     std::cout << "[GC] created " << object->getPrettyString(M) << " "

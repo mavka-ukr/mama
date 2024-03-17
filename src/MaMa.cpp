@@ -15,12 +15,6 @@
   POP();
 
 namespace mavka::mama {
-  MaFrame::~MaFrame() {
-    this->scope->release();
-    this->diia->release();
-    this->module->release();
-  }
-
   MaMa* MaMa::Create() {
     const auto M = new MaMa();
     M->locations.push_back(MaLocation(0, 0, ""));
@@ -28,7 +22,7 @@ namespace mavka::mama {
     M->scope_structure_object = scope_structure_object;
     M->global_scope = new MaObject();
     M->global_scope->retain();
-    M->global_scope->type = scope_structure_object;
+    M->global_scope->structure = scope_structure_object;
     M->global_scope->scopeSetOuter(nullptr);
     InitStructure(M);
     MaObject::Init(M);
@@ -42,13 +36,13 @@ namespace mavka::mama {
     InitBytes(M);
     InitStructure2(M);
     scope_structure_object->structureName = "Сковп";
-    scope_structure_object->type = M->structure_structure_object;
+    scope_structure_object->structure = M->structure_structure_object;
     return M;
   }
 
-  MaValue MaMa::run(MaCode* code, std::stack<MaValue>& stack) {
+  MaValue MaMa::run(MaObject* scope, MaCode* code) {
     const auto M = this;
-    const auto frame = this->call_stack.top();
+    std::stack<MaValue> stack;
     auto size = code->instructions.size();
     size_t i = 0;
     for (;;) {
@@ -99,7 +93,8 @@ namespace mavka::mama {
           POP_VALUE(argsValue);
           POP_VALUE(value);
           argsValue.asObject()->retain();
-          const auto result = value.call(this, argsValue.asObject(), I.li);
+          const auto result =
+              value.call(this, scope, argsValue.asObject(), I.li);
           argsValue.asObject()->release();
           if (result.isError()) {
             return result;
@@ -113,7 +108,7 @@ namespace mavka::mama {
         case VDiia: {
           const auto diiaObject = MaObject::CreateDiia(
               this, I.data.diia->name, I.data.diia->code, nullptr);
-          diiaObject->diiaSetOuterScope(frame->getScope());
+          diiaObject->diiaSetOuterScope(scope);
           PUSH_OBJECT(diiaObject);
           break;
         }
@@ -126,11 +121,10 @@ namespace mavka::mama {
         }
         case VStore: {
           POP_VALUE(value);
-          frame->getScope()->setProperty(M, I.data.store->name, value);
+          scope->setProperty(M, I.data.store->name, value);
           break;
         }
         case VLoad: {
-          const auto scope = frame->scope;
           if (scope->hasProperty(M, I.data.load->name)) {
             PUSH(scope->getProperty(M, I.data.load->name));
             break;
@@ -238,21 +232,17 @@ namespace mavka::mama {
           if (value.isObject()) {
             value.asObject()->retain();
             for (const auto& [pk, pv] : value.asObject()->properties) {
-              frame->getScope()->setProperty(M, pk, pv);
+              scope->setProperty(M, pk, pv);
             }
             value.asObject()->release();
           }
           break;
         }
         case VTry: {
-          const auto frames_size = this->call_stack.size();
-          const auto result = this->run(I.data.try_->try_code, stack);
+          const auto result = this->run(scope, I.data.try_->try_code);
           if (result.isError()) {
             PUSH(result.asError()->value);
-            while (this->call_stack.size() > frames_size) {
-              FRAME_POP();
-            }
-            const auto result2 = this->run(I.data.try_->catch_code, stack);
+            const auto result2 = this->run(scope, I.data.try_->catch_code);
             if (result2.isError()) {
               return result2;
             }
@@ -316,25 +306,10 @@ namespace mavka::mama {
         case VModule: {
           const auto moduleObject =
               MaObject::CreateModule(this, I.data.module->name);
-          frame->getScope()->setProperty(M, I.data.module->name, moduleObject);
-          const auto makeModuleDiiaObject = MaObject::CreateDiiaNativeFn(
-              M, "",
-              [&I](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
-                std::stack<MaValue> stack;
-                const auto result = M->run(I.data.module->code, stack);
-                if (result.isError()) {
-                  return result;
-                }
-                return MaValue::Object(diiaObject->diiaGetBoundObject());
-              },
-              moduleObject);
-          makeModuleDiiaObject->diiaSetIsModuleBuilder(true);
-          makeModuleDiiaObject->retain();
-          const auto args = MaObject::Empty(this);
-          args->retain();
-          const auto result = makeModuleDiiaObject->call(this, args, I.li);
-          args->release();
-          makeModuleDiiaObject->release();
+          scope->setProperty(M, I.data.module->name, moduleObject);
+          const auto moduleScope =
+              MaObject::CreateScope(this, scope, scope->scopeGetModule());
+          const auto result = M->run(moduleScope, I.data.module->code);
           if (result.isError()) {
             return result;
           }
@@ -342,7 +317,7 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          const auto meValue = frame->scope->getProperty(M, "я");
+          const auto meValue = scope->getProperty(M, "я");
           if (meValue.isError()) {
             return meValue;
           }
@@ -364,7 +339,7 @@ namespace mavka::mama {
         case VGt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.isGreater(this, right, I.li);
+          const auto result = left.isGreater(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -374,7 +349,7 @@ namespace mavka::mama {
         case VGe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.isGreaterOrEqual(this, right, I.li);
+          const auto result = left.isGreaterOrEqual(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -384,7 +359,7 @@ namespace mavka::mama {
         case VLt: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.isLesser(this, right, I.li);
+          const auto result = left.isLesser(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -394,7 +369,7 @@ namespace mavka::mama {
         case VLe: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.isLesserOrEqual(this, right, I.li);
+          const auto result = left.isLesserOrEqual(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -404,7 +379,7 @@ namespace mavka::mama {
         case VContains: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.contains(this, right, I.li);
+          const auto result = left.contains(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -423,7 +398,7 @@ namespace mavka::mama {
         }
         case VNot: {
           POP_VALUE(value);
-          const auto result = value.doNot(this, I.li);
+          const auto result = value.doNot(this, scope, I.li);
           if (result.isError()) {
             return result;
           }
@@ -432,7 +407,7 @@ namespace mavka::mama {
         }
         case VNegative: {
           POP_VALUE(value);
-          const auto result = value.doNegative(this, I.li);
+          const auto result = value.doNegative(this, scope, I.li);
           if (result.isError()) {
             return result;
           }
@@ -441,7 +416,7 @@ namespace mavka::mama {
         }
         case VPositive: {
           POP_VALUE(value);
-          const auto result = value.doPositive(this, I.li);
+          const auto result = value.doPositive(this, scope, I.li);
           if (result.isError()) {
             return result;
           }
@@ -450,7 +425,7 @@ namespace mavka::mama {
         }
         case VBnot: {
           POP_VALUE(value);
-          const auto result = value.doBNot(this, I.li);
+          const auto result = value.doBNot(this, scope, I.li);
           if (result.isError()) {
             return result;
           }
@@ -460,7 +435,7 @@ namespace mavka::mama {
         case VAdd: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doAdd(this, right, I.li);
+          const auto result = left.doAdd(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -470,7 +445,7 @@ namespace mavka::mama {
         case VSub: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doSub(this, right, I.li);
+          const auto result = left.doSub(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -480,7 +455,7 @@ namespace mavka::mama {
         case VMul: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doMul(this, right, I.li);
+          const auto result = left.doMul(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -490,7 +465,7 @@ namespace mavka::mama {
         case VDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doDiv(this, right, I.li);
+          const auto result = left.doDiv(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -500,7 +475,7 @@ namespace mavka::mama {
         case VMod: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doMod(this, right, I.li);
+          const auto result = left.doMod(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -510,7 +485,7 @@ namespace mavka::mama {
         case VDivDiv: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doDivDiv(this, right, I.li);
+          const auto result = left.doDivDiv(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -520,7 +495,7 @@ namespace mavka::mama {
         case VPow: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doPow(this, right, I.li);
+          const auto result = left.doPow(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -530,7 +505,7 @@ namespace mavka::mama {
         case VXor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doXor(this, right, I.li);
+          const auto result = left.doXor(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -540,7 +515,7 @@ namespace mavka::mama {
         case VBor: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doBor(this, right, I.li);
+          const auto result = left.doBor(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -550,7 +525,7 @@ namespace mavka::mama {
         case VBand: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doBand(this, right, I.li);
+          const auto result = left.doBand(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -560,7 +535,7 @@ namespace mavka::mama {
         case VShl: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doShl(this, right, I.li);
+          const auto result = left.doShl(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -570,7 +545,7 @@ namespace mavka::mama {
         case VShr: {
           POP_VALUE(right);
           POP_VALUE(left);
-          const auto result = left.doShr(this, right, I.li);
+          const auto result = left.doShr(this, scope, right, I.li);
           if (result.isError()) {
             return result;
           }
@@ -578,7 +553,7 @@ namespace mavka::mama {
           break;
         }
         case VTake: {
-          const auto result = this->take(I.data.take->repository,
+          const auto result = this->take(scope, I.data.take->repository,
                                          I.data.take->path_parts, I.li);
           if (result.isError()) {
             return result;
@@ -598,7 +573,7 @@ namespace mavka::mama {
     return stack.empty() ? MaValue::Empty() : stack.top();
   }
 
-  MaValue MaMa::eval(const std::string& source, size_t li) {
+  MaValue MaMa::eval(MaObject* scope, const std::string& source, size_t li) {
     const auto parserResult = parser::parse(source);
     if (!parserResult.errors.empty()) {
       const auto error = parserResult.errors[0];
@@ -611,21 +586,22 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
-    std::stack<MaValue> stack;
-    const auto result = this->run(code, stack);
+    const auto result = this->run(scope, code);
     if (result.isError()) {
       return result;
     }
     return result;
   }
 
-  MaValue MaMa::take(const std::string& repository,
+  MaValue MaMa::take(MaObject* scope,
+                     const std::string& repository,
                      const std::vector<std::string>& parts,
                      size_t li) {
-    return this->take_fn(this, repository, parts, li);
+    return this->take_fn(this, scope, repository, parts, li);
   }
 
-  MaValue MaMa::takeSource(const std::string& path,
+  MaValue MaMa::takeSource(MaObject* scope,
+                           const std::string& path,
                            const std::string& name,
                            const std::string& source,
                            bool root,
@@ -649,8 +625,7 @@ namespace mavka::mama {
     if (root) {
       moduleObject->moduleSetRoot(moduleObject);
     } else {
-      moduleObject->moduleSetRoot(
-          this->call_stack.top()->module->moduleGetRoot());
+      moduleObject->moduleSetRoot(scope->scopeGetModule());
     }
     this->loaded_file_modules.insert_or_assign(path, moduleObject);
     const auto bodyCompilationResult =
@@ -659,41 +634,27 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
-    const auto makeModuleDiiaObject = MaObject::CreateDiiaNativeFn(
-        this, "",
-        [&moduleCode, &moduleObject](MaMa* M, MaObject* diiaObject,
-                                     MaObject* args, size_t li) {
-          M->call_stack.top()->module = moduleObject;
-          std::stack<MaValue> stack;
-          const auto result = M->run(moduleCode, stack);
-          if (result.isError()) {
-            return result;
-          }
-          return MaValue::Object(diiaObject->diiaGetBoundObject());
-        },
-        moduleObject);
-    makeModuleDiiaObject->diiaSetIsModuleBuilder(true);
-    makeModuleDiiaObject->retain();
-    const auto args = MaObject::Empty(this);
-    args->retain();
-    const auto result = makeModuleDiiaObject->call(this, args, li);
-    args->release();
-    makeModuleDiiaObject->release();
+    const auto moduleScope = MaObject::CreateScope(this, scope, moduleObject);
+    moduleScope->setProperty(this, "я", moduleObject);
+    const auto result = this->run(moduleScope, moduleCode);
+    if (result.isError()) {
+      return result;
+    }
     return result;
   }
 
   std::string MaMa::getStackTrace() {
     std::vector<std::string> stack_trace{};
-    std::stack<MaFrame*> call_stack_copy = this->call_stack;
+    std::stack<MaFrame> call_stack_copy = this->call_stack;
     while (!call_stack_copy.empty()) {
       const auto frame = call_stack_copy.top();
       call_stack_copy.pop();
-      if (!frame->diia->diiaGetIsModuleBuilder()) {
-        const auto location = this->locations[frame->li];
+      if (!frame.diia->diiaGetIsModuleBuilder()) {
+        const auto location = this->locations[frame.li];
         const auto path = location.path;
         const auto line = std::to_string(location.line);
         const auto column = std::to_string(location.column);
-        stack_trace.push_back("  " + frame->diia->diiaGetName() + " " + path +
+        stack_trace.push_back("  " + frame.diia->diiaGetName() + " " + path +
                               ":" + line + ":" + column);
       }
     }

@@ -2,6 +2,7 @@
 
 namespace mavka::mama {
   MaValue maTakeFsPath(MaMa* M,
+                       MaObject* scope,
                        const std::string& raw_path,
                        bool root,
                        size_t li) {
@@ -32,14 +33,15 @@ namespace mavka::mama {
     const auto source = std::string(std::istreambuf_iterator(file),
                                     std::istreambuf_iterator<char>());
 
-    return M->takeSource(path, name, source, root, li);
+    return M->takeSource(scope, path, name, source, root, li);
   }
 
   MaValue maTakeFsFn(MaMa* M,
+                     MaObject* scope,
                      const std::string& repository,
                      const std::vector<std::string>& parts,
                      size_t li) {
-    const auto currentModule = M->call_stack.top()->getModule();
+    const auto currentModule = scope->scopeGetModule();
     const auto currentModulePath = currentModule->moduleGetCode()->getPath();
     const auto currentModuleDir =
         std::filesystem::path(currentModulePath).parent_path();
@@ -54,11 +56,11 @@ namespace mavka::mama {
           std::filesystem::path(mainModulePath).parent_path();
       const auto path = mainModuleDir.string() + "/.паки/" + parts[0] + "/" +
                         mavka::internal::tools::implode(parts, "/") + ".м";
-      return maTakeFsPath(M, path, true, li);
+      return maTakeFsPath(M, scope, path, true, li);
     }
     const auto takeDir = rootModuleDir.string();
     const auto path =
         takeDir + "/" + mavka::internal::tools::implode(parts, "/") + ".м";
-    return maTakeFsPath(M, path, false, li);
+    return maTakeFsPath(M, scope, path, false, li);
   }
 } // namespace mavka::mama

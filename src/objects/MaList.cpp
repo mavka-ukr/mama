@@ -39,6 +39,7 @@ namespace mavka::mama {
 
   // чародія_перебір
   MaValue MaList_MagIteratorNativeFn(MaMa* M,
+                                     MaObject* scope,
                                      MaObject* diiaObject,
                                      MaObject* args,
                                      size_t li) {
@@ -54,7 +55,8 @@ namespace mavka::mama {
       iteratorObject->setProperty(M, "значення", listObject->listGetAt(M, 0));
       const auto nextDiiaObject = MaObject::CreateDiiaNativeFn(
           M, "далі",
-          [](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
+          [](MaMa* M, MaObject* scope, MaObject* diiaObject, MaObject* args,
+             size_t li) {
             const auto iteratorObject = diiaObject->diiaGetBoundObject();
             iteratorObject->setProperty(M, "завершено", MaValue::Yes());
             return MaValue::Empty();
@@ -67,7 +69,8 @@ namespace mavka::mama {
       iteratorObject->setProperty(M, "_індекс", MaValue::Number(1));
       const auto nextDiiaObject = MaObject::CreateDiiaNativeFn(
           M, "далі",
-          [](MaMa* M, MaObject* diiaObject, MaObject* args, size_t li) {
+          [](MaMa* M, MaObject* scope, MaObject* diiaObject, MaObject* args,
+             size_t li) {
             const auto iteratorObject = diiaObject->diiaGetBoundObject();
             const auto i =
                 iteratorObject->getProperty(M, "_індекс").asInteger();
@@ -92,6 +95,7 @@ namespace mavka::mama {
 
   // чародія_отримати
   MaValue MaList_MagGetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* scope,
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
@@ -104,6 +108,7 @@ namespace mavka::mama {
 
   // чародія_покласти
   MaValue MaList_MagSetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* scope,
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
@@ -119,6 +124,7 @@ namespace mavka::mama {
 
   // додати
   MaValue MaList_AppendNativeDiiaFn(MaMa* M,
+                                    MaObject* scope,
                                     MaObject* diiaObject,
                                     MaObject* args,
                                     size_t li) {
@@ -129,6 +135,7 @@ namespace mavka::mama {
 
   // чародія_містить
   MaValue MaList_MagContainsNativeDiiaFn(MaMa* M,
+                                         MaObject* scope,
                                          MaObject* diiaObject,
                                          MaObject* args,
                                          size_t li) {
@@ -166,6 +173,7 @@ namespace mavka::mama {
   }
 
   MaValue MaList_Structure_MagCallNativeDiiaFn(MaMa* M,
+                                               MaObject* scope,
                                                MaObject* native_o,
                                                MaObject* args,
                                                size_t li) {
@@ -174,7 +182,7 @@ namespace mavka::mama {
       if (cell.asObject()->isList(M)) {
         return cell;
       }
-      return cell.asObject()->getProperty(M, MAG_LIST).call(M, {}, {});
+      return cell.asObject()->getProperty(M, MAG_LIST).call(M, scope, {}, {});
     }
     return MaValue::Error(
         MaError::Create(MaValue::Object(MaObject::CreateText(

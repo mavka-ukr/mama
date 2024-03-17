@@ -35,6 +35,7 @@ namespace mavka::mama {
 
   // чародія_отримати
   MaValue MaDict_MagGetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* scope,
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
@@ -44,6 +45,7 @@ namespace mavka::mama {
 
   // чародія_покласти
   MaValue MaDict_MagSetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* scope,
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {

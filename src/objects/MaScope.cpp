@@ -13,8 +13,20 @@ namespace mavka::mama {
     this->scopeOuter = outer;
   }
 
-  MaObject* MaObject::CreateScope(MaMa* M) {
+  MaObject* MaObject::scopeGetModule() const {
+    return this->scopeModule;
+  }
+
+  void MaObject::scopeSetModule(MaObject* module) {
+    this->scopeModule = module;
+  }
+
+  MaObject* MaObject::CreateScope(MaMa* M,
+                                  MaObject* outerScope,
+                                  MaObject* module) {
     const auto scopeObject = MaObject::Instance(M, M->scope_structure_object);
+    scopeObject->scopeSetOuter(outerScope);
+    scopeObject->scopeSetModule(module);
     return scopeObject;
   }
 } // namespace mavka::mama

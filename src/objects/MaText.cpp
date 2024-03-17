@@ -57,6 +57,7 @@ namespace mavka::mama {
 
   // розбити
   MaValue MaText_SplitNativeDiiaFn(MaMa* M,
+                                   MaObject* scope,
                                    MaObject* diiaObject,
                                    MaObject* args,
                                    size_t li) {
@@ -98,6 +99,7 @@ namespace mavka::mama {
 
   // замінити
   MaValue MaText_ReplaceNativeDiiaFn(MaMa* M,
+                                     MaObject* scope,
                                      MaObject* diiaObject,
                                      MaObject* args,
                                      size_t li) {
@@ -132,13 +134,14 @@ namespace mavka::mama {
 
   // починається
   MaValue MaText_StartsWithNativeDiiaFn(MaMa* M,
-                                        MaObject* o,
+                                        MaObject* scope,
+                                        MaObject* diiaObject,
                                         MaObject* args,
                                         size_t li) {
     const auto value = args->getArg(M, "0", "значення");
     if (value.isObject() && value.asObject()->isText(M)) {
-      if (o->diiaGetBoundObject()->textData.find(value.asObject()->textData) ==
-          0) {
+      if (diiaObject->diiaGetBoundObject()->textData.find(
+              value.asObject()->textData) == 0) {
         return MaValue::Yes();
       }
       return MaValue::No();
@@ -152,6 +155,7 @@ namespace mavka::mama {
 
   // закінчується
   MaValue MaText_EndsWithNativeDiiaFn(MaMa* M,
+                                      MaObject* scope,
                                       MaObject* diiaObject,
                                       MaObject* args,
                                       size_t li) {
@@ -179,6 +183,7 @@ namespace mavka::mama {
 
   // обтяти
   MaValue MaText_TrimNativeDiiaFn(MaMa* M,
+                                  MaObject* scope,
                                   MaObject* diiaObject,
                                   MaObject* args,
                                   size_t li) {
@@ -188,6 +193,7 @@ namespace mavka::mama {
 
   // чародія_додати
   MaValue MaText_MagAddNativeDiiaFn(MaMa* M,
+                                    MaObject* scope,
                                     MaObject* diiaObject,
                                     MaObject* args,
                                     size_t li) {
@@ -225,6 +231,7 @@ namespace mavka::mama {
 
   // чародія_містить
   MaValue MaText_MagContainsNativeDiiaFn(MaMa* M,
+                                         MaObject* scope,
                                          MaObject* diiaObject,
                                          MaObject* args,
                                          size_t li) {
@@ -245,6 +252,7 @@ namespace mavka::mama {
 
   // чародія_отримати
   MaValue MaText_MagGetElementNativeDiiaFn(MaMa* M,
+                                           MaObject* scope,
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
@@ -261,7 +269,8 @@ namespace mavka::mama {
 
   // чародія_перебір
   MaValue MaText_MagIteratorNativeDiiaFn(MaMa* M,
-                                         MaObject* o,
+                                         MaObject* scope,
+                                         MaObject* diiaObject,
                                          MaObject* args,
                                          size_t li) {
     return MaValue::Error(MaError::Create(
@@ -273,6 +282,7 @@ namespace mavka::mama {
 
   // чародія_число
   MaValue MaText_MagNumberNativeDiiaFn(MaMa* M,
+                                       MaObject* scope,
                                        MaObject* diiaObject,
                                        MaObject* args,
                                        size_t li) {
@@ -328,7 +338,8 @@ namespace mavka::mama {
   }
 
   MaValue MaText_Structure_MagCallNativeDiiaFn(MaMa* M,
-                                               MaObject* native_o,
+                                               MaObject* scope,
+                                               MaObject* diiaObject,
                                                MaObject* args,
                                                size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
@@ -346,7 +357,7 @@ namespace mavka::mama {
       if (cell.asObject()->isText(M)) {
         return cell;
       }
-      return cell.asObject()->getProperty(M, MAG_TEXT).call(M, {}, {});
+      return cell.asObject()->getProperty(M, MAG_TEXT).call(M, scope, {}, {});
     }
     return MaValue::Error(
         MaError::Create(MaValue::Object(MaObject::CreateText(

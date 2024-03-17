@@ -2,7 +2,8 @@
 
 namespace mavka::mama {
   MaValue MaNumber_Structure_MagCallNativeDiiaFn(MaMa* M,
-                                                 MaObject* o,
+                                                 MaObject* scope,
+                                                 MaObject* diiaObject,
                                                  MaObject* args,
                                                  size_t li) {
     const auto arg_value_v = args->getArg(M, "0", "значення");
@@ -19,7 +20,9 @@ namespace mavka::mama {
       return MaValue::Number(0);
     }
     if (arg_value_v.isObject()) {
-      return arg_value_v.asObject()->getProperty(M, MAG_NUMBER).call(M, {}, li);
+      return arg_value_v.asObject()
+          ->getProperty(M, MAG_NUMBER)
+          .call(M, scope, {}, li);
     }
     return MaValue::Error(
         MaError::Create(MaValue::Object(MaObject::CreateText(

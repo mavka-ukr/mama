@@ -8,6 +8,7 @@ namespace mavka::mama {
   }
 
   MaValue MaBytes_Structure_MagCallNativeDiiaFn(MaMa* M,
+                                                MaObject* scope,
                                                 MaObject* diiaObject,
                                                 MaObject* args,
                                                 size_t li) {
@@ -16,7 +17,7 @@ namespace mavka::mama {
       if (value.asObject()->isBytes(M)) {
         return value;
       }
-      return value.asObject()->callMagWithoutValue(M, li, MAG_BYTES);
+      return value.asObject()->callMagWithoutValue(M, scope, li, MAG_BYTES);
     }
     return MaValue::Error(
         MaError::Create(MaValue::Object(MaObject::CreateText(

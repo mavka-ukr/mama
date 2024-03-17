@@ -25,7 +25,6 @@ namespace mavka::mama {
         code->push(MaInstruction::store(element.second));
       }
     }
-    code->push(MaInstruction::pop());
     return success();
   }
 } // namespace mavka::mama

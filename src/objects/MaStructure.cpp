@@ -3,7 +3,8 @@
 namespace mavka::mama {
   // дізнатись
   MaValue MaStructure_DiscoverNativeDiiaFn(MaMa* M,
-                                           MaObject* o,
+                                           MaObject* scope,
+                                           MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
     const auto cell = args->getArg(M, "0", "значення");
@@ -24,7 +25,7 @@ namespace mavka::mama {
 
   MaObject* MaObject::CreateStructure(MaMa* M, const std::string& name) {
     const auto structureObject = new MaObject();
-    structureObject->type = M->structure_structure_object;
+    structureObject->structure = M->structure_structure_object;
     structureObject->structureSetName(name);
 #if MAMA_GC_DEBUG
     std::cout << "[GC] created " << structureObject->getPrettyString(M) << " "

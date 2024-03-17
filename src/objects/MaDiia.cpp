@@ -19,6 +19,7 @@ namespace mavka::mama {
     const auto diiaObject = MaObject::Instance(M, M->diia_structure_object);
     diiaObject->diiaSetName(name);
     diiaObject->diiaSetNativeFn(fn);
+    diiaObject->diiaSetBoundObject(me);
     return diiaObject;
   }
 
@@ -107,16 +108,14 @@ namespace mavka::mama {
   MaObject* MaObject::diiaBind(MaMa* M, MaObject* diiaObject) {
     const auto boundDiiaObject =
         MaObject::Instance(M, M->diia_structure_object);
-    boundDiiaObject->diiaSetName(diiaObject->diiaGetName());
-    boundDiiaObject->diiaSetCode(diiaObject->diiaGetCode());
-    boundDiiaObject->diiaSetNativeFn(diiaObject->diiaGetNativeFn());
+    boundDiiaObject->diiaSetName(this->diiaGetName());
+    boundDiiaObject->diiaSetCode(this->diiaGetCode());
+    boundDiiaObject->diiaSetNativeFn(this->diiaGetNativeFn());
     boundDiiaObject->diiaSetBoundObject(diiaObject);
-    boundDiiaObject->diiaSetOuterScope(diiaObject->diiaGetOuterScope());
-    boundDiiaObject->diiaSetParams(diiaObject->diiaGetParams());
-    boundDiiaObject->diiaSetParamIndicesMap(
-        diiaObject->diiaGetParamIndicesMap());
-    boundDiiaObject->diiaSetIsModuleBuilder(
-        diiaObject->diiaGetIsModuleBuilder());
+    boundDiiaObject->diiaSetOuterScope(this->diiaGetOuterScope());
+    boundDiiaObject->diiaSetParams(this->diiaGetParams());
+    boundDiiaObject->diiaSetParamIndicesMap(this->diiaGetParamIndicesMap());
+    boundDiiaObject->diiaSetIsModuleBuilder(this->diiaGetIsModuleBuilder());
     return boundDiiaObject;
   }
 

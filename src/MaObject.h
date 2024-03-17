@@ -5,13 +5,14 @@ struct MaValue;
 struct MaDiiaParam;
 
 typedef MaValue NativeFn(MaMa* M,
+                         MaObject* scope,
                          MaObject* diiaObject,
                          MaObject* args,
                          size_t li);
 
 struct MaObject {
   int ref_count;
-  MaObject* type;
+  MaObject* structure;
   tsl::ordered_map<std::string, MaValue> properties;
 
   ~MaObject();
@@ -31,10 +32,14 @@ struct MaObject {
   MaObject* getStructure() const;
   bool is(MaMa* M, MaObject* object) const;
   MaValue callMagWithValue(MaMa* M,
+                           MaObject* scope,
                            const MaValue& value,
                            size_t li,
                            const std::string& name);
-  MaValue callMagWithoutValue(MaMa* M, size_t li, const std::string& name);
+  MaValue callMagWithoutValue(MaMa* M,
+                              MaObject* scope,
+                              size_t li,
+                              const std::string& name);
 
   void setProperty(MaMa* M, const std::string& name, const MaValue& value);
   void setProperty(MaMa* M, const std::string& name, MaObject* value);
@@ -46,7 +51,10 @@ struct MaObject {
                  const std::string& name,
                  const MaValue& defaultValue);
 
-  MaValue call(MaMa* M, MaObject* args, size_t li);
+  MaValue call(MaMa* M,
+               mavka::mama::MaObject* scope,
+               MaObject* args,
+               size_t li);
 
   std::string getPrettyString(MaMa* M);
 
@@ -56,10 +64,13 @@ struct MaObject {
 
   // scope
   MaObject* scopeOuter;
+  MaObject* scopeModule;
   bool scopeHasOuter() const;
   MaObject* scopeGetOuter() const;
   void scopeSetOuter(MaObject* outer);
-  static MaObject* CreateScope(MaMa* M);
+  MaObject* scopeGetModule() const;
+  void scopeSetModule(MaObject* module);
+  static MaObject* CreateScope(MaMa* M, MaObject* outerScope, MaObject* module);
 
   // text
   std::string textData;
@@ -174,30 +185,81 @@ struct MaValue {
 
   std::string getName() const;
 
-  MaValue call(MaMa* M, MaObject* args, size_t li) const;
+  MaValue call(MaMa* M, MaObject* scope, MaObject* args, size_t li) const;
   bool isEqual(MaMa* M, const MaValue& other) const;
   MaValue is(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue isGreater(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue isGreaterOrEqual(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue isLesser(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue isLesserOrEqual(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue contains(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doNot(MaMa* M, size_t li) const;
-  MaValue doNegative(MaMa* M, size_t li) const;
-  MaValue doPositive(MaMa* M, size_t li) const;
-  MaValue doBNot(MaMa* M, size_t li) const;
-  MaValue doAdd(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doSub(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doMul(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doDiv(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doMod(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doDivDiv(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doPow(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doXor(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doBor(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doBand(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doShl(MaMa* M, const MaValue& value, size_t li) const;
-  MaValue doShr(MaMa* M, const MaValue& value, size_t li) const;
+  MaValue isGreater(MaMa* M,
+                    MaObject* scope,
+                    const MaValue& value,
+                    size_t li) const;
+  MaValue isGreaterOrEqual(MaMa* M,
+                           MaObject* scope,
+                           const MaValue& value,
+                           size_t li) const;
+  MaValue isLesser(MaMa* M,
+                   MaObject* scope,
+                   const MaValue& value,
+                   size_t li) const;
+  MaValue isLesserOrEqual(MaMa* M,
+                          MaObject* scope,
+                          const MaValue& value,
+                          size_t li) const;
+  MaValue contains(MaMa* M,
+                   MaObject* scope,
+                   const MaValue& value,
+                   size_t li) const;
+  MaValue doNot(MaMa* M, MaObject* scope, size_t li) const;
+  MaValue doNegative(MaMa* M, MaObject* scope, size_t li) const;
+  MaValue doPositive(MaMa* M, MaObject* scope, size_t li) const;
+  MaValue doBNot(MaMa* M, MaObject* scope, size_t li) const;
+  MaValue doAdd(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doSub(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doMul(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doDiv(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doMod(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doDivDiv(MaMa* M,
+                   MaObject* scope,
+                   const MaValue& value,
+                   size_t li) const;
+  MaValue doPow(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doXor(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doBor(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doBand(MaMa* M,
+                 MaObject* scope,
+                 const MaValue& value,
+                 size_t li) const;
+  MaValue doShl(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
+  MaValue doShr(MaMa* M,
+                MaObject* scope,
+                const MaValue& value,
+                size_t li) const;
 
   inline bool isEmpty() const { return this->type == MaValueTypeEmpty; };
   inline bool isNumber() const { return this->type == MaValueTypeNumber; };

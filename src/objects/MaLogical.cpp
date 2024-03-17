@@ -2,7 +2,8 @@
 
 namespace mavka::mama {
   MaValue MaLogical_Structure_MagCallNativeDiiaFn(MaMa* M,
-                                                  MaObject* native_o,
+                                                  MaObject* scope,
+                                                  MaObject* diiaObject,
                                                   MaObject* args,
                                                   size_t li) {
     const auto value = args->getArg(M, "0", "значення");
