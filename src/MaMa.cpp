@@ -23,9 +23,6 @@ namespace mavka::mama {
     M->scope_structure_object = scope_structure_object;
     M->global_scope = MaObject::CreateScope(M, nullptr, nullptr);
     M->global_scope->retain();
-    M->global_scope->retain();
-    M->global_scope->retain();
-    M->global_scope->retain();
     InitStructure(M);
     MaObject::Init(M);
     InitDiia(M);
@@ -680,7 +677,7 @@ namespace mavka::mama {
     if (result.isError()) {
       return result;
     }
-    return result;
+    return MaValue::Object(moduleObject);
   }
 
   std::string MaMa::getStackTrace() {

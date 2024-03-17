@@ -126,18 +126,16 @@ int main(int argc, char** argv) {
   init_print(M);
   init_read(M);
 
-  const auto filePath = args[1];
-  std::ifstream file(filePath);
-  if (!file.is_open()) {
-    std::cerr << "Не вдалося відкрити файл " << filePath << std::endl;
-    return 1;
-  }
-  std::string source((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
-
-  const auto result = M->eval(M->global_scope, source, 0);
-  if (result.isError()) {
-    std::cerr << "Помилка" << std::endl;
+  const auto take_result = maTakeFsPath(M, M->global_scope, args[1], true, {});
+  if (take_result.isError()) {
+    const auto stackTrace = M->getStackTrace();
+    if (!stackTrace.empty()) {
+      std::cout << stackTrace << std::endl;
+    }
+    const auto location = M->locations[take_result.asError()->li];
+    std::cerr << location.path << ":" << location.line << ":" << location.column
+              << ": " << cell_to_string(M, take_result.v.error->value)
+              << std::endl;
     return 1;
   }
 
