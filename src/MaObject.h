@@ -26,6 +26,8 @@ struct MaObject {
   } d;
   tsl::ordered_map<std::string, MaValue> properties;
 
+  ~MaObject();
+
   bool isScope(MaMa* M) const;
   bool isStructure(MaMa* M) const;
   bool isDiia(MaMa* M) const;

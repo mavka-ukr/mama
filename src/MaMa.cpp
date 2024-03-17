@@ -15,12 +15,19 @@
   POP();
 
 namespace mavka::mama {
+  MaFrame::~MaFrame() {
+    this->scope->release();
+    this->diia->release();
+    this->module->release();
+  }
+
   MaMa* MaMa::Create() {
     const auto M = new MaMa();
     M->locations.push_back(MaLocation(0, 0, ""));
     const auto scope_structure_object = new MaObject();
     M->scope_structure_object = scope_structure_object;
     M->global_scope = new MaObject();
+    M->global_scope->retain();
     M->global_scope->type = scope_structure_object;
     M->global_scope->d.outer = nullptr;
     MaStructure::Init(M);
@@ -92,7 +99,9 @@ namespace mavka::mama {
         case VCall: {
           POP_VALUE(argsValue);
           POP_VALUE(value);
+          argsValue.asObject()->retain();
           const auto result = value.call(this, argsValue.asObject(), I.li);
+          argsValue.asObject()->release();
           if (result.isError()) {
             return result;
           }
@@ -312,8 +321,8 @@ namespace mavka::mama {
           const auto args = MaObject::Empty(this);
           args->retain();
           const auto result = makeModuleDiiaObject->call(this, args, I.li);
-          //          args->release();
-          //          makeModuleDiiaObject->release();
+          args->release();
+          makeModuleDiiaObject->release();
           if (result.isError()) {
             return result;
           }
@@ -622,6 +631,7 @@ namespace mavka::mama {
     const auto moduleObject = MaModule::Create(this, name);
     moduleObject->asModule()->code = moduleCode;
     if (this->main_module == nullptr) {
+      moduleObject->retain();
       this->main_module = moduleObject;
     }
     if (root) {
@@ -655,8 +665,8 @@ namespace mavka::mama {
     const auto args = MaObject::Empty(this);
     args->retain();
     const auto result = makeModuleDiiaObject->call(this, args, li);
-    //    args->release();
-    //    makeModuleDiiaObject->release();
+    args->release();
+    makeModuleDiiaObject->release();
     return result;
   }
 

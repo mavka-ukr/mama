@@ -108,6 +108,8 @@ namespace mavka::mama {
     MaObject* module = nullptr;
     size_t li;
 
+    ~MaFrame();
+
     inline MaObject* getScope() const { return this->scope; };
     inline MaObject* getDiia() const { return this->diia; };
     inline MaObject* getModule() const { return this->module; };

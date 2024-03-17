@@ -11,7 +11,7 @@ namespace mavka::mama {
     for (auto& item : this->data) {
       if (key.isEqual(M, item.first)) {
         if (item.second.isObject()) {
-          //          item.second.asObject()->release();
+          item.second.asObject()->release();
         }
         item.second = value;
         return;

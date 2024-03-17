@@ -1,6 +1,18 @@
 #include "../mama.h"
 
 namespace mavka::mama {
+  MaObject::~MaObject() {
+    for (const auto& [_, value] : this->properties) {
+      if (value.isObject()) {
+        value.asObject()->release();
+      }
+    }
+    this->properties.clear();
+#if MAMA_GC_DEBUG == 1
+    std::cout << "[GC] deleted " << (void*)this << std::endl;
+#endif
+  }
+
   bool MaObject::isScope(MaMa* M) const {
     return this->type == M->scope_structure_object;
   }
@@ -89,12 +101,26 @@ namespace mavka::mama {
   void MaObject::setProperty(MaMa* M,
                              const std::string& name,
                              const MaValue& value) {
+    if (value.isObject()) {
+      value.asObject()->retain();
+    }
+    if (this->properties.contains(name)) {
+      if (this->properties[name].isObject()) {
+        this->properties[name].asObject()->release();
+      }
+    }
     this->properties.insert_or_assign(name, value);
   }
 
   void MaObject::setProperty(MaMa* M,
                              const std::string& name,
                              MaObject* value) {
+    value->retain();
+    if (this->properties.contains(name)) {
+      if (this->properties[name].isObject()) {
+        this->properties[name].asObject()->release();
+      }
+    }
     this->properties.insert_or_assign(name, MaValue::Object(value));
   }
 
@@ -184,6 +210,9 @@ namespace mavka::mama {
         M->call_stack.empty() ? M->global_scope : M->call_stack.top()->scope;
     const auto currentModule =
         M->call_stack.empty() ? M->main_module : M->call_stack.top()->module;
+    currentScope->retain();
+    this->retain();
+    currentModule->retain();
     const auto frame = new MaFrame(currentScope, this, currentModule, li);
     FRAME_PUSH(frame);
     if (this->isDiia(M)) {
@@ -191,6 +220,8 @@ namespace mavka::mama {
       const auto diia_scope = MaObject::Instance(
           M, M->scope_structure_object,
           diia->outerScope ? diia->outerScope : currentScope);
+      diia_scope->retain();
+      frame->getScope()->release();
       frame->scope = diia_scope;
       if (diia->getMe()) {
         frame->scope->setProperty(M, "я", diia->getMe());
@@ -198,6 +229,7 @@ namespace mavka::mama {
       if (diia->fn) {
         const auto result = diia->fn(M, this, args, li);
         if (!result.isError()) {
+          delete frame;
           FRAME_POP();
         }
         return result;
@@ -212,6 +244,7 @@ namespace mavka::mama {
         const auto result = M->run(this->d.diia->code, stack);
         // todo: gc
         if (!result.isError()) {
+          delete frame;
           FRAME_POP();
         }
         return result;
@@ -226,9 +259,11 @@ namespace mavka::mama {
             args->getArg(M, std::to_string(i), param.name, param.default_value);
         object->setProperty(M, param.name, arg_value);
       }
+      delete frame;
       FRAME_POP();
       return MaValue::Object(object);
     }
+    delete frame;
     FRAME_POP();
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaText::Create(M, "Неможливо викликати.")), li));
@@ -254,14 +289,14 @@ namespace mavka::mama {
     args->retain();
     args->setProperty(M, "0", value);
     const auto result = magicDiia.call(M, args, li);
-    //    args->release();
+    args->release();
     if (value.isObject()) {
-      //      value.asObject()->release();
+      value.asObject()->release();
     }
     if (magicDiia.isObject()) {
-      //      magicDiia.asObject()->release();
+      magicDiia.asObject()->release();
     }
-    //    this->release();
+    this->release();
     return result;
   }
 
@@ -279,9 +314,9 @@ namespace mavka::mama {
     }
     const auto result = magicDiia.call(M, {}, {});
     if (magicDiia.isObject()) {
-      //      magicDiia.asObject()->release();
+      magicDiia.asObject()->release();
     }
-    //    this->release();
+    this->release();
     return result;
   }
 
