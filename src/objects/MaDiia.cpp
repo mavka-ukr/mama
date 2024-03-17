@@ -59,8 +59,14 @@ namespace mavka::mama {
     return this->diiaBoundObject;
   }
 
-  void MaObject::diiaSetBoundObject(MaObject* diiaObject) {
-    this->diiaBoundObject = diiaObject;
+  void MaObject::diiaSetBoundObject(MaObject* object) {
+    if (object) {
+      object->retain();
+    }
+    if (this->diiaBoundObject != nullptr) {
+      this->diiaBoundObject->release();
+    }
+    this->diiaBoundObject = object;
   }
 
   bool MaObject::diiaHasOuterScope() const {
@@ -72,6 +78,12 @@ namespace mavka::mama {
   }
 
   void MaObject::diiaSetOuterScope(MaObject* outerScopeObject) {
+    if (outerScopeObject) {
+      outerScopeObject->retain();
+    }
+    if (this->diiaOuterScope != nullptr) {
+      this->diiaOuterScope->release();
+    }
     this->diiaOuterScope = outerScopeObject;
   }
 
@@ -97,14 +109,6 @@ namespace mavka::mama {
     this->diiaParamIndicesMap = paramIndicesMap;
   }
 
-  bool MaObject::diiaGetIsModuleBuilder() const {
-    return this->diiaIsModuleBuilder;
-  }
-
-  void MaObject::diiaSetIsModuleBuilder(bool isModuleBuilder) {
-    this->diiaIsModuleBuilder = isModuleBuilder;
-  }
-
   MaObject* MaObject::diiaBind(MaMa* M, MaObject* diiaObject) {
     const auto boundDiiaObject =
         MaObject::Instance(M, M->diia_structure_object);
@@ -115,13 +119,12 @@ namespace mavka::mama {
     boundDiiaObject->diiaSetOuterScope(this->diiaGetOuterScope());
     boundDiiaObject->diiaSetParams(this->diiaGetParams());
     boundDiiaObject->diiaSetParamIndicesMap(this->diiaGetParamIndicesMap());
-    boundDiiaObject->diiaSetIsModuleBuilder(this->diiaGetIsModuleBuilder());
     return boundDiiaObject;
   }
 
   void InitDiia(MaMa* M) {
-    const auto diia_structure_object = MaObject::CreateStructure(M, "Дія");
-    M->global_scope->setProperty(M, "Дія", diia_structure_object);
-    M->diia_structure_object = diia_structure_object;
+    const auto diiaStructureObject = MaObject::CreateStructure(M, "Дія");
+    M->global_scope->setProperty(M, "Дія", diiaStructureObject);
+    M->diia_structure_object = diiaStructureObject;
   }
 } // namespace mavka::mama

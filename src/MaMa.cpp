@@ -23,6 +23,9 @@ namespace mavka::mama {
     M->scope_structure_object = scope_structure_object;
     M->global_scope = MaObject::CreateScope(M, nullptr, nullptr);
     M->global_scope->retain();
+    M->global_scope->retain();
+    M->global_scope->retain();
+    M->global_scope->retain();
     InitStructure(M);
     MaObject::Init(M);
     InitDiia(M);
@@ -71,7 +74,7 @@ namespace mavka::mama {
           break;
         }
         case VConstant: {
-          PUSH(this->constants[I.data.constant]);
+          PUSH_OBJECT(this->constants[I.data.constant]);
           break;
         }
         case VNumber: {
@@ -148,35 +151,7 @@ namespace mavka::mama {
           i = I.data.jump;
           goto start;
         }
-        case VJumpIfTrue: {
-          POP_VALUE(value);
-          if (value.isNumber() && value.asNumber() != 0.0) {
-            i = I.data.jumpIfTrue;
-            goto start;
-          }
-          if (!value.isNo()) {
-            i = I.data.jumpIfTrue;
-            goto start;
-          }
-          break;
-        }
         case VJumpIfFalse: {
-          POP_VALUE(value);
-          if (value.isEmpty()) {
-            i = I.data.jumpIfFalse;
-            goto start;
-          } else if (value.isNumber()) {
-            if (value.asNumber() == 0.0) {
-              i = I.data.jumpIfFalse;
-              goto start;
-            }
-          } else if (value.isNo()) {
-            i = I.data.jumpIfFalse;
-            goto start;
-          }
-          break;
-        }
-        case VJumpIfFalseAndRelease: {
           POP_VALUE(value);
           if (value.isEmpty()) {
             i = I.data.jumpIfFalse;
@@ -199,7 +174,9 @@ namespace mavka::mama {
             }
             goto start;
           }
-          value.asObject()->release();
+          if (value.isObject()) {
+            value.asObject()->release();
+          }
           break;
         }
         case VEJumpIfTrue: {
@@ -207,11 +184,20 @@ namespace mavka::mama {
           if (value.isNumber()) {
             if (value.asNumber() != 0.0) {
               i = I.data.jumpIfTrue;
+              if (value.isObject()) {
+                value.asObject()->release();
+              }
               goto start;
             }
           } else if (!value.isNo()) {
             i = I.data.jumpIfTrue;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
             goto start;
+          }
+          if (value.isObject()) {
+            value.asObject()->release();
           }
           break;
         }
@@ -219,15 +205,27 @@ namespace mavka::mama {
           TOP_VALUE(value);
           if (value.isEmpty()) {
             i = I.data.jumpIfFalse;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
             goto start;
           }
           if (value.isNumber() && value.asNumber() == 0.0) {
             i = I.data.jumpIfFalse;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
             goto start;
           }
           if (value.isNo()) {
             i = I.data.jumpIfFalse;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
             goto start;
+          }
+          if (value.isObject()) {
+            value.asObject()->release();
           }
           break;
         }
@@ -691,14 +689,12 @@ namespace mavka::mama {
     while (!call_stack_copy.empty()) {
       const auto frame = call_stack_copy.top();
       call_stack_copy.pop();
-      if (!frame.diia->diiaGetIsModuleBuilder()) {
-        const auto location = this->locations[frame.li];
-        const auto path = location.path;
-        const auto line = std::to_string(location.line);
-        const auto column = std::to_string(location.column);
-        stack_trace.push_back("  " + frame.diia->diiaGetName() + " " + path +
-                              ":" + line + ":" + column);
-      }
+      const auto location = this->locations[frame.li];
+      const auto path = location.path;
+      const auto line = std::to_string(location.line);
+      const auto column = std::to_string(location.column);
+      stack_trace.push_back("  " + frame.diia->diiaGetName() + " " + path +
+                            ":" + line + ":" + column);
     }
     if (!stack_trace.empty()) {
       stack_trace.insert(stack_trace.begin(), "Слід :");

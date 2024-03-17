@@ -31,13 +31,13 @@ namespace mavka::mama {
   }
 
   void InitNumber(MaMa* M) {
-    const auto number_structure_object = MaObject::CreateStructure(M, "число");
-    M->global_scope->setProperty(M, "число", number_structure_object);
-    M->number_structure_object = number_structure_object;
-    number_structure_object->setProperty(
+    const auto numberStructureObject = MaObject::CreateStructure(M, "число");
+    M->global_scope->setProperty(M, "число", numberStructureObject);
+    M->number_structure_object = numberStructureObject;
+    numberStructureObject->setProperty(
         M, MAG_CALL,
         MaObject::CreateDiiaNativeFn(M, MAG_CALL,
                                      MaNumber_Structure_MagCallNativeDiiaFn,
-                                     number_structure_object));
+                                     numberStructureObject));
   }
 } // namespace mavka::mama

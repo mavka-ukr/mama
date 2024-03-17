@@ -14,7 +14,7 @@ namespace mavka::mama {
       return condition_result;
     }
     code->push(MaInstruction::retain());
-    code->push(MaInstruction::jumpIfFalseAndRelease(0));
+    code->push(MaInstruction::jumpIfFalse(0));
     const auto jump_if_false_instruction_index = code->instructions.size() - 1;
     const auto body_result = compile_body(M, code, while_node->body);
     if (body_result.error) {

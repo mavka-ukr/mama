@@ -23,9 +23,7 @@ typedef enum {
   VLoad,
 
   VJump,
-  VJumpIfTrue,
   VJumpIfFalse,
-  VJumpIfFalseAndRelease,
   VEJumpIfTrue,
   VEJumpIfFalse,
 
@@ -192,9 +190,7 @@ struct MaInstruction {
   static MaInstruction store(const std::string& name);
   static MaInstruction load(const std::string& name);
   static MaInstruction jump(size_t index);
-  static MaInstruction jumpIfTrue(size_t index);
   static MaInstruction jumpIfFalse(size_t index);
-  static MaInstruction jumpIfFalseAndRelease(size_t index);
   static MaInstruction get(const std::string& name);
   static MaInstruction eGet(const std::string& name);
   static MaInstruction set(const std::string& name);

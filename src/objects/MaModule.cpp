@@ -14,6 +14,12 @@ namespace mavka::mama {
   }
 
   void MaObject::moduleSetRoot(MaObject* root) {
+    if (root) {
+      root->retain();
+    }
+    if (this->moduleRoot != nullptr) {
+      this->moduleRoot->release();
+    }
     this->moduleRoot = root;
   }
 
@@ -32,8 +38,8 @@ namespace mavka::mama {
   }
 
   void InitModule(MaMa* M) {
-    const auto module_structure_object = MaObject::CreateStructure(M, "Модуль");
-    M->global_scope->setProperty(M, "Модуль", module_structure_object);
-    M->module_structure_object = module_structure_object;
+    const auto moduleStructureObject = MaObject::CreateStructure(M, "Модуль");
+    M->global_scope->setProperty(M, "Модуль", moduleStructureObject);
+    M->module_structure_object = moduleStructureObject;
   }
 } // namespace mavka::mama

@@ -47,8 +47,6 @@ namespace mavka::mama {
         return "VBnot";
       case VJumpIfFalse:
         return "VJumpIfFalse";
-      case VJumpIfTrue:
-        return "VJumpIfTrue";
       case VEJumpIfFalse:
         return "VEJumpIfFalse";
       case VEJumpIfTrue:
@@ -75,6 +73,10 @@ namespace mavka::mama {
         return "VReturn";
       case VPop:
         return "VPop";
+      case VRetain:
+        return "VRetain";
+      case VRelease:
+        return "VRelease";
       case VList:
         return "VList";
       case VListAppend:
@@ -180,14 +182,8 @@ namespace mavka::mama {
   MaInstruction MaInstruction::jump(size_t index) {
     return MaInstruction{VJump, {.jump = index}};
   }
-  MaInstruction MaInstruction::jumpIfTrue(size_t index) {
-    return MaInstruction{VJumpIfTrue, {.jumpIfTrue = index}};
-  }
   MaInstruction MaInstruction::jumpIfFalse(size_t index) {
     return MaInstruction{VJumpIfFalse, {.jumpIfFalse = index}};
-  }
-  MaInstruction MaInstruction::jumpIfFalseAndRelease(size_t index) {
-    return MaInstruction{VJumpIfFalseAndRelease, {.jumpIfFalse = index}};
   }
   MaInstruction MaInstruction::get(const std::string& name) {
     return MaInstruction{VGet, {.get = new MaGetInstructionArgs(name)}};

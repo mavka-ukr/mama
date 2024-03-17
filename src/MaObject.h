@@ -102,7 +102,6 @@ struct MaObject {
   MaObject* diiaOuterScope;
   std::vector<MaDiiaParam> diiaParams;
   std::unordered_map<std::string, std::string> diiaParamIndicesMap;
-  bool diiaIsModuleBuilder;
   std::string diiaGetName() const;
   void diiaSetName(const std::string& name);
   MaCode* diiaGetCode() const;
@@ -112,7 +111,7 @@ struct MaObject {
   void diiaSetNativeFn(const std::function<NativeFn>& fn);
   bool diiaHasBoundObject() const;
   MaObject* diiaGetBoundObject() const;
-  void diiaSetBoundObject(MaObject* diiaObject);
+  void diiaSetBoundObject(MaObject* object);
   bool diiaHasOuterScope() const;
   MaObject* diiaGetOuterScope() const;
   void diiaSetOuterScope(MaObject* outerScopeObject);
@@ -122,8 +121,6 @@ struct MaObject {
   std::unordered_map<std::string, std::string> diiaGetParamIndicesMap() const;
   void diiaSetParamIndicesMap(
       const std::unordered_map<std::string, std::string>& paramIndicesMap);
-  bool diiaGetIsModuleBuilder() const;
-  void diiaSetIsModuleBuilder(bool isModuleBuilder);
   MaObject* diiaBind(MaMa* M, MaObject* diiaObject);
   static MaObject* CreateDiia(MaMa* M,
                               const std::string& diia_o,

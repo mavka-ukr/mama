@@ -10,6 +10,7 @@ namespace mavka::mama {
     if (condition_result.error) {
       return condition_result;
     }
+    code->push(MaInstruction::retain());
     code->push(MaInstruction::jumpIfFalse(0));
     const auto jump_if_instruction_index = code->instructions.size() - 1;
     const auto body_result = compile_node(M, code, ternary_node->body);

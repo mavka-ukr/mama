@@ -167,9 +167,10 @@ namespace mavka::mama {
       if (result.error) {
         return result;
       }
-      // if (ast_value->is_popable() && !nopop) {
-      //   code->instructions.push_back(MaInstruction{VPop});
-      // }
+      if (mavka::ast::is_ast_value_returnable(ast_value)) {
+        code->instructions.push_back(MaInstruction::retain());
+        code->instructions.push_back(MaInstruction::release());
+      }
     }
     return success();
   }

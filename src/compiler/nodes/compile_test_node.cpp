@@ -10,6 +10,7 @@ namespace mavka::mama {
       if (left.error) {
         return left;
       }
+      code->push(MaInstruction::retain());
       code->push(MaInstruction{VEJumpIfFalse});
       const auto jump_if_false_instruction_index =
           code->instructions.size() - 1;
@@ -25,6 +26,7 @@ namespace mavka::mama {
       if (left.error) {
         return left;
       }
+      code->push(MaInstruction::retain());
       code->push(MaInstruction{VEJumpIfTrue});
       const auto jump_if_true_instruction_index = code->instructions.size() - 1;
       code->push(MaInstruction::pop());

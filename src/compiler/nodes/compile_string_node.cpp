@@ -5,8 +5,13 @@ namespace mavka::mama {
                                           MaCode* code,
                                           mavka::ast::ASTValue* ast_value) {
     const auto string_node = ast_value->data.StringNode;
-    M->constants.push_back(
-        MaValue::Object(MaObject::CreateText(M, string_node->value)));
+    const auto stringObject = MaObject::CreateText(M, string_node->value);
+    stringObject->retain();
+    stringObject->retain();
+    stringObject->retain();
+    stringObject->retain();
+    stringObject->retain();
+    M->constants.push_back(stringObject);
     code->push(MaInstruction::constant(M->constants.size() - 1));
     return success();
   }

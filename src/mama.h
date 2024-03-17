@@ -120,7 +120,7 @@ namespace mavka::mama {
   };
 
   struct MaMa {
-    std::vector<MaValue> constants;
+    std::vector<MaObject*> constants;
     MaObject* global_scope;
     std::unordered_map<std::string, MaObject*> loaded_file_modules;
     MaObject* main_module;

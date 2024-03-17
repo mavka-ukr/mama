@@ -66,12 +66,13 @@ namespace mavka::mama {
       const auto delim = cell.asObject()->textData;
 
       if (delim.empty()) {
-        const auto list_o = MaObject::CreateList(M);
+        const auto listObject = MaObject::CreateList(M);
         for (const auto& c :
              utf8_chars(diiaObject->diiaGetBoundObject()->textData)) {
-          list_o->listAppend(M, MaValue::Object(MaObject::CreateText(M, c)));
+          listObject->listAppend(M,
+                                 MaValue::Object(MaObject::CreateText(M, c)));
         }
-        return MaValue::Object(list_o);
+        return MaValue::Object(listObject);
       }
 
       const auto listObject = MaObject::CreateList(M);
@@ -366,13 +367,13 @@ namespace mavka::mama {
   }
 
   void InitText(MaMa* M) {
-    const auto text_structure_object = MaObject::CreateStructure(M, "текст");
-    M->global_scope->setProperty(M, "текст", text_structure_object);
-    M->text_structure_object = text_structure_object;
-    text_structure_object->setProperty(
+    const auto textStructureObject = MaObject::CreateStructure(M, "текст");
+    M->global_scope->setProperty(M, "текст", textStructureObject);
+    M->text_structure_object = textStructureObject;
+    textStructureObject->setProperty(
         M, MAG_CALL,
         MaObject::CreateDiiaNativeFn(M, MAG_CALL,
                                      MaText_Structure_MagCallNativeDiiaFn,
-                                     text_structure_object));
+                                     textStructureObject));
   }
 } // namespace mavka::mama

@@ -26,14 +26,13 @@ namespace mavka::mama {
   }
 
   void InitLogical(MaMa* M) {
-    const auto logical_structure_object =
-        MaObject::CreateStructure(M, "логічне");
-    M->global_scope->setProperty(M, "логічне", logical_structure_object);
-    M->logical_structure_object = logical_structure_object;
-    logical_structure_object->setProperty(
+    const auto logicalStructureObject = MaObject::CreateStructure(M, "логічне");
+    M->global_scope->setProperty(M, "логічне", logicalStructureObject);
+    M->logical_structure_object = logicalStructureObject;
+    logicalStructureObject->setProperty(
         M, MAG_CALL,
         MaObject::CreateDiiaNativeFn(M, MAG_CALL,
                                      MaLogical_Structure_MagCallNativeDiiaFn,
-                                     logical_structure_object));
+                                     logicalStructureObject));
   }
 } // namespace mavka::mama

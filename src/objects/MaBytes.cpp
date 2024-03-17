@@ -26,13 +26,13 @@ namespace mavka::mama {
   }
 
   void InitBytes(MaMa* M) {
-    const auto bytes_structure_object = MaObject::CreateStructure(M, "байти");
-    M->global_scope->setProperty(M, "байти", bytes_structure_object);
-    M->bytes_structure_object = bytes_structure_object;
-    bytes_structure_object->setProperty(
+    const auto bytesStructureObject = MaObject::CreateStructure(M, "байти");
+    M->global_scope->setProperty(M, "байти", bytesStructureObject);
+    M->bytes_structure_object = bytesStructureObject;
+    bytesStructureObject->setProperty(
         M, MAG_CALL,
         MaObject::CreateDiiaNativeFn(M, MAG_CALL,
                                      MaBytes_Structure_MagCallNativeDiiaFn,
-                                     bytes_structure_object));
+                                     bytesStructureObject));
   }
 } // namespace mavka::mama

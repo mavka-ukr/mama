@@ -13,6 +13,15 @@ namespace mavka::mama {
     if (this->scopeModule) {
       this->scopeModule->release();
     }
+    if (this->diiaBoundObject) {
+      this->diiaBoundObject->release();
+    }
+    if (this->diiaOuterScope) {
+      this->diiaOuterScope->release();
+    }
+    if (this->moduleRoot) {
+      this->moduleRoot->release();
+    }
     for (const auto& item : this->listData) {
       if (item.isObject()) {
         item.asObject()->release();
@@ -197,10 +206,10 @@ namespace mavka::mama {
     if (!magicDiia.isEmpty()) {
       return magicDiia.call(M, scope, args, li);
     }
+    scope->retain();
     this->retain();
     M->call_stack.push(MaFrame(this, li));
     if (this->isDiia(M)) {
-      scope->retain();
       if (this->diiaHasNativeFn()) {
         const auto result = this->diiaGetNativeFn()(M, scope, this, args, li);
         if (!result.isError()) {
@@ -244,10 +253,12 @@ namespace mavka::mama {
         instanceObject->setProperty(M, param.name, arg_value);
       }
       M->call_stack.pop();
+      scope->release();
       this->release();
       return MaValue::Object(instanceObject);
     }
     M->call_stack.pop();
+    scope->release();
     this->release();
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaObject::CreateText(M, "Неможливо викликати.")), li));

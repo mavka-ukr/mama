@@ -23,6 +23,11 @@ namespace mavka::mama {
       if (index >= this->listGetLength()) {
         // todo: looks bad
         this->listData.resize(index + 1);
+      } else {
+        const auto old = this->listData[index];
+        if (old.isObject()) {
+          old.asObject()->release();
+        }
       }
       this->listData[index] = value;
     }
