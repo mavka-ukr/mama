@@ -10,10 +10,14 @@ namespace mavka::mama {
     code->push(MaInstruction::take(take_node->repo, parts));
 
     if (take_node->elements.empty()) {
-      if (take_node->as.empty()) {
-        code->push(MaInstruction::store(parts.back()));
+      if (take_node->all_elements) {
+        code->push(MaInstruction::eFetchAll());
       } else {
-        code->push(MaInstruction::store(take_node->as));
+        if (take_node->as.empty()) {
+          code->push(MaInstruction::store(parts.back()));
+        } else {
+          code->push(MaInstruction::store(take_node->as));
+        }
       }
     } else {
       for (const auto& element : take_node->elements) {
@@ -21,6 +25,7 @@ namespace mavka::mama {
         code->push(MaInstruction::store(element.second));
       }
     }
+    code->push(MaInstruction::pop());
     return success();
   }
 } // namespace mavka::mama

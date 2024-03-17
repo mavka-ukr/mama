@@ -234,6 +234,17 @@ namespace mavka::mama {
           }
           break;
         }
+        case VEFetchAll: {
+          TOP_VALUE(value);
+          if (value.isObject()) {
+            value.asObject()->retain();
+            for (const auto& [pk, pv] : value.asObject()->properties) {
+              frame->getScope()->setProperty(M, pk, pv);
+            }
+            value.asObject()->release();
+          }
+          break;
+        }
         case VTry: {
           const auto frames_size = this->call_stack.size();
           const auto result = this->run(I.data.try_->try_code, stack);

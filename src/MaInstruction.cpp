@@ -31,6 +31,8 @@ namespace mavka::mama {
         return "VSet";
       case VESetR:
         return "VESetR";
+      case VEFetchAll:
+        return "VEFetchAll";
       case VXor:
         return "VXor";
       case VBor:
@@ -187,6 +189,9 @@ namespace mavka::mama {
   MaInstruction MaInstruction::set(const std::string& name) {
     return MaInstruction{VSet, {.set = new MaSetInstructionArgs(name)}};
   }
+  MaInstruction MaInstruction::eFetchAll() {
+    return MaInstruction{VEFetchAll};
+  }
   MaInstruction MaInstruction::try_(MaTryInstructionArgs* args) {
     return MaInstruction{VTry, {.try_ = args}};
   }
@@ -228,8 +233,7 @@ namespace mavka::mama {
       const std::string& repository,
       const std::vector<std::string>& path_parts) {
     return MaInstruction{
-        VTake,
-        {.take = new MaTakeInstructionArgs(repository, path_parts)}};
+        VTake, {.take = new MaTakeInstructionArgs(repository, path_parts)}};
   }
   MaInstruction MaInstruction::eq(size_t li) {
     return MaInstruction{VEq, {}, li};

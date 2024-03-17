@@ -30,6 +30,7 @@ typedef enum {
   VEGet,
   VSet,
   VESetR,
+  VEFetchAll,
 
   VTry,
   VThrow,
@@ -191,6 +192,7 @@ struct MaInstruction {
   static MaInstruction get(const std::string& name);
   static MaInstruction eGet(const std::string& name);
   static MaInstruction set(const std::string& name);
+  static MaInstruction eFetchAll();
   static MaInstruction try_(MaTryInstructionArgs* args);
   static MaInstruction throw_(size_t li);
   static MaInstruction list();
