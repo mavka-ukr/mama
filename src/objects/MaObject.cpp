@@ -7,7 +7,25 @@ namespace mavka::mama {
         value.asObject()->release();
       }
     }
-    this->properties.clear();
+    if (this->scopeOuter) {
+      this->scopeOuter->release();
+    }
+    if (this->scopeModule) {
+      this->scopeModule->release();
+    }
+    for (const auto& item : this->listData) {
+      if (item.isObject()) {
+        item.asObject()->release();
+      }
+    }
+    for (const auto& [key, value] : this->dictData) {
+      if (key.isObject()) {
+        key.asObject()->release();
+      }
+      if (value.isObject()) {
+        value.asObject()->release();
+      }
+    }
 #if MAMA_GC_DEBUG == 1
     std::cout << "[GC] deleted " << (void*)this << std::endl;
 #endif
@@ -55,7 +73,7 @@ namespace mavka::mama {
     }
     --this->ref_count;
     if (this->ref_count == 0) {
-      //      delete this;
+      delete this;
     }
   }
 
@@ -179,22 +197,25 @@ namespace mavka::mama {
     if (!magicDiia.isEmpty()) {
       return magicDiia.call(M, scope, args, li);
     }
-    const auto frame = MaFrame(this, li);
-    FRAME_PUSH(frame);
+    this->retain();
+    M->call_stack.push(MaFrame(this, li));
     if (this->isDiia(M)) {
-      const auto diiaScope = MaObject::CreateScope(M, this->diiaGetOuterScope(),
-                                                   scope->scopeGetModule());
-      if (this->diiaHasBoundObject()) {
-        diiaScope->setProperty(M, "я", this->diiaGetBoundObject());
-      }
+      scope->retain();
       if (this->diiaHasNativeFn()) {
-        const auto result =
-            this->diiaGetNativeFn()(M, diiaScope, this, args, li);
+        const auto result = this->diiaGetNativeFn()(M, scope, this, args, li);
         if (!result.isError()) {
-          FRAME_POP();
+          M->call_stack.pop();
+          this->release();
+          scope->release();
         }
         return result;
       } else {
+        const auto diiaScope = MaObject::CreateScope(
+            M, this->diiaGetOuterScope(), scope->scopeGetModule());
+        diiaScope->retain();
+        if (this->diiaHasBoundObject()) {
+          diiaScope->setProperty(M, "я", this->diiaGetBoundObject());
+        }
         const auto diiaParams = this->diiaGetParams();
         for (int i = 0; i < diiaParams.size(); ++i) {
           const auto& param = diiaParams[i];
@@ -203,9 +224,11 @@ namespace mavka::mama {
           diiaScope->setProperty(M, param.name, arg_value);
         }
         const auto result = M->run(diiaScope, this->diiaGetCode());
-        // todo: gc
         if (!result.isError()) {
-          FRAME_POP();
+          M->call_stack.pop();
+          this->release();
+          scope->release();
+          diiaScope->release();
         }
         return result;
       }
@@ -220,10 +243,12 @@ namespace mavka::mama {
             args->getArg(M, std::to_string(i), param.name, param.default_value);
         instanceObject->setProperty(M, param.name, arg_value);
       }
-      FRAME_POP();
+      M->call_stack.pop();
+      this->release();
       return MaValue::Object(instanceObject);
     }
-    FRAME_POP();
+    M->call_stack.pop();
+    this->release();
     return MaValue::Error(MaError::Create(
         MaValue::Object(MaObject::CreateText(M, "Неможливо викликати.")), li));
   }

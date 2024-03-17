@@ -2,7 +2,7 @@
 
 namespace mavka::mama {
   bool MaObject::scopeHasOuter() const {
-    return this->scopeGetOuter() != nullptr;
+    return this->scopeOuter != nullptr;
   }
 
   MaObject* MaObject::scopeGetOuter() const {
@@ -10,6 +10,12 @@ namespace mavka::mama {
   }
 
   void MaObject::scopeSetOuter(MaObject* outer) {
+    if (outer) {
+      outer->retain();
+    }
+    if (this->scopeOuter) {
+      this->scopeOuter->release();
+    }
     this->scopeOuter = outer;
   }
 
@@ -18,6 +24,12 @@ namespace mavka::mama {
   }
 
   void MaObject::scopeSetModule(MaObject* module) {
+    if (module) {
+      module->retain();
+    }
+    if (this->scopeModule) {
+      this->scopeModule->release();
+    }
     this->scopeModule = module;
   }
 

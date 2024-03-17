@@ -19,11 +19,10 @@ namespace mavka::mama {
     const auto M = new MaMa();
     M->locations.push_back(MaLocation(0, 0, ""));
     const auto scope_structure_object = new MaObject();
+    scope_structure_object->structureName = "Сковп";
     M->scope_structure_object = scope_structure_object;
-    M->global_scope = new MaObject();
+    M->global_scope = MaObject::CreateScope(M, nullptr, nullptr);
     M->global_scope->retain();
-    M->global_scope->structure = scope_structure_object;
-    M->global_scope->scopeSetOuter(nullptr);
     InitStructure(M);
     MaObject::Init(M);
     InitDiia(M);
@@ -35,13 +34,11 @@ namespace mavka::mama {
     InitDict(M);
     InitBytes(M);
     InitStructure2(M);
-    scope_structure_object->structureName = "Сковп";
     scope_structure_object->structure = M->structure_structure_object;
     return M;
   }
 
   MaValue MaMa::run(MaObject* scope, MaCode* code) {
-    const auto M = this;
     std::stack<MaValue> stack;
     auto size = code->instructions.size();
     size_t i = 0;
@@ -57,6 +54,20 @@ namespace mavka::mama {
       switch (I.v) {
         case VPop: {
           POP();
+          break;
+        }
+        case VRetain: {
+          TOP_VALUE(value);
+          if (value.isObject()) {
+            value.asObject()->retain();
+          }
+          break;
+        }
+        case VRelease: {
+          TOP_VALUE(value);
+          if (value.isObject()) {
+            value.asObject()->release();
+          }
           break;
         }
         case VConstant: {
@@ -121,16 +132,17 @@ namespace mavka::mama {
         }
         case VStore: {
           POP_VALUE(value);
-          scope->setProperty(M, I.data.store->name, value);
+          scope->setProperty(this, I.data.store->name, value);
           break;
         }
         case VLoad: {
-          if (scope->hasProperty(M, I.data.load->name)) {
-            PUSH(scope->getProperty(M, I.data.load->name));
+          if (scope->hasProperty(this, I.data.load->name)) {
+            PUSH(scope->getProperty(this, I.data.load->name));
             break;
           }
           return MaValue::Error(MaError::Create(
-              M, "Субʼєкт \"" + I.data.load->name + "\" не визначено.", I.li));
+              this, "Субʼєкт \"" + I.data.load->name + "\" не визначено.",
+              I.li));
         }
         case VJump: {
           i = I.data.jump;
@@ -162,6 +174,32 @@ namespace mavka::mama {
             i = I.data.jumpIfFalse;
             goto start;
           }
+          break;
+        }
+        case VJumpIfFalseAndRelease: {
+          POP_VALUE(value);
+          if (value.isEmpty()) {
+            i = I.data.jumpIfFalse;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
+            goto start;
+          } else if (value.isNumber()) {
+            if (value.asNumber() == 0.0) {
+              i = I.data.jumpIfFalse;
+              if (value.isObject()) {
+                value.asObject()->release();
+              }
+              goto start;
+            }
+          } else if (value.isNo()) {
+            i = I.data.jumpIfFalse;
+            if (value.isObject()) {
+              value.asObject()->release();
+            }
+            goto start;
+          }
+          value.asObject()->release();
           break;
         }
         case VEJumpIfTrue: {
@@ -232,7 +270,7 @@ namespace mavka::mama {
           if (value.isObject()) {
             value.asObject()->retain();
             for (const auto& [pk, pv] : value.asObject()->properties) {
-              scope->setProperty(M, pk, pv);
+              scope->setProperty(this, pk, pv);
             }
             value.asObject()->release();
           }
@@ -260,7 +298,7 @@ namespace mavka::mama {
         case VListAppend: {
           POP_VALUE(value);
           TOP_VALUE(listValue);
-          listValue.asObject()->listAppend(M, value);
+          listValue.asObject()->listAppend(this, value);
           break;
         }
         case VDict: {
@@ -271,7 +309,7 @@ namespace mavka::mama {
           POP_VALUE(value);
           TOP_VALUE(dictValue);
           dictValue.asObject()->dictSetAt(
-              M,
+              this,
               MaValue::Object(MaObject::CreateText(this, I.data.dictSet->key)),
               value);
           break;
@@ -293,23 +331,25 @@ namespace mavka::mama {
           POP_VALUE(diiaValue);
           TOP_VALUE(structureValue);
           if (structureValue.isObject()) {
-            if (structureValue.asObject()->isStructure(M)) {
+            if (structureValue.asObject()->isStructure(this)) {
               structureValue.asObject()->structurePushMethod(
                   diiaValue.asObject());
               break;
             }
           }
-          DO_RETURN_STRING_ERROR(
-              "Неможливо створити метод для типу " + structureValue.getName(),
-              I.li)
+          return MaValue::Error(
+              MaError::Create(this,
+                              "Неможливо створити метод для типу " +
+                                  structureValue.asObject()->structureName,
+                              I.li));
         }
         case VModule: {
           const auto moduleObject =
               MaObject::CreateModule(this, I.data.module->name);
-          scope->setProperty(M, I.data.module->name, moduleObject);
+          scope->setProperty(this, I.data.module->name, moduleObject);
           const auto moduleScope =
               MaObject::CreateScope(this, scope, scope->scopeGetModule());
-          const auto result = M->run(moduleScope, I.data.module->code);
+          const auto result = this->run(moduleScope, I.data.module->code);
           if (result.isError()) {
             return result;
           }
@@ -317,7 +357,7 @@ namespace mavka::mama {
         }
         case VGive: {
           POP_VALUE(value);
-          const auto meValue = scope->getProperty(M, "я");
+          const auto meValue = scope->getProperty(this, "я");
           if (meValue.isError()) {
             return meValue;
           }
@@ -329,7 +369,7 @@ namespace mavka::mama {
         case VEq: {
           POP_VALUE(right);
           POP_VALUE(left);
-          if (left.isEqual(M, right)) {
+          if (left.isEqual(this, right)) {
             PUSH_YES();
           } else {
             PUSH_NO();
@@ -635,8 +675,10 @@ namespace mavka::mama {
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
     const auto moduleScope = MaObject::CreateScope(this, scope, moduleObject);
+    moduleScope->retain();
     moduleScope->setProperty(this, "я", moduleObject);
     const auto result = this->run(moduleScope, moduleCode);
+    moduleScope->release();
     if (result.isError()) {
       return result;
     }

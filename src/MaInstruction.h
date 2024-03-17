@@ -3,6 +3,8 @@
 
 typedef enum {
   VPop,
+  VRetain,
+  VRelease,
 
   VConstant,
   VNumber,
@@ -23,6 +25,7 @@ typedef enum {
   VJump,
   VJumpIfTrue,
   VJumpIfFalse,
+  VJumpIfFalseAndRelease,
   VEJumpIfTrue,
   VEJumpIfFalse,
 
@@ -173,6 +176,8 @@ struct MaInstruction {
   std::string ToString();
 
   static MaInstruction pop();
+  static MaInstruction retain();
+  static MaInstruction release();
   static MaInstruction constant(size_t index);
   static MaInstruction number(double value);
   static MaInstruction empty();
@@ -189,6 +194,7 @@ struct MaInstruction {
   static MaInstruction jump(size_t index);
   static MaInstruction jumpIfTrue(size_t index);
   static MaInstruction jumpIfFalse(size_t index);
+  static MaInstruction jumpIfFalseAndRelease(size_t index);
   static MaInstruction get(const std::string& name);
   static MaInstruction eGet(const std::string& name);
   static MaInstruction set(const std::string& name);

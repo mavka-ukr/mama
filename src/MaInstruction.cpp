@@ -129,6 +129,12 @@ namespace mavka::mama {
   MaInstruction MaInstruction::pop() {
     return MaInstruction{VPop};
   }
+  MaInstruction MaInstruction::retain() {
+    return MaInstruction{VRetain};
+  }
+  MaInstruction MaInstruction::release() {
+    return MaInstruction{VRelease};
+  }
   MaInstruction MaInstruction::constant(size_t index) {
     return MaInstruction{VConstant, {.constant = index}};
   }
@@ -179,6 +185,9 @@ namespace mavka::mama {
   }
   MaInstruction MaInstruction::jumpIfFalse(size_t index) {
     return MaInstruction{VJumpIfFalse, {.jumpIfFalse = index}};
+  }
+  MaInstruction MaInstruction::jumpIfFalseAndRelease(size_t index) {
+    return MaInstruction{VJumpIfFalseAndRelease, {.jumpIfFalse = index}};
   }
   MaInstruction MaInstruction::get(const std::string& name) {
     return MaInstruction{VGet, {.get = new MaGetInstructionArgs(name)}};
