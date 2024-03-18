@@ -88,8 +88,7 @@ namespace mavka::mama {
   }
 
   MaObject* MaObject::diiaBind(MaMa* M, MaObject* diiaObject) {
-    const auto boundDiiaObject =
-        MaObject::Instance(M, M->diia_structure_object);
+    const auto boundDiiaObject = M->createObject(M->diia_structure_object);
     boundDiiaObject->diiaSetName(this->diiaGetName());
     boundDiiaObject->diiaSetCode(this->diiaGetCode());
     boundDiiaObject->diiaSetNativeFn(this->diiaGetNativeFn());
@@ -102,6 +101,7 @@ namespace mavka::mama {
 
   void InitDiia(MaMa* M) {
     const auto diiaStructureObject = M->createStructure("Дія");
+    diiaStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "Дія", diiaStructureObject);
     M->diia_structure_object = diiaStructureObject;
   }

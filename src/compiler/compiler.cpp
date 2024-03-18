@@ -168,8 +168,9 @@ namespace mavka::mama {
         return result;
       }
       if (mavka::ast::is_ast_value_returnable(ast_value)) {
-        code->instructions.push_back(MaInstruction::retain());
-        code->instructions.push_back(MaInstruction::release());
+        code->push(MaInstruction::retain());
+        code->push(MaInstruction::release());
+        code->push(MaInstruction::pop());
       }
     }
     return success();

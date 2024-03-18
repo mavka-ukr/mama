@@ -35,6 +35,14 @@ namespace mavka::mama {
         value.asObject()->release();
       }
     }
+    this->properties.clear();
+    this->bytesData.clear();
+    this->listData.clear();
+    this->dictData.clear();
+    this->textData.clear();
+    this->diiaName.clear();
+    this->structureName.clear();
+    this->moduleName.clear();
 #if MAMA_GC_DEBUG == 1
     std::cout << "[GC] deleted " << (void*)this << std::endl;
 #endif
@@ -77,6 +85,9 @@ namespace mavka::mama {
   }
 
   void MaObject::release() {
+    if (this->indestructible) {
+      return;
+    }
     if (this->ref_count == 0) {
       return;
     }
@@ -253,18 +264,18 @@ namespace mavka::mama {
           diiaScope->setProperty(M, param.name, arg_value);
         }
         const auto result = M->run(diiaScope, this->diiaGetCode());
+        this->release();
+        diiaScope->release();
+        scope->release();
         if (!result.isError()) {
           M->call_stack.pop();
-          this->release();
-          scope->release();
-          diiaScope->release();
         }
         return result;
       }
     }
     if (this->isStructure(M)) {
       // todo: handle spec structures
-      const auto instanceObject = MaObject::Instance(M, this);
+      const auto instanceObject = M->createObject(this);
       const auto structureParams = this->structureGetParams();
       for (int i = 0; i < structureParams.size(); ++i) {
         const auto& param = structureParams[i];
@@ -273,13 +284,13 @@ namespace mavka::mama {
         instanceObject->setProperty(M, param.name, arg_value);
       }
       M->call_stack.pop();
-      scope->release();
       this->release();
+      scope->release();
       return MaValue::Object(instanceObject);
     }
     M->call_stack.pop();
-    scope->release();
     this->release();
+    scope->release();
     return MaValue::Error(MaError::Create(
         MaValue::Object(M->createText("Неможливо викликати.")), li));
   }
@@ -301,7 +312,7 @@ namespace mavka::mama {
     if (value.isObject()) {
       value.asObject()->retain();
     }
-    const auto args = MaObject::Empty(M);
+    const auto args = M->createObject(M->object_structure_object);
     args->retain();
     args->setProperty(M, "0", value);
     const auto result = magicDiia.call(M, scope, args, li);
@@ -368,28 +379,9 @@ namespace mavka::mama {
   }
 
   void MaObject::Init(MaMa* M) {
-    const auto object_structure_object = M->createStructure("обʼєкт");
-    M->global_scope->setProperty(M, "обʼєкт", object_structure_object);
-    M->object_structure_object = object_structure_object;
-  }
-
-  MaObject* MaObject::Instance(MaMa* M, MaObject* structureObject) {
-    const auto object = new MaObject();
-    object->structure = structureObject;
-    const auto structureMethods = structureObject->structureGetMethods();
-    for (const auto& method : structureMethods) {
-      const auto boundDiiaObject = method->diiaBind(M, object);
-      object->setProperty(M, method->diiaGetName(),
-                          MaValue::Object(boundDiiaObject));
-    }
-#if MAMA_GC_DEBUG
-    std::cout << "[GC] created " << object->getPrettyString(M) << " "
-              << (void*)object << std::endl;
-#endif
-    return object;
-  }
-
-  MaObject* MaObject::Empty(MaMa* M) {
-    return MaObject::Instance(M, M->object_structure_object);
+    const auto objectStructureObject = M->createStructure("обʼєкт");
+    objectStructureObject->indestructible = true;
+    M->global_scope->setProperty(M, "обʼєкт", objectStructureObject);
+    M->object_structure_object = objectStructureObject;
   }
 } // namespace mavka::mama

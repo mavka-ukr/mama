@@ -23,6 +23,7 @@ namespace mavka::mama {
 
   void InitBytes(MaMa* M) {
     const auto bytesStructureObject = M->createStructure("байти");
+    bytesStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "байти", bytesStructureObject);
     M->bytes_structure_object = bytesStructureObject;
     bytesStructureObject->setProperty(

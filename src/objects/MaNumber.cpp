@@ -30,6 +30,7 @@ namespace mavka::mama {
 
   void InitNumber(MaMa* M) {
     const auto numberStructureObject = M->createStructure("число");
+    numberStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "число", numberStructureObject);
     M->number_structure_object = numberStructureObject;
     numberStructureObject->setProperty(

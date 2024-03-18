@@ -319,6 +319,7 @@ namespace mavka::mama {
 
   void InitText(MaMa* M) {
     const auto textStructureObject = M->createStructure("текст");
+    textStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "текст", textStructureObject);
     M->text_structure_object = textStructureObject;
     textStructureObject->setProperty(

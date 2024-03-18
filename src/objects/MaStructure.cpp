@@ -50,6 +50,7 @@ namespace mavka::mama {
 
   void InitStructure(MaMa* M) {
     const auto structureStructureObject = M->createStructure("Структура");
+    structureStructureObject->indestructible = true;
     M->structure_structure_object = structureStructureObject;
     M->global_scope->setProperty(M, "Структура", structureStructureObject);
   }

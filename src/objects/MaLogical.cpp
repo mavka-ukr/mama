@@ -26,6 +26,7 @@ namespace mavka::mama {
 
   void InitLogical(MaMa* M) {
     const auto logicalStructureObject = M->createStructure("логічне");
+    logicalStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "логічне", logicalStructureObject);
     M->logical_structure_object = logicalStructureObject;
     logicalStructureObject->setProperty(

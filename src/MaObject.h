@@ -14,6 +14,7 @@ struct MaObject {
   int ref_count;
   MaObject* structure;
   tsl::ordered_map<std::string, MaValue> properties;
+  bool indestructible;
 
   ~MaObject();
 
@@ -59,8 +60,6 @@ struct MaObject {
   std::string getPrettyString(MaMa* M);
 
   static void Init(MaMa* M);
-  static MaObject* Instance(MaMa* M, MaObject* structureObject);
-  static MaObject* Empty(MaMa* M);
 
   // scope
   MaObject* scopeOuter;
@@ -148,8 +147,8 @@ struct MaObject {
 };
 
 enum MaValueType : uint8_t {
-  MaValueTypeError = 0,
-  MaValueTypeEmpty = 1,
+  MaValueTypeEmpty = 0,
+  MaValueTypeError = 1,
   MaValueTypeNumber = 2,
   MaValueTypeYes = 3,
   MaValueTypeNo = 4,

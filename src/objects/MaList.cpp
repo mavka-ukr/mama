@@ -50,7 +50,7 @@ namespace mavka::mama {
                                      size_t li) {
     const auto listObject = diiaObject->diiaGetBoundObject();
 
-    const auto iteratorObject = MaObject::Empty(M);
+    const auto iteratorObject = M->createObject(M->object_structure_object);
     iteratorObject->setProperty(M, "_список", listObject);
 
     if (listObject->listGetLength() == 0) {
@@ -174,12 +174,13 @@ namespace mavka::mama {
   }
 
   void InitList(MaMa* M) {
-    const auto list_structure_object = M->createStructure("список");
-    M->global_scope->setProperty(M, "список", list_structure_object);
-    M->list_structure_object = list_structure_object;
-    list_structure_object->setProperty(
+    const auto listStructureObject = M->createStructure("список");
+    listStructureObject->indestructible = true;
+    M->global_scope->setProperty(M, "список", listStructureObject);
+    M->list_structure_object = listStructureObject;
+    listStructureObject->setProperty(
         M, MAG_CALL,
         M->createNativeDiia(MAG_CALL, MaList_Structure_MagCallNativeDiiaFn,
-                            list_structure_object));
+                            listStructureObject));
   }
 } // namespace mavka::mama

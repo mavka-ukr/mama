@@ -33,6 +33,7 @@ namespace mavka::mama {
 
   void InitModule(MaMa* M) {
     const auto moduleStructureObject = M->createStructure("Модуль");
+    moduleStructureObject->indestructible = true;
     M->global_scope->setProperty(M, "Модуль", moduleStructureObject);
     M->module_structure_object = moduleStructureObject;
   }

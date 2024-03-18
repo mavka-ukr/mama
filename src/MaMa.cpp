@@ -19,10 +19,11 @@ namespace mavka::mama {
     const auto M = new MaMa();
     M->locations.push_back(MaLocation(0, 0, ""));
     const auto scope_structure_object = new MaObject();
+    scope_structure_object->indestructible = true;
     scope_structure_object->structureName = "Сковп";
     M->scope_structure_object = scope_structure_object;
     M->global_scope = M->createScope(nullptr, nullptr);
-    M->global_scope->retain();
+    M->global_scope->indestructible = true;
     InitStructure(M);
     MaObject::Init(M);
     InitDiia(M);
@@ -91,7 +92,8 @@ namespace mavka::mama {
           break;
         }
         case VArgs: {
-          PUSH(MaValue::Object(MaObject::Empty(this)));
+          PUSH(MaValue::Object(
+              this->createObject(this->object_structure_object)));
           break;
         }
         case VStoreArg: {
@@ -106,10 +108,10 @@ namespace mavka::mama {
           argsValue.asObject()->retain();
           const auto result =
               value.call(this, scope, argsValue.asObject(), I.li);
-          argsValue.asObject()->release();
           if (result.isError()) {
             return result;
           }
+          argsValue.asObject()->release();
           PUSH(result);
           break;
         }
@@ -262,11 +264,9 @@ namespace mavka::mama {
         case VEFetchAll: {
           TOP_VALUE(value);
           if (value.isObject()) {
-            value.asObject()->retain();
             for (const auto& [pk, pv] : value.asObject()->properties) {
               scope->setProperty(this, pk, pv);
             }
-            value.asObject()->release();
           }
           break;
         }
@@ -338,10 +338,13 @@ namespace mavka::mama {
         }
         case VModule: {
           const auto moduleObject = this->createModule(I.data.module->name);
+          moduleObject->retain();
           scope->setProperty(this, I.data.module->name, moduleObject);
           const auto moduleScope =
               this->createScope(scope, scope->scopeGetModule());
+          moduleScope->retain();
           const auto result = this->run(moduleScope, I.data.module->code);
+          moduleScope->release();
           if (result.isError()) {
             return result;
           }
@@ -618,7 +621,9 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
+    scope->retain();
     const auto result = this->run(scope, code);
+    scope->release();
     if (result.isError()) {
       return result;
     }
@@ -651,7 +656,6 @@ namespace mavka::mama {
     const auto moduleObject = this->createModule(name);
     moduleObject->moduleSetCode(moduleCode);
     if (this->main_module == nullptr) {
-      moduleObject->retain();
       this->main_module = moduleObject;
     }
     if (root) {
@@ -666,6 +670,7 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
+    moduleObject->retain();
     const auto moduleScope = this->createScope(scope, moduleObject);
     moduleScope->retain();
     moduleScope->setProperty(this, "я", moduleObject);
@@ -681,7 +686,7 @@ namespace mavka::mama {
     const auto object = new MaObject();
     object->structure = structureObject;
 #if MAMA_GC_DEBUG
-    std::cout << "[GC] created " << object->getPrettyString(M) << " "
+    std::cout << "[GC] created " << object->getPrettyString(this) << " "
               << (void*)object << std::endl;
 #endif
     return object;

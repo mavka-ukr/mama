@@ -56,8 +56,9 @@ namespace mavka::mama {
   }
 
   void InitDict(MaMa* M) {
-    const auto dict_structure_object = M->createStructure( "словник");
-    M->global_scope->setProperty(M, "словник", dict_structure_object);
-    M->dict_structure_object = dict_structure_object;
+    const auto dictStructureObject = M->createStructure("словник");
+    dictStructureObject->indestructible = true;
+    M->global_scope->setProperty(M, "словник", dictStructureObject);
+    M->dict_structure_object = dictStructureObject;
   }
 } // namespace mavka::mama
