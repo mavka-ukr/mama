@@ -20,7 +20,6 @@
 #include <tsl/ordered_map.h>
 #include "external/parser/ast.h"
 #include "external/parser/parser.h"
-#include "external/sgcl/sgcl.h"
 #include "utils/tools.h"
 
 #define MAMA_DEBUG 0
