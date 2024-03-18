@@ -44,12 +44,12 @@ namespace mavka::mama {
   }
 
   void MaObject::structurePushMethod(MaObject* method) {
+    method->retain();
     this->structureMethods.push_back(method);
   }
 
   void InitStructure(MaMa* M) {
-    const auto structureStructureObject =
-        M->createStructure( "Структура");
+    const auto structureStructureObject = M->createStructure("Структура");
     M->structure_structure_object = structureStructureObject;
     M->global_scope->setProperty(M, "Структура", structureStructureObject);
   }
@@ -57,8 +57,7 @@ namespace mavka::mama {
   void InitStructure2(MaMa* M) {
     M->structure_structure_object->setProperty(
         M, "дізнатись",
-        M->createNativeDiia( "дізнатись",
-                                     MaStructure_DiscoverNativeDiiaFn,
-                                     M->structure_structure_object));
+        M->createNativeDiia("дізнатись", MaStructure_DiscoverNativeDiiaFn,
+                            M->structure_structure_object));
   }
 } // namespace mavka::mama

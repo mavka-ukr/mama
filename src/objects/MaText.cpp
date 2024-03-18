@@ -258,9 +258,9 @@ namespace mavka::mama {
                                            MaObject* diiaObject,
                                            MaObject* args,
                                            size_t li) {
-    const auto cell = args->getArg(M, "0", "позиція");
-    if (cell.isNumber()) {
-      const auto i = cell.asNumber();
+    const auto positionValue = args->getArg(M, "0", "позиція");
+    if (positionValue.isNumber()) {
+      const auto i = positionValue.asNumber();
       if (i < diiaObject->diiaGetBoundObject()->textGetLength()) {
         const auto substr = diiaObject->diiaGetBoundObject()->textSubstr(i, 1);
         return MaValue::Object(M->createText(substr));
@@ -325,5 +325,7 @@ namespace mavka::mama {
         M, MAG_CALL,
         M->createNativeDiia(MAG_CALL, MaText_Structure_MagCallNativeDiiaFn,
                             textStructureObject));
+    textStructureObject->structurePushMethod(
+        M->createNativeDiia(MAG_ADD, MaText_MagAddNativeDiiaFn, nullptr));
   }
 } // namespace mavka::mama

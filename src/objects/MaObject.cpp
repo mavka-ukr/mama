@@ -169,6 +169,19 @@ namespace mavka::mama {
     if (this->properties.contains(name)) {
       return this->properties[name];
     }
+    if (this->structure) {
+      MaObject* foundMethod = nullptr;
+      for (const auto& method : this->structure->structureGetMethods()) {
+        if (method->diiaGetName() == name) {
+          foundMethod = method;
+          break;
+        }
+      }
+      if (foundMethod) {
+        this->properties.insert_or_assign(name, MaValue::Object(foundMethod));
+        return MaValue::Object(foundMethod);
+      }
+    }
     return MaValue::Empty();
   }
 
