@@ -132,6 +132,13 @@ namespace mavka::mama {
         return this->scopeGetOuter()->hasProperty(M, name);
       }
     }
+    if (this->structure) {
+      for (const auto& method : this->structure->structureMethods) {
+        if (method->diiaName == name) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -171,15 +178,16 @@ namespace mavka::mama {
     }
     if (this->structure) {
       MaObject* foundMethod = nullptr;
-      for (const auto& method : this->structure->structureGetMethods()) {
-        if (method->diiaGetName() == name) {
+      for (const auto& method : this->structure->structureMethods) {
+        if (method->diiaName == name) {
           foundMethod = method;
           break;
         }
       }
       if (foundMethod) {
-        this->properties.insert_or_assign(name, MaValue::Object(foundMethod));
-        return MaValue::Object(foundMethod);
+        const auto boundDiia = foundMethod->diiaBind(M, this);
+        this->properties.insert_or_assign(name, MaValue::Object(boundDiia));
+        return MaValue::Object(boundDiia);
       }
     }
     return MaValue::Empty();
