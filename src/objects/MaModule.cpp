@@ -31,14 +31,8 @@ namespace mavka::mama {
     this->moduleCode = code;
   }
 
-  MaObject* MaObject::CreateModule(MaMa* M, const std::string& name) {
-    const auto moduleObject = MaObject::Instance(M, M->module_structure_object);
-    moduleObject->moduleSetName(name);
-    return moduleObject;
-  }
-
   void InitModule(MaMa* M) {
-    const auto moduleStructureObject = MaObject::CreateStructure(M, "Модуль");
+    const auto moduleStructureObject = M->createStructure("Модуль");
     M->global_scope->setProperty(M, "Модуль", moduleStructureObject);
     M->module_structure_object = moduleStructureObject;
   }

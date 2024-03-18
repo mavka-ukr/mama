@@ -72,7 +72,7 @@
 
 #define DO_RETURN_STRING_ERROR(v, li) \
   return MaValue::Error(              \
-      MaError::Create(MaValue::Object(MaObject::CreateText(M, (v))), (li)));
+      MaError::Create(MaValue::Object(M->createText((v))), (li)));
 
 namespace mavka::mama {
   struct MaMa;
@@ -81,12 +81,6 @@ namespace mavka::mama {
   struct MaInstruction;
   struct MaCompilationError;
   struct MaCompilationResult;
-  class MaText;
-  class MaList;
-  class MaDict;
-  class MaDiia;
-  class MaStructure;
-  class MaModule;
   struct MaValue;
   struct MaObject;
   struct MaCode;
@@ -161,6 +155,22 @@ namespace mavka::mama {
                        bool root,
                        size_t li);
 
+    MaObject* createObject(MaObject* structureObject);
+    MaObject* createScope(MaObject* outerScope, MaObject* module);
+    MaObject* createStructure(const std::string& name);
+    MaObject* createDiia(const std::string& name,
+                         MaCode* code,
+                         MaObject* boundToObject,
+                         MaObject* outerScope);
+    MaObject* createNativeDiia(const std::string& name,
+                               const std::function<NativeFn>& fn,
+                               MaObject* boundToObject);
+    MaObject* createModule(const std::string& name);
+    MaObject* createBytes(const std::vector<uint8_t>& data);
+    MaObject* createText(const std::string& data);
+    MaObject* createList();
+    MaObject* createDict();
+
     std::string getStackTrace();
 
     static MaMa* Create();
@@ -179,7 +189,7 @@ namespace mavka::mama {
 
     static MaError* Create(MaMa* M, const std::string& value, size_t li) {
       const auto error = new MaError();
-      error->value = MaValue::Object(MaObject::CreateText(M, value));
+      error->value = MaValue::Object(M->createText(value));
       error->li = li;
       return error;
     }

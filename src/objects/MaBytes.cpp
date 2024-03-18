@@ -1,10 +1,8 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaObject* MaObject::CreateBytes(MaMa* M, const std::vector<uint8_t>& data) {
-    const auto bytesObject = MaObject::Instance(M, M->bytes_structure_object);
-    bytesObject->bytesData = data;
-    return bytesObject;
+  void MaObject::bytesSetData(const std::vector<uint8_t>& data) {
+    this->bytesData = data;
   }
 
   MaValue MaBytes_Structure_MagCallNativeDiiaFn(MaMa* M,
@@ -19,20 +17,17 @@ namespace mavka::mama {
       }
       return value.asObject()->callMagWithoutValue(M, scope, li, MAG_BYTES);
     }
-    return MaValue::Error(
-        MaError::Create(MaValue::Object(MaObject::CreateText(
-                            M, "Неможливо перетворити на байти.")),
-                        li));
+    return MaValue::Error(MaError::Create(
+        MaValue::Object(M->createText("Неможливо перетворити на байти.")), li));
   }
 
   void InitBytes(MaMa* M) {
-    const auto bytesStructureObject = MaObject::CreateStructure(M, "байти");
+    const auto bytesStructureObject = M->createStructure("байти");
     M->global_scope->setProperty(M, "байти", bytesStructureObject);
     M->bytes_structure_object = bytesStructureObject;
     bytesStructureObject->setProperty(
         M, MAG_CALL,
-        MaObject::CreateDiiaNativeFn(M, MAG_CALL,
-                                     MaBytes_Structure_MagCallNativeDiiaFn,
-                                     bytesStructureObject));
+        M->createNativeDiia(MAG_CALL, MaBytes_Structure_MagCallNativeDiiaFn,
+                            bytesStructureObject));
   }
 } // namespace mavka::mama

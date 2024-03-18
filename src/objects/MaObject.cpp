@@ -151,8 +151,7 @@ namespace mavka::mama {
     }
     if (this->isStructure(M)) {
       if (name == "назва") {
-        return MaValue::Object(
-            MaObject::CreateText(M, this->structureGetName()));
+        return MaValue::Object(M->createText(this->structureGetName()));
       }
     } else if (this->isText(M)) {
       if (name == "довжина") {
@@ -219,8 +218,8 @@ namespace mavka::mama {
         }
         return result;
       } else {
-        const auto diiaScope = MaObject::CreateScope(
-            M, this->diiaGetOuterScope(), scope->scopeGetModule());
+        const auto diiaScope =
+            M->createScope(this->diiaGetOuterScope(), scope->scopeGetModule());
         diiaScope->retain();
         if (this->diiaHasBoundObject()) {
           diiaScope->setProperty(M, "я", this->diiaGetBoundObject());
@@ -261,7 +260,7 @@ namespace mavka::mama {
     scope->release();
     this->release();
     return MaValue::Error(MaError::Create(
-        MaValue::Object(MaObject::CreateText(M, "Неможливо викликати.")), li));
+        MaValue::Object(M->createText("Неможливо викликати.")), li));
   }
 
   MaValue MaObject::callMagWithValue(MaMa* M,
@@ -348,7 +347,7 @@ namespace mavka::mama {
   }
 
   void MaObject::Init(MaMa* M) {
-    const auto object_structure_object = MaObject::CreateStructure(M, "обʼєкт");
+    const auto object_structure_object = M->createStructure("обʼєкт");
     M->global_scope->setProperty(M, "обʼєкт", object_structure_object);
     M->object_structure_object = object_structure_object;
   }

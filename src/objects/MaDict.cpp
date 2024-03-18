@@ -55,21 +55,8 @@ namespace mavka::mama {
     return MaValue::Empty();
   }
 
-  MaObject* MaObject::CreateDict(MaMa* M) {
-    const auto dictObject = MaObject::Instance(M, M->dict_structure_object);
-    dictObject->setProperty(
-        M, MAG_GET_ELEMENT,
-        MaObject::CreateDiiaNativeFn(
-            M, MAG_GET_ELEMENT, MaDict_MagGetElementNativeDiiaFn, dictObject));
-    dictObject->setProperty(
-        M, MAG_SET_ELEMENT,
-        MaObject::CreateDiiaNativeFn(
-            M, MAG_SET_ELEMENT, MaDict_MagSetElementNativeDiiaFn, dictObject));
-    return dictObject;
-  }
-
   void InitDict(MaMa* M) {
-    const auto dict_structure_object = MaObject::CreateStructure(M, "словник");
+    const auto dict_structure_object = M->createStructure( "словник");
     M->global_scope->setProperty(M, "словник", dict_structure_object);
     M->dict_structure_object = dict_structure_object;
   }

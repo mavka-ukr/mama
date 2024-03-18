@@ -24,20 +24,17 @@ namespace mavka::mama {
           ->getProperty(M, MAG_NUMBER)
           .call(M, scope, {}, li);
     }
-    return MaValue::Error(
-        MaError::Create(MaValue::Object(MaObject::CreateText(
-                            M, "Неможливо перетворити на число.")),
-                        li));
+    return MaValue::Error(MaError::Create(
+        MaValue::Object(M->createText("Неможливо перетворити на число.")), li));
   }
 
   void InitNumber(MaMa* M) {
-    const auto numberStructureObject = MaObject::CreateStructure(M, "число");
+    const auto numberStructureObject = M->createStructure("число");
     M->global_scope->setProperty(M, "число", numberStructureObject);
     M->number_structure_object = numberStructureObject;
     numberStructureObject->setProperty(
         M, MAG_CALL,
-        MaObject::CreateDiiaNativeFn(M, MAG_CALL,
-                                     MaNumber_Structure_MagCallNativeDiiaFn,
-                                     numberStructureObject));
+        M->createNativeDiia(MAG_CALL, MaNumber_Structure_MagCallNativeDiiaFn,
+                            numberStructureObject));
   }
 } // namespace mavka::mama

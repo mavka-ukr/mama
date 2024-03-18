@@ -23,17 +23,6 @@ namespace mavka::mama {
     return MaValue::Empty();
   }
 
-  MaObject* MaObject::CreateStructure(MaMa* M, const std::string& name) {
-    const auto structureObject = new MaObject();
-    structureObject->structure = M->structure_structure_object;
-    structureObject->structureSetName(name);
-#if MAMA_GC_DEBUG
-    std::cout << "[GC] created " << structureObject->getPrettyString(M) << " "
-              << (void*)structureObject << std::endl;
-#endif
-    return structureObject;
-  }
-
   std::string MaObject::structureGetName() const {
     return this->structureName;
   }
@@ -60,7 +49,7 @@ namespace mavka::mama {
 
   void InitStructure(MaMa* M) {
     const auto structureStructureObject =
-        MaObject::CreateStructure(M, "Структура");
+        M->createStructure( "Структура");
     M->structure_structure_object = structureStructureObject;
     M->global_scope->setProperty(M, "Структура", structureStructureObject);
   }
@@ -68,7 +57,7 @@ namespace mavka::mama {
   void InitStructure2(MaMa* M) {
     M->structure_structure_object->setProperty(
         M, "дізнатись",
-        MaObject::CreateDiiaNativeFn(M, "дізнатись",
+        M->createNativeDiia( "дізнатись",
                                      MaStructure_DiscoverNativeDiiaFn,
                                      M->structure_structure_object));
   }

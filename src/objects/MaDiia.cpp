@@ -1,28 +1,6 @@
 #include "../mama.h"
 
 namespace mavka::mama {
-  MaObject* MaObject::CreateDiia(MaMa* M,
-                                 const std::string& name,
-                                 MaCode* code,
-                                 MaObject* me) {
-    const auto diiaObject = MaObject::Instance(M, M->diia_structure_object);
-    diiaObject->diiaSetName(name);
-    diiaObject->diiaSetCode(code);
-    diiaObject->diiaSetBoundObject(me);
-    return diiaObject;
-  }
-
-  MaObject* MaObject::CreateDiiaNativeFn(MaMa* M,
-                                         const std::string& name,
-                                         const std::function<NativeFn>& fn,
-                                         MaObject* me) {
-    const auto diiaObject = MaObject::Instance(M, M->diia_structure_object);
-    diiaObject->diiaSetName(name);
-    diiaObject->diiaSetNativeFn(fn);
-    diiaObject->diiaSetBoundObject(me);
-    return diiaObject;
-  }
-
   std::string MaObject::diiaGetName() const {
     return this->diiaName;
   }
@@ -123,7 +101,7 @@ namespace mavka::mama {
   }
 
   void InitDiia(MaMa* M) {
-    const auto diiaStructureObject = MaObject::CreateStructure(M, "Дія");
+    const auto diiaStructureObject = M->createStructure("Дія");
     M->global_scope->setProperty(M, "Дія", diiaStructureObject);
     M->diia_structure_object = diiaStructureObject;
   }

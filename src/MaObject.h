@@ -70,13 +70,12 @@ struct MaObject {
   void scopeSetOuter(MaObject* outer);
   MaObject* scopeGetModule() const;
   void scopeSetModule(MaObject* module);
-  static MaObject* CreateScope(MaMa* M, MaObject* outerScope, MaObject* module);
 
   // text
   std::string textData;
+  void textSetData(const std::string& data);
   size_t textGetLength() const;
   std::string textSubstr(size_t start, size_t length) const;
-  static MaObject* CreateText(MaMa* M, const std::string& value);
 
   // list
   std::vector<MaValue> listData;
@@ -85,14 +84,12 @@ struct MaObject {
   MaValue listGetAt(MaMa* M, long index) const;
   void listSetAt(MaMa* M, long index, const MaValue& value);
   bool listContains(MaMa* M, const MaValue& cell);
-  static MaObject* CreateList(MaMa* M);
 
   // dict
   std::vector<std::pair<MaValue, MaValue>> dictData;
   MaValue dictGetAt(MaMa* M, const MaValue& key) const;
   void dictSetAt(MaMa* M, const MaValue& key, const MaValue& value);
   size_t dictGetSize() const;
-  static MaObject* CreateDict(MaMa* M);
 
   // diia
   std::string diiaName;
@@ -122,18 +119,10 @@ struct MaObject {
   void diiaSetParamIndicesMap(
       const std::unordered_map<std::string, std::string>& paramIndicesMap);
   MaObject* diiaBind(MaMa* M, MaObject* diiaObject);
-  static MaObject* CreateDiia(MaMa* M,
-                              const std::string& diia_o,
-                              MaCode* code,
-                              MaObject* me);
-  static MaObject* CreateDiiaNativeFn(MaMa* M,
-                                      const std::string& diia_o,
-                                      const std::function<NativeFn>& fn,
-                                      MaObject* me);
 
   // bytes
   std::vector<uint8_t> bytesData;
-  static MaObject* CreateBytes(MaMa* M, const std::vector<uint8_t>& data);
+  void bytesSetData(const std::vector<uint8_t>& data);
 
   // structure
   std::string structureName;
@@ -145,7 +134,6 @@ struct MaObject {
   void structurePushParam(const MaDiiaParam& param);
   std::vector<MaObject*> structureGetMethods();
   void structurePushMethod(MaObject* method);
-  static MaObject* CreateStructure(MaMa* M, const std::string& name);
 
   // module
   std::string moduleName;
@@ -157,7 +145,6 @@ struct MaObject {
   void moduleSetRoot(MaObject* root);
   MaCode* moduleGetCode() const;
   void moduleSetCode(MaCode* code);
-  static MaObject* CreateModule(MaMa* M, const std::string& name);
 };
 
 enum MaValueType : uint8_t {

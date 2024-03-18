@@ -95,7 +95,7 @@ void init_print(MaMa* M) {
     return MaValue::Empty();
   };
   M->global_scope->setProperty(
-      M, "друк", MaObject::CreateDiiaNativeFn(M, "друк", native_fn, nullptr));
+      M, "друк", M->createNativeDiia( "друк", native_fn, nullptr));
 }
 
 void init_read(MaMa* M) {
@@ -110,11 +110,11 @@ void init_read(MaMa* M) {
     if (std::cin.eof()) {
       return MaValue::Empty();
     }
-    return MaValue::Object(MaObject::CreateText(M, value));
+    return MaValue::Object(M->createText( value));
   };
   M->global_scope->setProperty(
       M, "читати",
-      MaObject::CreateDiiaNativeFn(M, "читати", native_fn, nullptr));
+      M->createNativeDiia( "читати", native_fn, nullptr));
 }
 
 int main(int argc, char** argv) {

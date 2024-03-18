@@ -21,7 +21,7 @@ namespace mavka::mama {
     const auto scope_structure_object = new MaObject();
     scope_structure_object->structureName = "Сковп";
     M->scope_structure_object = scope_structure_object;
-    M->global_scope = MaObject::CreateScope(M, nullptr, nullptr);
+    M->global_scope = M->createScope(nullptr, nullptr);
     M->global_scope->retain();
     InitStructure(M);
     MaObject::Init(M);
@@ -117,9 +117,8 @@ namespace mavka::mama {
           return stack.top();
         }
         case VDiia: {
-          const auto diiaObject = MaObject::CreateDiia(
-              this, I.data.diia->name, I.data.diia->code, nullptr);
-          diiaObject->diiaSetOuterScope(scope);
+          const auto diiaObject = this->createDiia(
+              I.data.diia->name, I.data.diia->code, nullptr, scope);
           PUSH_OBJECT(diiaObject);
           break;
         }
@@ -287,7 +286,7 @@ namespace mavka::mama {
           return MaValue::Error(MaError::Create(value, I.li));
         }
         case VList: {
-          PUSH_OBJECT(MaObject::CreateList(this));
+          PUSH_OBJECT(this->createList());
           break;
         }
         case VListAppend: {
@@ -297,21 +296,20 @@ namespace mavka::mama {
           break;
         }
         case VDict: {
-          PUSH_OBJECT(MaObject::CreateDict(this));
+          PUSH_OBJECT(this->createDict());
           break;
         }
         case VDictSet: {
           POP_VALUE(value);
           TOP_VALUE(dictValue);
           dictValue.asObject()->dictSetAt(
-              this,
-              MaValue::Object(MaObject::CreateText(this, I.data.dictSet->key)),
+              this, MaValue::Object(this->createText(I.data.dictSet->key)),
               value);
           break;
         }
         case VStruct: {
           const auto structureObject =
-              MaObject::CreateStructure(this, I.data.struct_->name);
+              this->createStructure(I.data.struct_->name);
           PUSH_OBJECT(structureObject);
           break;
         }
@@ -339,11 +337,10 @@ namespace mavka::mama {
                               I.li));
         }
         case VModule: {
-          const auto moduleObject =
-              MaObject::CreateModule(this, I.data.module->name);
+          const auto moduleObject = this->createModule(I.data.module->name);
           scope->setProperty(this, I.data.module->name, moduleObject);
           const auto moduleScope =
-              MaObject::CreateScope(this, scope, scope->scopeGetModule());
+              this->createScope(scope, scope->scopeGetModule());
           const auto result = this->run(moduleScope, I.data.module->code);
           if (result.isError()) {
             return result;
@@ -651,7 +648,7 @@ namespace mavka::mama {
     }
     const auto moduleCode = new MaCode();
     moduleCode->path = path;
-    const auto moduleObject = MaObject::CreateModule(this, name);
+    const auto moduleObject = this->createModule(name);
     moduleObject->moduleSetCode(moduleCode);
     if (this->main_module == nullptr) {
       moduleObject->retain();
@@ -669,7 +666,7 @@ namespace mavka::mama {
       return MaValue::Error(
           MaError::Create(this, bodyCompilationResult.error->message, li));
     }
-    const auto moduleScope = MaObject::CreateScope(this, scope, moduleObject);
+    const auto moduleScope = this->createScope(scope, moduleObject);
     moduleScope->retain();
     moduleScope->setProperty(this, "я", moduleObject);
     const auto result = this->run(moduleScope, moduleCode);
@@ -678,6 +675,78 @@ namespace mavka::mama {
       return result;
     }
     return MaValue::Object(moduleObject);
+  }
+
+  MaObject* MaMa::createObject(MaObject* structureObject) {
+    const auto object = new MaObject();
+    object->structure = structureObject;
+#if MAMA_GC_DEBUG
+    std::cout << "[GC] created " << object->getPrettyString(M) << " "
+              << (void*)object << std::endl;
+#endif
+    return object;
+  }
+
+  MaObject* MaMa::createScope(MaObject* outerScope, MaObject* module) {
+    const auto scopeObject = this->createObject(this->scope_structure_object);
+    scopeObject->scopeSetOuter(outerScope);
+    scopeObject->scopeSetModule(module);
+    return scopeObject;
+  }
+
+  MaObject* MaMa::createStructure(const std::string& name) {
+    const auto structureObject =
+        this->createObject(this->structure_structure_object);
+    structureObject->structureSetName(name);
+    return structureObject;
+  }
+
+  MaObject* MaMa::createDiia(const std::string& name,
+                             MaCode* code,
+                             MaObject* boundToObject,
+                             MaObject* outerScope) {
+    const auto diiaObject = this->createObject(this->diia_structure_object);
+    diiaObject->diiaSetName(name);
+    diiaObject->diiaSetCode(code);
+    diiaObject->diiaSetBoundObject(boundToObject);
+    diiaObject->diiaSetOuterScope(outerScope);
+    return diiaObject;
+  }
+
+  MaObject* MaMa::createNativeDiia(const std::string& name,
+                                   const std::function<NativeFn>& fn,
+                                   MaObject* boundToObject) {
+    const auto diiaObject = this->createObject(this->diia_structure_object);
+    diiaObject->diiaSetName(name);
+    diiaObject->diiaSetNativeFn(fn);
+    diiaObject->diiaSetBoundObject(boundToObject);
+    return diiaObject;
+  }
+
+  MaObject* MaMa::createModule(const std::string& name) {
+    const auto moduleObject = this->createObject(this->module_structure_object);
+    moduleObject->moduleSetName(name);
+    return moduleObject;
+  }
+
+  MaObject* MaMa::createBytes(const std::vector<uint8_t>& data) {
+    const auto bytesObject = this->createObject(this->bytes_structure_object);
+    bytesObject->bytesSetData(data);
+    return bytesObject;
+  }
+
+  MaObject* MaMa::createText(const std::string& data) {
+    const auto textObject = this->createObject(this->text_structure_object);
+    textObject->textSetData(data);
+    return textObject;
+  }
+
+  MaObject* MaMa::createList() {
+    return this->createObject(this->list_structure_object);
+  }
+
+  MaObject* MaMa::createDict() {
+    return this->createObject(this->dict_structure_object);
   }
 
   std::string MaMa::getStackTrace() {

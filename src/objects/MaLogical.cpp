@@ -19,20 +19,18 @@ namespace mavka::mama {
     if (value.isObject()) {
       return MaValue::Yes();
     }
-    return MaValue::Error(
-        MaError::Create(MaValue::Object(MaObject::CreateText(
-                            M, "Неможливо перетворити на логічне.")),
-                        li));
+    return MaValue::Error(MaError::Create(
+        MaValue::Object(M->createText("Неможливо перетворити на логічне.")),
+        li));
   }
 
   void InitLogical(MaMa* M) {
-    const auto logicalStructureObject = MaObject::CreateStructure(M, "логічне");
+    const auto logicalStructureObject = M->createStructure("логічне");
     M->global_scope->setProperty(M, "логічне", logicalStructureObject);
     M->logical_structure_object = logicalStructureObject;
     logicalStructureObject->setProperty(
         M, MAG_CALL,
-        MaObject::CreateDiiaNativeFn(M, MAG_CALL,
-                                     MaLogical_Structure_MagCallNativeDiiaFn,
-                                     logicalStructureObject));
+        M->createNativeDiia(MAG_CALL, MaLogical_Structure_MagCallNativeDiiaFn,
+                            logicalStructureObject));
   }
 } // namespace mavka::mama

@@ -32,13 +32,4 @@ namespace mavka::mama {
     }
     this->scopeModule = module;
   }
-
-  MaObject* MaObject::CreateScope(MaMa* M,
-                                  MaObject* outerScope,
-                                  MaObject* module) {
-    const auto scopeObject = MaObject::Instance(M, M->scope_structure_object);
-    scopeObject->scopeSetOuter(outerScope);
-    scopeObject->scopeSetModule(module);
-    return scopeObject;
-  }
 } // namespace mavka::mama
