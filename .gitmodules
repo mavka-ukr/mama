@@ -4,6 +4,3 @@
 [submodule "src/external/cppgc"]
 	path = src/external/cppgc
 	url = https://github.com/oilpan-gc/cppgc
-[submodule "src/external/sgcl"]
-	path = src/external/sgcl
-	url = https://github.com/pebal/sgcl
